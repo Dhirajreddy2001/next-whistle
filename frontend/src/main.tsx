@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useMemo, useState } from 'react';
+import { StrictMode, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
 
@@ -148,14 +148,16 @@ function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggl
   const progress = nextSnapshot ? Math.max(0, Math.min(1, (clockMs - snapshot.at) / (nextSnapshot.at - snapshot.at))) : 0;
   const phase = clockMs / 1000;
   const animatePlayers = (players: number[][], nextPlayers?: number[][]) => players.map(([x, y], index) => {
-    if (nextPlayers) return [x + (nextPlayers[index][0] - x) * progress, y + (nextPlayers[index][1] - y) * progress];
-    return [Math.max(2, Math.min(98, x + Math.sin(phase * .72 + index * 1.37) * .75)), Math.max(3, Math.min(97, y + Math.cos(phase * .61 + index * .93) * 1.05))];
+    const baseX = nextPlayers ? x + (nextPlayers[index][0] - x) * progress : x;
+    const baseY = nextPlayers ? y + (nextPlayers[index][1] - y) * progress : y;
+    return [Math.max(2, Math.min(98, baseX + Math.sin(phase * .72 + index * 1.37) * .75)), Math.max(3, Math.min(97, baseY + Math.cos(phase * .61 + index * .93) * 1.05))];
   });
   const fallbackHome = animatePlayers(snapshot.home, nextSnapshot?.home);
   const fallbackAway = animatePlayers(snapshot.away, nextSnapshot?.away);
-  const fallbackBall = nextSnapshot
+  const fallbackBallBase = nextSnapshot
     ? [snapshot.ball[0] + (nextSnapshot.ball[0] - snapshot.ball[0]) * progress, snapshot.ball[1] + (nextSnapshot.ball[1] - snapshot.ball[1]) * progress]
-    : [Math.max(1, Math.min(99, snapshot.ball[0] + Math.sin(phase * 1.15) * 1.1)), Math.max(2, Math.min(98, snapshot.ball[1] + Math.cos(phase * .9) * .8))];
+    : snapshot.ball;
+  const fallbackBall = [Math.max(1, Math.min(99, fallbackBallBase[0] + Math.sin(phase * 1.15) * 1.1)), Math.max(2, Math.min(98, fallbackBallBase[1] + Math.cos(phase * .9) * .8))];
   const trackedPosition = (player: PlayerProfile): [number, number] | null => { const position = trackingSample?.players[player.id]; return position ? [position[0] / 1.05, position[1] / .68] : null; };
   const home = playerProfiles.filter(player => player.team === 'home').map(player => trackedPosition(player) ?? fallbackHome[player.markerIndex]);
   const away = playerProfiles.filter(player => player.team === 'away').map(player => trackedPosition(player) ?? fallbackAway[player.markerIndex]);
@@ -194,7 +196,7 @@ function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggl
       <circle className="ball-marker" cx={ball[0] * 1.05} cy={ball[1] * .68} r=".85" />
     </svg>
     {activeProfile && <aside className="player-persona" aria-live="polite"><div className="persona-top"><span className={`persona-number ${activeProfile.team}`}>{activeProfile.number}</span><div><strong>{activeProfile.name}</strong><span>{activeProfile.position} · {activeProfile.archetype}</span></div><em>{trackedIds.includes(activeProfile.id) ? 'Tracking' : 'Player profile'}</em></div><p>{activeProfile.description}</p><dl><div><dt>Distance</dt><dd>{activeProfile.distanceKm.toFixed(1)} km</dd></div><div><dt>Top speed</dt><dd>{activeProfile.topSpeed.toFixed(1)} km/h</dd></div><div><dt>Touches</dt><dd>{activeProfile.touches}</dd></div></dl></aside>}
-    <figcaption><span>Hover a player · Select up to 3</span><span>{trackingSample ? 'Full-match tracking · smooth interpolation' : 'Snapshot fallback · loading tracking'}</span></figcaption>
+    <figcaption><span>Hover a player · Select up to 3</span><span>{trackingSample ? 'Full-match tracking · smooth interpolation' : 'Animated preview · tracking API offline'}</span></figcaption>
   </figure>;
 }
 
@@ -234,6 +236,7 @@ function ReplayApp() {
   const [clockMs, setClockMs] = useState(sharedMatchMs); const [liveEdgeMs, setLiveEdgeMs] = useState(sharedMatchMs); const [playing, setPlaying] = useState(true); const [speed, setSpeed] = useState<1 | 4>(1); const [panel, setPanel] = useState<Panel>('moments'); const [selectedEvent, setSelectedEvent] = useState<MatchEvent | null>(null);
   const [liveClock, setLiveClock] = useState<LiveClock>(defaultLiveClock);
   const [trackingFrames, setTrackingFrames] = useState<TrackingFrame[]>([]);
+  const resumeLiveWhenVisible = useRef(false);
   const [trackedIds, setTrackedIds] = useState<string[]>([]); const [hoveredId, setHoveredId] = useState<string | null>(null); const [trackingNotice, setTrackingNotice] = useState('Select up to three players to compare their movement.');
   const visibleEvents = useMemo(() => events.filter(event => event.availableMs <= clockMs), [clockMs]); const homeScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'rvr').length; const awayScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'hrb').length;
   const metrics = useMemo(() => getMetrics(clockMs), [clockMs]);
@@ -246,7 +249,7 @@ function ReplayApp() {
   const goLive = () => { const currentLiveEdge = sharedMatchMs(liveClock); setLiveEdgeMs(currentLiveEdge); setClockMs(currentLiveEdge); setPlaying(true); };
   const togglePlayback = () => { if (playing) setPlaying(false); else goLive(); };
   useEffect(() => { const handleKey = (event: KeyboardEvent) => { if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) return; if (event.code === 'Space') { event.preventDefault(); if (playing) setPlaying(false); else goLive(); } if (event.code === 'ArrowLeft') { setPlaying(false); setClockMs(value => Math.max(0, value - 5000)); } if (event.code === 'ArrowRight') setClockMs(value => Math.min(liveEdgeMs, value + 5000)); }; window.addEventListener('keydown', handleKey); return () => window.removeEventListener('keydown', handleKey); }, [liveEdgeMs, playing]);
-  useEffect(() => { const pauseWhenHidden = () => { if (document.hidden) setPlaying(false); }; document.addEventListener('visibilitychange', pauseWhenHidden); return () => document.removeEventListener('visibilitychange', pauseWhenHidden); }, []);
+  useEffect(() => { const handleVisibility = () => { if (document.hidden) { setPlaying(current => { resumeLiveWhenVisible.current = current; return false; }); } else if (resumeLiveWhenVisible.current) { resumeLiveWhenVisible.current = false; goLive(); } }; document.addEventListener('visibilitychange', handleVisibility); return () => document.removeEventListener('visibilitychange', handleVisibility); }, [liveClock]);
   useEffect(() => { if (clockMs >= MATCH_END_MS) setPlaying(false); if (selectedEvent && selectedEvent.availableMs > clockMs) setSelectedEvent(null); }, [clockMs, selectedEvent]);
   const toggleTrack = (id: string) => { setTrackedIds(current => { if (current.includes(id)) { setTrackingNotice('Player removed. Select another player from the pitch.'); return current.filter(playerId => playerId !== id); } if (current.length >= 3) { setTrackingNotice('You can track up to three players. Remove one before adding another.'); return current; } setTrackingNotice(current.length === 2 ? 'Three-player tracking limit reached.' : `Select ${2 - current.length} more player${current.length === 1 ? '' : 's'} to compare movement.`); return [...current, id]; }); };
   const seek = (time: number, event?: MatchEvent) => { setPlaying(false); setClockMs(Math.max(0, Math.min(liveEdgeMs, time))); if (event) setSelectedEvent(event); };
