@@ -23,8 +23,10 @@ Current Makefile targets:
 - `make backend` / `make frontend`: run the API and Vite in separate terminals.
 - `make test`: run the backend API and startup tests.
 - `make build`: check TypeScript and build frontend assets.
+- `make data`: deterministically generate the versioned history, demo matches, clips, and chunked tracking data.
+- `make validate-data`: validate hashes, cutoffs, chronology, geometry, movement limits, and full-match coverage.
 
-Docker Compose, `make up`, `make down`, `make data`, `make seed`, `make it`, and `make e2e` remain planned. `data/catalog/` holds fixture metadata only, not validated replay datasets.
+Docker Compose, `make up`, `make down`, `make seed`, `make it`, and `make e2e` remain planned. `data/catalog/` holds spoiler-free fixture metadata; validated replay datasets live under `data/datasets/`.
 
 The current scaffold makes no model calls. Use the planned `local-fake` mode for daily development and CI once agent interfaces exist; reserve `local-foundry` for model evaluations.
 

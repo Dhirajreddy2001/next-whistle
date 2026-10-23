@@ -39,9 +39,18 @@ type PlayerProfile = {
   topSpeed: number;
   touches: number;
 };
+type TrackingFrame = [number, number, number, number, number, number[]];
+type TrackingSample = { ball: [number, number]; players: Record<string, [number, number]> };
 
 const MATCH_END_MS = 96 * 60 * 1000;
-const INITIAL_TIME_MS = 75 * 60 * 1000;
+const DEMO_SNAPSHOT_MS = 75 * 60 * 1000;
+const SHARED_LIVE_EPOCH_MS = Date.UTC(2026, 9, 6, 16, 0, 0);
+type LiveClock = { serverOffsetMs: number; epochMs: number; durationMs: number };
+const defaultLiveClock: LiveClock = { serverOffsetMs: 0, epochMs: SHARED_LIVE_EPOCH_MS, durationMs: MATCH_END_MS };
+const sharedMatchMs = (clock = defaultLiveClock, nowMs = Date.now()) => {
+  const elapsedMs = nowMs + clock.serverOffsetMs - clock.epochMs;
+  return ((elapsedMs % clock.durationMs) + clock.durationMs) % clock.durationMs;
+};
 const events: MatchEvent[] = [
   { id: 'e_m_rvr_hrb_00412', minute: "24'", timeMs: 1421000, availableMs: 1421000, team: 'rvr', type: 'goal', title: 'Riverside goal', detail: 'Mara Voss finishes Sofia Marin’s pass after a three-pass counter.', player: 'Mara Voss', x: 91, y: 39 },
   { id: 'e_m_rvr_hrb_00786', minute: "45'", timeMs: 2820000, availableMs: 2820000, team: null, type: 'break', title: 'Half-time', detail: 'Riverside lead by one at the interval.' },
@@ -52,7 +61,7 @@ const events: MatchEvent[] = [
 const snapshots = [
   { at: 0, home: [[8, 50], [25, 28], [28, 70], [44, 40], [48, 65], [60, 24], [61, 52], [72, 76], [77, 42], [85, 62], [90, 35]], away: [[94, 50], [76, 25], [79, 68], [62, 38], [64, 62], [51, 26], [52, 75], [40, 46], [31, 22], [28, 58], [18, 43]], ball: [51, 50] },
   { at: 3092000, home: [[7, 50], [20, 30], [19, 68], [36, 42], [42, 65], [53, 27], [57, 56], [67, 77], [72, 42], [80, 62], [86, 31]], away: [[95, 50], [80, 20], [82, 73], [65, 36], [67, 67], [54, 18], [52, 72], [39, 50], [27, 26], [22, 55], [12, 38]], ball: [12, 38] },
-  { at: INITIAL_TIME_MS, home: [[8, 50], [31, 24], [27, 76], [49, 30], [51, 67], [63, 18], [65, 50], [73, 74], [80, 28], [84, 37], [89, 56]], away: [[95, 50], [86, 18], [88, 74], [78, 44], [73, 61], [60, 27], [58, 70], [45, 45], [37, 20], [34, 62], [23, 38]], ball: [84, 37] },
+  { at: DEMO_SNAPSHOT_MS, home: [[8, 50], [31, 24], [27, 76], [49, 30], [51, 67], [63, 18], [65, 50], [73, 74], [80, 28], [84, 37], [89, 56]], away: [[95, 50], [86, 18], [88, 74], [78, 44], [73, 61], [60, 27], [58, 70], [45, 45], [37, 20], [34, 62], [23, 38]], ball: [84, 37] },
 ];
 const metricFrames = [
   { at: 0, possessionHome: 50, xgHome: 0, xgAway: 0, winHome: 38, winDraw: 30, momentum: 0 },
@@ -86,8 +95,27 @@ const playerProfiles: PlayerProfile[] = [
   { id: 'p_hrb_10', team: 'away', markerIndex: 9, number: 10, name: 'Esme Laurent', position: 'Attacking midfield', archetype: 'Between-lines creator', description: 'Receives behind midfield and turns quickly toward the final third.', distanceKm: 8.9, topSpeed: 30.8, touches: 73 },
   { id: 'p_hrb_11', team: 'away', markerIndex: 10, number: 11, name: 'Talia Reed', position: 'Left wing', archetype: 'Counterattack runner', description: 'Accelerates into open space as soon as Harbour recover possession.', distanceKm: 8.2, topSpeed: 33.6, touches: 47 },
 ];
+const trackingPlayerOrder = playerProfiles.map(player => player.id);
 console.assert(events.every((event, index) => index === 0 || event.timeMs > events[index - 1].timeMs), 'Events must be chronological');
 console.assert(snapshots.every((snapshot, index) => index === 0 || snapshot.at > snapshots[index - 1].at), 'Snapshots must be chronological');
+
+function sampleTracking(frames: TrackingFrame[], clockMs: number): TrackingSample | null {
+  if (!frames.length) return null;
+  const upperIndex = frames.findIndex(frame => frame[0] >= clockMs);
+  const next = frames[upperIndex === -1 ? frames.length - 1 : upperIndex];
+  const previous = frames[Math.max(0, (upperIndex === -1 ? frames.length - 1 : upperIndex) - 1)];
+  const durationSeconds = Math.max(.001, (next[0] - previous[0]) / 1000);
+  const t = next[0] === previous[0] ? 0 : Math.max(0, Math.min(1, (clockMs - previous[0]) / (next[0] - previous[0])));
+  const h00 = 2 * t ** 3 - 3 * t ** 2 + 1; const h10 = t ** 3 - 2 * t ** 2 + t;
+  const h01 = -2 * t ** 3 + 3 * t ** 2; const h11 = t ** 3 - t ** 2;
+  const players = Object.fromEntries(trackingPlayerOrder.map((id, index) => {
+    const offset = index * 4; const start = previous[5]; const end = next[5];
+    const x = h00 * start[offset] + h10 * durationSeconds * start[offset + 2] + h01 * end[offset] + h11 * durationSeconds * end[offset + 2];
+    const y = h00 * start[offset + 1] + h10 * durationSeconds * start[offset + 3] + h01 * end[offset + 1] + h11 * durationSeconds * end[offset + 3];
+    return [id, [Math.max(0, Math.min(105, x)), Math.max(0, Math.min(68, y))]];
+  })) as Record<string, [number, number]>;
+  return { ball: [previous[1] + (next[1] - previous[1]) * t, previous[2] + (next[2] - previous[2]) * t], players };
+}
 
 function formatClock(timeMs: number) { const seconds = Math.floor(timeMs / 1000); return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`; }
 function getMetrics(timeMs: number): MatchMetrics {
@@ -112,7 +140,7 @@ function Button({ children, className = '', ...props }: React.ButtonHTMLAttribut
 function Mark() { return <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>; }
 function TeamBadge({ team }: { team: TeamKey }) { const short = { rvr: 'RVR', hrb: 'HRB', ash: 'ASH' }[team]; return <span className={`team-badge ${team}`} aria-hidden="true">{short}</span>; }
 
-function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggleTrack }: { clockMs: number; selectedEvent: MatchEvent | null; trackedIds: string[]; hoveredId: string | null; onHover: (id: string | null) => void; onToggleTrack: (id: string) => void }) {
+function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggleTrack, trackingSample }: { clockMs: number; selectedEvent: MatchEvent | null; trackedIds: string[]; hoveredId: string | null; onHover: (id: string | null) => void; onToggleTrack: (id: string) => void; trackingSample: TrackingSample | null }) {
   const upcomingIndex = snapshots.findIndex(item => item.at > clockMs);
   const baseIndex = upcomingIndex === -1 ? snapshots.length - 1 : Math.max(0, upcomingIndex - 1);
   const snapshot = snapshots[baseIndex] ?? snapshots[0];
@@ -123,11 +151,15 @@ function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggl
     if (nextPlayers) return [x + (nextPlayers[index][0] - x) * progress, y + (nextPlayers[index][1] - y) * progress];
     return [Math.max(2, Math.min(98, x + Math.sin(phase * .72 + index * 1.37) * .75)), Math.max(3, Math.min(97, y + Math.cos(phase * .61 + index * .93) * 1.05))];
   });
-  const home = animatePlayers(snapshot.home, nextSnapshot?.home);
-  const away = animatePlayers(snapshot.away, nextSnapshot?.away);
-  const ball = nextSnapshot
+  const fallbackHome = animatePlayers(snapshot.home, nextSnapshot?.home);
+  const fallbackAway = animatePlayers(snapshot.away, nextSnapshot?.away);
+  const fallbackBall = nextSnapshot
     ? [snapshot.ball[0] + (nextSnapshot.ball[0] - snapshot.ball[0]) * progress, snapshot.ball[1] + (nextSnapshot.ball[1] - snapshot.ball[1]) * progress]
     : [Math.max(1, Math.min(99, snapshot.ball[0] + Math.sin(phase * 1.15) * 1.1)), Math.max(2, Math.min(98, snapshot.ball[1] + Math.cos(phase * .9) * .8))];
+  const trackedPosition = (player: PlayerProfile): [number, number] | null => { const position = trackingSample?.players[player.id]; return position ? [position[0] / 1.05, position[1] / .68] : null; };
+  const home = playerProfiles.filter(player => player.team === 'home').map(player => trackedPosition(player) ?? fallbackHome[player.markerIndex]);
+  const away = playerProfiles.filter(player => player.team === 'away').map(player => trackedPosition(player) ?? fallbackAway[player.markerIndex]);
+  const ball = trackingSample ? [trackingSample.ball[0] / 1.05, trackingSample.ball[1] / .68] : fallbackBall;
   const highlight = selectedEvent && selectedEvent.availableMs <= clockMs && selectedEvent.x !== undefined ? { x: selectedEvent.x, y: selectedEvent.y! } : null;
   const activeProfile = playerProfiles.find(player => player.id === hoveredId) ?? playerProfiles.find(player => player.id === trackedIds[trackedIds.length - 1]);
   const positionFor = (player: PlayerProfile) => (player.team === 'home' ? home : away)[player.markerIndex];
@@ -162,7 +194,7 @@ function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggl
       <circle className="ball-marker" cx={ball[0] * 1.05} cy={ball[1] * .68} r=".85" />
     </svg>
     {activeProfile && <aside className="player-persona" aria-live="polite"><div className="persona-top"><span className={`persona-number ${activeProfile.team}`}>{activeProfile.number}</span><div><strong>{activeProfile.name}</strong><span>{activeProfile.position} · {activeProfile.archetype}</span></div><em>{trackedIds.includes(activeProfile.id) ? 'Tracking' : 'Player profile'}</em></div><p>{activeProfile.description}</p><dl><div><dt>Distance</dt><dd>{activeProfile.distanceKm.toFixed(1)} km</dd></div><div><dt>Top speed</dt><dd>{activeProfile.topSpeed.toFixed(1)} km/h</dd></div><div><dt>Touches</dt><dd>{activeProfile.touches}</dd></div></dl></aside>}
-    <figcaption><span>Hover a player · Select up to 3</span><span>Synthetic tracking · 10 Hz</span></figcaption>
+    <figcaption><span>Hover a player · Select up to 3</span><span>{trackingSample ? 'Full-match tracking · smooth interpolation' : 'Snapshot fallback · loading tracking'}</span></figcaption>
   </figure>;
 }
 
@@ -199,20 +231,26 @@ function SidePanel({ panel, setPanel, clockMs, selectedEvent, metrics }: { panel
 }
 
 function ReplayApp() {
-  const [clockMs, setClockMs] = useState(INITIAL_TIME_MS); const [liveEdgeMs, setLiveEdgeMs] = useState(INITIAL_TIME_MS); const [playing, setPlaying] = useState(true); const [speed, setSpeed] = useState<1 | 4>(1); const [panel, setPanel] = useState<Panel>('moments'); const [selectedEvent, setSelectedEvent] = useState<MatchEvent | null>(events.find(event => event.id === 'e_m_rvr_hrb_01264') ?? null);
+  const [clockMs, setClockMs] = useState(sharedMatchMs); const [liveEdgeMs, setLiveEdgeMs] = useState(sharedMatchMs); const [playing, setPlaying] = useState(true); const [speed, setSpeed] = useState<1 | 4>(1); const [panel, setPanel] = useState<Panel>('moments'); const [selectedEvent, setSelectedEvent] = useState<MatchEvent | null>(null);
+  const [liveClock, setLiveClock] = useState<LiveClock>(defaultLiveClock);
+  const [trackingFrames, setTrackingFrames] = useState<TrackingFrame[]>([]);
   const [trackedIds, setTrackedIds] = useState<string[]>([]); const [hoveredId, setHoveredId] = useState<string | null>(null); const [trackingNotice, setTrackingNotice] = useState('Select up to three players to compare their movement.');
   const visibleEvents = useMemo(() => events.filter(event => event.availableMs <= clockMs), [clockMs]); const homeScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'rvr').length; const awayScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'hrb').length;
   const metrics = useMemo(() => getMetrics(clockMs), [clockMs]);
   const trackedPlayers = useMemo(() => trackedIds.map(id => playerProfiles.find(player => player.id === id)).filter((player): player is PlayerProfile => Boolean(player)), [trackedIds]);
-  useEffect(() => { const timer = window.setInterval(() => { setLiveEdgeMs(edge => { const nextEdge = Math.min(MATCH_END_MS, edge + 100); if (playing) setClockMs(current => Math.min(nextEdge, current + 100 * speed)); return nextEdge; }); }, 100); return () => window.clearInterval(timer); }, [playing, speed]);
-  const goLive = () => { setClockMs(liveEdgeMs); setPlaying(true); };
+  const trackingChunkIndex = Math.floor(clockMs / 60_000);
+  const trackingSample = useMemo(() => sampleTracking(trackingFrames, clockMs), [trackingFrames, clockMs]);
+  useEffect(() => { if (window.location.protocol === 'file:') return; const controller = new AbortController(); const load = async () => { const response = await fetch(`/api/matches/m_rvr_hrb/tracking/chunks/${trackingChunkIndex}`, { signal: controller.signal }); if (!response.ok) throw new Error('Tracking unavailable'); const chunk = await response.json(); const frames = Array.isArray(chunk.frames) ? chunk.frames : []; const nextResponse = await fetch(`/api/matches/m_rvr_hrb/tracking/chunks/${trackingChunkIndex + 1}`, { signal: controller.signal }); if (nextResponse.ok) { const nextChunk = await nextResponse.json(); if (Array.isArray(nextChunk.frames) && nextChunk.frames.length) frames.push(nextChunk.frames[0]); } setTrackingFrames(frames); }; load().catch(error => { if (error?.name !== 'AbortError') setTrackingFrames([]); }); return () => controller.abort(); }, [trackingChunkIndex]);
+  useEffect(() => { if (window.location.protocol === 'file:') return; let active = true; fetch('/api/live-state', { cache: 'no-store' }).then(response => response.ok ? response.json() : Promise.reject()).then(state => { if (!active || state.matchId !== 'm_rvr_hrb') return; const synchronizedClock = { serverOffsetMs: state.serverTimeMs - Date.now(), epochMs: state.instanceStartMs - state.cycleNumber * state.durationMs, durationMs: state.durationMs }; setLiveClock(synchronizedClock); setLiveEdgeMs(state.matchMs); setClockMs(state.matchMs); }).catch(() => undefined); return () => { active = false; }; }, []);
+  useEffect(() => { const timer = window.setInterval(() => { const nextEdge = sharedMatchMs(liveClock); setLiveEdgeMs(nextEdge); setClockMs(current => playing || current > nextEdge ? nextEdge : current); }, 100); return () => window.clearInterval(timer); }, [playing, liveClock]);
+  const goLive = () => { const currentLiveEdge = sharedMatchMs(liveClock); setLiveEdgeMs(currentLiveEdge); setClockMs(currentLiveEdge); setPlaying(true); };
   const togglePlayback = () => { if (playing) setPlaying(false); else goLive(); };
   useEffect(() => { const handleKey = (event: KeyboardEvent) => { if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) return; if (event.code === 'Space') { event.preventDefault(); if (playing) setPlaying(false); else goLive(); } if (event.code === 'ArrowLeft') { setPlaying(false); setClockMs(value => Math.max(0, value - 5000)); } if (event.code === 'ArrowRight') setClockMs(value => Math.min(liveEdgeMs, value + 5000)); }; window.addEventListener('keydown', handleKey); return () => window.removeEventListener('keydown', handleKey); }, [liveEdgeMs, playing]);
   useEffect(() => { const pauseWhenHidden = () => { if (document.hidden) setPlaying(false); }; document.addEventListener('visibilitychange', pauseWhenHidden); return () => document.removeEventListener('visibilitychange', pauseWhenHidden); }, []);
   useEffect(() => { if (clockMs >= MATCH_END_MS) setPlaying(false); if (selectedEvent && selectedEvent.availableMs > clockMs) setSelectedEvent(null); }, [clockMs, selectedEvent]);
   const toggleTrack = (id: string) => { setTrackedIds(current => { if (current.includes(id)) { setTrackingNotice('Player removed. Select another player from the pitch.'); return current.filter(playerId => playerId !== id); } if (current.length >= 3) { setTrackingNotice('You can track up to three players. Remove one before adding another.'); return current; } setTrackingNotice(current.length === 2 ? 'Three-player tracking limit reached.' : `Select ${2 - current.length} more player${current.length === 1 ? '' : 's'} to compare movement.`); return [...current, id]; }); };
   const seek = (time: number, event?: MatchEvent) => { setPlaying(false); setClockMs(Math.max(0, Math.min(liveEdgeMs, time))); if (event) setSelectedEvent(event); };
-  return <div className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><nav aria-label="Primary navigation"><a className="active" href="/match/m_rvr_hrb">Replay</a></nav><button className="live-state is-live" onClick={goLive} aria-label="Jump to the live point"><span />Live</button></header><main className="workspace"><header className="match-header"><div className="competition"><a href="/">All matches</a><span>/</span><span>Northbank Cup · Matchday 1</span></div><div className="scoreline"><div className="team-name"><TeamBadge team="rvr" /><span>Riverside FC</span></div><strong className="score" aria-label={`Riverside ${homeScore}, Harbour ${awayScore}`}>{homeScore}<span>–</span>{awayScore}</strong><div className="team-name away-name"><span>Harbour Town</span><TeamBadge team="hrb" /></div></div><div className="match-meta"><span className="clock">{formatClock(clockMs)}</span><span>{playing ? 'Live' : 'Paused'}</span><span>Willowbank Ground</span></div></header><LiveMetrics metrics={metrics} clockMs={clockMs} /><div className="replay-grid"><section className="replay-stage" aria-labelledby="replay-title"><div className="stage-heading"><div><h1 id="replay-title">Replay at {formatClock(clockMs)}</h1><p>{selectedEvent && selectedEvent.availableMs <= clockMs ? selectedEvent.title : 'Recorded player positions'}</p></div><span className="cutoff">Evidence through {formatClock(clockMs)}</span></div><Pitch clockMs={clockMs} selectedEvent={selectedEvent} trackedIds={trackedIds} hoveredId={hoveredId} onHover={setHoveredId} onToggleTrack={toggleTrack} /><section className="tracking-dock" aria-labelledby="tracking-title"><div className="tracking-summary"><div><span>Player tracking</span><strong id="tracking-title">{trackedIds.length} of 3 selected</strong></div><p aria-live="polite">{trackingNotice}</p></div><div className="tracking-chips">{trackedPlayers.map(player => <button key={player.id} className={player.team} onClick={() => toggleTrack(player.id)} aria-label={`Stop tracking ${player.name}`}><span>{player.number}</span>{player.name}<i aria-hidden="true">×</i></button>)}</div></section><div className="playback" aria-label="Playback controls"><Button className="play" onClick={togglePlayback} aria-pressed={playing}>{playing ? 'Pause' : 'Play live'}</Button><label className="scrubber"><span className="sr-only">Replay time, ending at the live point</span><input type="range" min="0" max={liveEdgeMs} step="1000" value={Math.round(clockMs)} onChange={event => seek(Number(event.target.value))} /></label><Button className="speed" onClick={() => setSpeed(value => value === 1 ? 4 : 1)} aria-label={`Playback speed ${speed} times`}>{speed}×</Button></div></section><SidePanel panel={panel} setPanel={setPanel} clockMs={clockMs} selectedEvent={selectedEvent} metrics={metrics} /></div><Timeline clockMs={clockMs} liveEdgeMs={liveEdgeMs} selectedId={selectedEvent?.id ?? null} onSeek={(time, event) => seek(time, event)} /></main></div>;
+  return <div className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><nav aria-label="Primary navigation"><a className="active" href="/match/m_rvr_hrb">Replay</a></nav><button className="live-state is-live" onClick={goLive} aria-label="Jump to the live point"><span />Live</button></header><main className="workspace"><header className="match-header"><div className="competition"><a href="/">All matches</a><span>/</span><span>Northbank Cup · Matchday 1</span></div><div className="scoreline"><div className="team-name"><TeamBadge team="rvr" /><span>Riverside FC</span></div><strong className="score" aria-label={`Riverside ${homeScore}, Harbour ${awayScore}`}>{homeScore}<span>–</span>{awayScore}</strong><div className="team-name away-name"><span>Harbour Town</span><TeamBadge team="hrb" /></div></div><div className="match-meta"><span className="clock">{formatClock(clockMs)}</span><span>{playing ? 'Live' : 'Paused'}</span><span>Willowbank Ground</span></div></header><LiveMetrics metrics={metrics} clockMs={clockMs} /><div className="replay-grid"><section className="replay-stage" aria-labelledby="replay-title"><div className="stage-heading"><div><h1 id="replay-title">Replay at {formatClock(clockMs)}</h1><p>{selectedEvent && selectedEvent.availableMs <= clockMs ? selectedEvent.title : 'Recorded player positions'}</p></div><span className="cutoff">Evidence through {formatClock(clockMs)}</span></div><Pitch clockMs={clockMs} selectedEvent={selectedEvent} trackedIds={trackedIds} hoveredId={hoveredId} onHover={setHoveredId} onToggleTrack={toggleTrack} trackingSample={trackingSample} /><section className="tracking-dock" aria-labelledby="tracking-title"><div className="tracking-summary"><div><span>Player tracking</span><strong id="tracking-title">{trackedIds.length} of 3 selected</strong></div><p aria-live="polite">{trackingNotice}</p></div><div className="tracking-chips">{trackedPlayers.map(player => <button key={player.id} className={player.team} onClick={() => toggleTrack(player.id)} aria-label={`Stop tracking ${player.name}`}><span>{player.number}</span>{player.name}<i aria-hidden="true">×</i></button>)}</div></section><div className="playback" aria-label="Playback controls"><Button className="play" onClick={togglePlayback} aria-pressed={playing}>{playing ? 'Pause' : 'Play live'}</Button><label className="scrubber"><span className="sr-only">Replay time, ending at the live point</span><input type="range" min="0" max={liveEdgeMs} step="1000" value={Math.round(clockMs)} onChange={event => seek(Number(event.target.value))} /></label><Button className="speed" onClick={() => setSpeed(value => value === 1 ? 4 : 1)} aria-label={`Playback speed ${speed} times`}>{speed}×</Button></div></section><SidePanel panel={panel} setPanel={setPanel} clockMs={clockMs} selectedEvent={selectedEvent} metrics={metrics} /></div><Timeline clockMs={clockMs} liveEdgeMs={liveEdgeMs} selectedId={selectedEvent?.id ?? null} onSeek={(time, event) => seek(time, event)} /></main></div>;
 }
 
 function MatchPicker() {

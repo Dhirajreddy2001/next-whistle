@@ -1,0 +1,2735 @@
+{
+  "schema_version": 1,
+  "history_version": "1.1.0",
+  "generator_seed": 9917,
+  "synthetic": true,
+  "matches": [
+    {
+      "history_match_id": "hm_000",
+      "kickoff_date": "2025-08-02",
+      "home": "Northmere AFC",
+      "away": "Riverside FC",
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 38,
+        "passes_home": 470,
+        "passes_away": 616,
+        "shots_home": 13,
+        "shots_away": 10,
+        "shots_on_target_home": 5,
+        "shots_on_target_away": 2
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_000_01",
+          "minute": 14,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.75
+        },
+        {
+          "moment_id": "hm_000_00",
+          "minute": 23,
+          "kind": "penalty",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_000_02",
+          "minute": 24,
+          "kind": "tactical_foul_yellow",
+          "team": "Northmere AFC",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.66
+        },
+        {
+          "moment_id": "hm_000_03",
+          "minute": 60,
+          "kind": "penalty",
+          "team": "Northmere AFC",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.8
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_001",
+      "kickoff_date": "2025-08-08",
+      "home": "Harbour Town",
+      "away": "Riverside FC",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 49,
+        "passes_home": 555,
+        "passes_away": 379,
+        "shots_home": 14,
+        "shots_away": 19,
+        "shots_on_target_home": 2,
+        "shots_on_target_away": 7
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_001_07",
+          "minute": 5,
+          "kind": "goal",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.78
+        },
+        {
+          "moment_id": "hm_001_04",
+          "minute": 18,
+          "kind": "tactical_foul_yellow",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.91
+        },
+        {
+          "moment_id": "hm_001_00",
+          "minute": 34,
+          "kind": "goal",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_001_06",
+          "minute": 58,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_001_01",
+          "minute": 77,
+          "kind": "offside",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.93
+        },
+        {
+          "moment_id": "hm_001_05",
+          "minute": 81,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_001_03",
+          "minute": 82,
+          "kind": "tactical_foul_yellow",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.6
+        },
+        {
+          "moment_id": "hm_001_02",
+          "minute": 90,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.73
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_002",
+      "kickoff_date": "2025-08-14",
+      "home": "Kingsbridge Athletic",
+      "away": "Marshfield Rovers",
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 62,
+        "passes_home": 571,
+        "passes_away": 473,
+        "shots_home": 8,
+        "shots_away": 16,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_002_07",
+          "minute": 13,
+          "kind": "penalty",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.69
+        },
+        {
+          "moment_id": "hm_002_06",
+          "minute": 25,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.75
+        },
+        {
+          "moment_id": "hm_002_03",
+          "minute": 47,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.94
+        },
+        {
+          "moment_id": "hm_002_04",
+          "minute": 58,
+          "kind": "offside",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.58
+        },
+        {
+          "moment_id": "hm_002_01",
+          "minute": 69,
+          "kind": "activity_surge",
+          "team": "Marshfield Rovers",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.96
+        },
+        {
+          "moment_id": "hm_002_05",
+          "minute": 71,
+          "kind": "lead_change",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.93
+        },
+        {
+          "moment_id": "hm_002_02",
+          "minute": 80,
+          "kind": "lead_change",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.83
+        },
+        {
+          "moment_id": "hm_002_00",
+          "minute": 81,
+          "kind": "comeback",
+          "team": "Marshfield Rovers",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.64
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_003",
+      "kickoff_date": "2025-08-20",
+      "home": "Kingsbridge Athletic",
+      "away": "Marshfield Rovers",
+      "score": {
+        "home": 4,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 39,
+        "passes_home": 395,
+        "passes_away": 389,
+        "shots_home": 14,
+        "shots_away": 16,
+        "shots_on_target_home": 5,
+        "shots_on_target_away": 9
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_003_03",
+          "minute": 11,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.7
+        },
+        {
+          "moment_id": "hm_003_00",
+          "minute": 14,
+          "kind": "lead_change",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.61
+        },
+        {
+          "moment_id": "hm_003_02",
+          "minute": 30,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.94
+        },
+        {
+          "moment_id": "hm_003_04",
+          "minute": 56,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.61
+        },
+        {
+          "moment_id": "hm_003_05",
+          "minute": 62,
+          "kind": "penalty",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.6
+        },
+        {
+          "moment_id": "hm_003_06",
+          "minute": 77,
+          "kind": "lead_change",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.79
+        },
+        {
+          "moment_id": "hm_003_01",
+          "minute": 79,
+          "kind": "tactical_foul_yellow",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.79
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_004",
+      "kickoff_date": "2025-08-26",
+      "home": "Bellweather City",
+      "away": "Cedar Vale",
+      "score": {
+        "home": 4,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 42,
+        "passes_home": 586,
+        "passes_away": 517,
+        "shots_home": 15,
+        "shots_away": 6,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 9
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_004_02",
+          "minute": 5,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_004_04",
+          "minute": 15,
+          "kind": "comeback",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.74
+        },
+        {
+          "moment_id": "hm_004_01",
+          "minute": 40,
+          "kind": "lead_change",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.7
+        },
+        {
+          "moment_id": "hm_004_00",
+          "minute": 47,
+          "kind": "tactical_foul_yellow",
+          "team": "Bellweather City",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_004_03",
+          "minute": 49,
+          "kind": "goal",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.89
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_005",
+      "kickoff_date": "2025-09-01",
+      "home": "Cedar Vale",
+      "away": "Kingsbridge Athletic",
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "statistics": {
+        "possession_home": 58,
+        "passes_home": 455,
+        "passes_away": 558,
+        "shots_home": 16,
+        "shots_away": 15,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 8
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_005_05",
+          "minute": 16,
+          "kind": "tactical_foul_yellow",
+          "team": "Kingsbridge Athletic",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_005_04",
+          "minute": 17,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.85
+        },
+        {
+          "moment_id": "hm_005_01",
+          "minute": 26,
+          "kind": "tactical_foul_yellow",
+          "team": "Kingsbridge Athletic",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.93
+        },
+        {
+          "moment_id": "hm_005_03",
+          "minute": 50,
+          "kind": "tactical_foul_yellow",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.85
+        },
+        {
+          "moment_id": "hm_005_02",
+          "minute": 87,
+          "kind": "goal",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.56
+        },
+        {
+          "moment_id": "hm_005_00",
+          "minute": 90,
+          "kind": "offside",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.67
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_006",
+      "kickoff_date": "2025-09-07",
+      "home": "Bellweather City",
+      "away": "Harbour Town",
+      "score": {
+        "home": 0,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 39,
+        "passes_home": 352,
+        "passes_away": 554,
+        "shots_home": 20,
+        "shots_away": 20,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_006_00",
+          "minute": 39,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.68
+        },
+        {
+          "moment_id": "hm_006_04",
+          "minute": 60,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_006_03",
+          "minute": 76,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.89
+        },
+        {
+          "moment_id": "hm_006_01",
+          "minute": 84,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.61
+        },
+        {
+          "moment_id": "hm_006_02",
+          "minute": 90,
+          "kind": "penalty",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.76
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_007",
+      "kickoff_date": "2025-09-13",
+      "home": "Harbour Town",
+      "away": "Marshfield Rovers",
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 60,
+        "passes_home": 404,
+        "passes_away": 442,
+        "shots_home": 10,
+        "shots_away": 13,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 9
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_007_01",
+          "minute": 13,
+          "kind": "penalty",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_007_00",
+          "minute": 27,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.56
+        },
+        {
+          "moment_id": "hm_007_04",
+          "minute": 45,
+          "kind": "goal",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_007_03",
+          "minute": 52,
+          "kind": "comeback",
+          "team": "Marshfield Rovers",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.75
+        },
+        {
+          "moment_id": "hm_007_02",
+          "minute": 65,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.77
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_008",
+      "kickoff_date": "2025-09-19",
+      "home": "Bellweather City",
+      "away": "Harbour Town",
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 56,
+        "passes_home": 574,
+        "passes_away": 387,
+        "shots_home": 11,
+        "shots_away": 13,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 9
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_008_02",
+          "minute": 43,
+          "kind": "goal",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.59
+        },
+        {
+          "moment_id": "hm_008_03",
+          "minute": 45,
+          "kind": "tactical_foul_yellow",
+          "team": "Bellweather City",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_008_01",
+          "minute": 61,
+          "kind": "lead_change",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.56
+        },
+        {
+          "moment_id": "hm_008_04",
+          "minute": 76,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.74
+        },
+        {
+          "moment_id": "hm_008_00",
+          "minute": 82,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.59
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_009",
+      "kickoff_date": "2025-09-25",
+      "home": "Northmere AFC",
+      "away": "Harbour Town",
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 51,
+        "passes_home": 423,
+        "passes_away": 455,
+        "shots_home": 20,
+        "shots_away": 12,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_009_03",
+          "minute": 17,
+          "kind": "penalty",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_009_00",
+          "minute": 34,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.91
+        },
+        {
+          "moment_id": "hm_009_02",
+          "minute": 41,
+          "kind": "penalty",
+          "team": "Northmere AFC",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.65
+        },
+        {
+          "moment_id": "hm_009_01",
+          "minute": 42,
+          "kind": "activity_surge",
+          "team": "Northmere AFC",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.83
+        },
+        {
+          "moment_id": "hm_009_04",
+          "minute": 62,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.59
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_010",
+      "kickoff_date": "2025-10-01",
+      "home": "Riverside FC",
+      "away": "Ashgrove United",
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 55,
+        "passes_home": 413,
+        "passes_away": 564,
+        "shots_home": 7,
+        "shots_away": 15,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 2
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_010_01",
+          "minute": 39,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.66
+        },
+        {
+          "moment_id": "hm_010_03",
+          "minute": 39,
+          "kind": "goal",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.7
+        },
+        {
+          "moment_id": "hm_010_04",
+          "minute": 48,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_010_02",
+          "minute": 61,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.64
+        },
+        {
+          "moment_id": "hm_010_00",
+          "minute": 81,
+          "kind": "activity_surge",
+          "team": "Ashgrove United",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.69
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_011",
+      "kickoff_date": "2025-10-07",
+      "home": "Cedar Vale",
+      "away": "Riverside FC",
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "statistics": {
+        "possession_home": 44,
+        "passes_home": 426,
+        "passes_away": 525,
+        "shots_home": 10,
+        "shots_away": 14,
+        "shots_on_target_home": 6,
+        "shots_on_target_away": 6
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_011_00",
+          "minute": 12,
+          "kind": "tactical_foul_yellow",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_011_04",
+          "minute": 22,
+          "kind": "penalty",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.89
+        },
+        {
+          "moment_id": "hm_011_07",
+          "minute": 30,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_011_03",
+          "minute": 54,
+          "kind": "tactical_foul_yellow",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.62
+        },
+        {
+          "moment_id": "hm_011_06",
+          "minute": 76,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_011_02",
+          "minute": 77,
+          "kind": "lead_change",
+          "team": "Cedar Vale",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_011_01",
+          "minute": 79,
+          "kind": "comeback",
+          "team": "Cedar Vale",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_011_05",
+          "minute": 82,
+          "kind": "penalty",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.66
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_012",
+      "kickoff_date": "2025-10-13",
+      "home": "Riverside FC",
+      "away": "Kingsbridge Athletic",
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 53,
+        "passes_home": 507,
+        "passes_away": 489,
+        "shots_home": 9,
+        "shots_away": 11,
+        "shots_on_target_home": 7,
+        "shots_on_target_away": 7
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_012_01",
+          "minute": 28,
+          "kind": "penalty",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_012_02",
+          "minute": 32,
+          "kind": "goal",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.77
+        },
+        {
+          "moment_id": "hm_012_03",
+          "minute": 33,
+          "kind": "penalty",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.89
+        },
+        {
+          "moment_id": "hm_012_05",
+          "minute": 33,
+          "kind": "offside",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.78
+        },
+        {
+          "moment_id": "hm_012_04",
+          "minute": 36,
+          "kind": "offside",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.55
+        },
+        {
+          "moment_id": "hm_012_06",
+          "minute": 39,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.58
+        },
+        {
+          "moment_id": "hm_012_00",
+          "minute": 71,
+          "kind": "tactical_foul_yellow",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.91
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_013",
+      "kickoff_date": "2025-10-19",
+      "home": "Riverside FC",
+      "away": "Bellweather City",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 46,
+        "passes_home": 562,
+        "passes_away": 517,
+        "shots_home": 15,
+        "shots_away": 7,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_013_03",
+          "minute": 7,
+          "kind": "penalty",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.69
+        },
+        {
+          "moment_id": "hm_013_05",
+          "minute": 8,
+          "kind": "comeback",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.79
+        },
+        {
+          "moment_id": "hm_013_02",
+          "minute": 15,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.75
+        },
+        {
+          "moment_id": "hm_013_01",
+          "minute": 49,
+          "kind": "penalty",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.74
+        },
+        {
+          "moment_id": "hm_013_06",
+          "minute": 61,
+          "kind": "lead_change",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_013_00",
+          "minute": 81,
+          "kind": "offside",
+          "team": "Bellweather City",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.82
+        },
+        {
+          "moment_id": "hm_013_04",
+          "minute": 86,
+          "kind": "lead_change",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.79
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_014",
+      "kickoff_date": "2025-10-25",
+      "home": "Bellweather City",
+      "away": "Cedar Vale",
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "statistics": {
+        "possession_home": 56,
+        "passes_home": 578,
+        "passes_away": 609,
+        "shots_home": 13,
+        "shots_away": 19,
+        "shots_on_target_home": 7,
+        "shots_on_target_away": 8
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_014_02",
+          "minute": 27,
+          "kind": "penalty",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_014_04",
+          "minute": 52,
+          "kind": "goal",
+          "team": "Bellweather City",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_014_00",
+          "minute": 65,
+          "kind": "goal",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.91
+        },
+        {
+          "moment_id": "hm_014_03",
+          "minute": 70,
+          "kind": "penalty",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.77
+        },
+        {
+          "moment_id": "hm_014_01",
+          "minute": 89,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.87
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_015",
+      "kickoff_date": "2025-10-31",
+      "home": "Marshfield Rovers",
+      "away": "Ashgrove United",
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 62,
+        "passes_home": 449,
+        "passes_away": 527,
+        "shots_home": 15,
+        "shots_away": 14,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_015_01",
+          "minute": 14,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.7
+        },
+        {
+          "moment_id": "hm_015_02",
+          "minute": 25,
+          "kind": "offside",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.79
+        },
+        {
+          "moment_id": "hm_015_03",
+          "minute": 47,
+          "kind": "tactical_foul_yellow",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_015_05",
+          "minute": 47,
+          "kind": "goal",
+          "team": "Marshfield Rovers",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.72
+        },
+        {
+          "moment_id": "hm_015_04",
+          "minute": 53,
+          "kind": "penalty",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.73
+        },
+        {
+          "moment_id": "hm_015_00",
+          "minute": 61,
+          "kind": "goal",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.88
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_016",
+      "kickoff_date": "2025-11-06",
+      "home": "Ashgrove United",
+      "away": "Northmere AFC",
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 51,
+        "passes_home": 592,
+        "passes_away": 547,
+        "shots_home": 8,
+        "shots_away": 12,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 9
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_016_03",
+          "minute": 22,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.98
+        },
+        {
+          "moment_id": "hm_016_02",
+          "minute": 29,
+          "kind": "activity_surge",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.59
+        },
+        {
+          "moment_id": "hm_016_00",
+          "minute": 39,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.94
+        },
+        {
+          "moment_id": "hm_016_04",
+          "minute": 48,
+          "kind": "activity_surge",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.59
+        },
+        {
+          "moment_id": "hm_016_01",
+          "minute": 90,
+          "kind": "offside",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.97
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_017",
+      "kickoff_date": "2025-11-12",
+      "home": "Harbour Town",
+      "away": "Cedar Vale",
+      "score": {
+        "home": 0,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 49,
+        "passes_home": 557,
+        "passes_away": 537,
+        "shots_home": 18,
+        "shots_away": 16,
+        "shots_on_target_home": 2,
+        "shots_on_target_away": 6
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_017_04",
+          "minute": 10,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.71
+        },
+        {
+          "moment_id": "hm_017_00",
+          "minute": 42,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_017_03",
+          "minute": 42,
+          "kind": "goal",
+          "team": "Cedar Vale",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.64
+        },
+        {
+          "moment_id": "hm_017_02",
+          "minute": 53,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_017_01",
+          "minute": 79,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.56
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_018",
+      "kickoff_date": "2025-11-18",
+      "home": "Ashgrove United",
+      "away": "Cedar Vale",
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 56,
+        "passes_home": 399,
+        "passes_away": 469,
+        "shots_home": 15,
+        "shots_away": 12,
+        "shots_on_target_home": 2,
+        "shots_on_target_away": 4
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_018_04",
+          "minute": 5,
+          "kind": "comeback",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.97
+        },
+        {
+          "moment_id": "hm_018_00",
+          "minute": 28,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.62
+        },
+        {
+          "moment_id": "hm_018_02",
+          "minute": 34,
+          "kind": "tactical_foul_yellow",
+          "team": "Cedar Vale",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_018_07",
+          "minute": 35,
+          "kind": "offside",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.64
+        },
+        {
+          "moment_id": "hm_018_03",
+          "minute": 55,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.86
+        },
+        {
+          "moment_id": "hm_018_01",
+          "minute": 71,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_018_05",
+          "minute": 73,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.58
+        },
+        {
+          "moment_id": "hm_018_06",
+          "minute": 76,
+          "kind": "tactical_foul_yellow",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.7
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_019",
+      "kickoff_date": "2025-11-24",
+      "home": "Harbour Town",
+      "away": "Northmere AFC",
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 54,
+        "passes_home": 413,
+        "passes_away": 564,
+        "shots_home": 12,
+        "shots_away": 12,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 7
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_019_03",
+          "minute": 5,
+          "kind": "tactical_foul_yellow",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.61
+        },
+        {
+          "moment_id": "hm_019_01",
+          "minute": 15,
+          "kind": "comeback",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.89
+        },
+        {
+          "moment_id": "hm_019_00",
+          "minute": 54,
+          "kind": "comeback",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.68
+        },
+        {
+          "moment_id": "hm_019_04",
+          "minute": 71,
+          "kind": "lead_change",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_019_02",
+          "minute": 79,
+          "kind": "goal",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.61
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_020",
+      "kickoff_date": "2025-11-30",
+      "home": "Ashgrove United",
+      "away": "Bellweather City",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 47,
+        "passes_home": 466,
+        "passes_away": 612,
+        "shots_home": 11,
+        "shots_away": 9,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 4
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_020_03",
+          "minute": 13,
+          "kind": "penalty",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_020_01",
+          "minute": 55,
+          "kind": "comeback",
+          "team": "Bellweather City",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_020_02",
+          "minute": 60,
+          "kind": "penalty",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_020_00",
+          "minute": 79,
+          "kind": "offside",
+          "team": "Ashgrove United",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.56
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_021",
+      "kickoff_date": "2025-12-06",
+      "home": "Marshfield Rovers",
+      "away": "Riverside FC",
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 48,
+        "passes_home": 493,
+        "passes_away": 454,
+        "shots_home": 11,
+        "shots_away": 6,
+        "shots_on_target_home": 6,
+        "shots_on_target_away": 4
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_021_01",
+          "minute": 8,
+          "kind": "goal",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.6
+        },
+        {
+          "moment_id": "hm_021_02",
+          "minute": 69,
+          "kind": "offside",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_021_04",
+          "minute": 70,
+          "kind": "penalty",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.93
+        },
+        {
+          "moment_id": "hm_021_03",
+          "minute": 77,
+          "kind": "activity_surge",
+          "team": "Marshfield Rovers",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.6
+        },
+        {
+          "moment_id": "hm_021_00",
+          "minute": 87,
+          "kind": "comeback",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.96
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_022",
+      "kickoff_date": "2025-12-12",
+      "home": "Harbour Town",
+      "away": "Riverside FC",
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 43,
+        "passes_home": 360,
+        "passes_away": 489,
+        "shots_home": 19,
+        "shots_away": 18,
+        "shots_on_target_home": 4,
+        "shots_on_target_away": 8
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_022_03",
+          "minute": 26,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.98
+        },
+        {
+          "moment_id": "hm_022_01",
+          "minute": 27,
+          "kind": "penalty",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.97
+        },
+        {
+          "moment_id": "hm_022_00",
+          "minute": 55,
+          "kind": "activity_surge",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_022_02",
+          "minute": 59,
+          "kind": "tactical_foul_yellow",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.75
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_023",
+      "kickoff_date": "2025-12-18",
+      "home": "Harbour Town",
+      "away": "Ashgrove United",
+      "score": {
+        "home": 3,
+        "away": 3
+      },
+      "statistics": {
+        "possession_home": 58,
+        "passes_home": 352,
+        "passes_away": 450,
+        "shots_home": 20,
+        "shots_away": 9,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 6
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_023_07",
+          "minute": 10,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.56
+        },
+        {
+          "moment_id": "hm_023_04",
+          "minute": 18,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.87
+        },
+        {
+          "moment_id": "hm_023_01",
+          "minute": 33,
+          "kind": "comeback",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_023_03",
+          "minute": 38,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_023_02",
+          "minute": 67,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.65
+        },
+        {
+          "moment_id": "hm_023_00",
+          "minute": 72,
+          "kind": "penalty",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_023_06",
+          "minute": 80,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.63
+        },
+        {
+          "moment_id": "hm_023_05",
+          "minute": 84,
+          "kind": "tactical_foul_yellow",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.57
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_024",
+      "kickoff_date": "2025-12-24",
+      "home": "Ashgrove United",
+      "away": "Bellweather City",
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 40,
+        "passes_home": 375,
+        "passes_away": 619,
+        "shots_home": 13,
+        "shots_away": 6,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 6
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_024_02",
+          "minute": 9,
+          "kind": "offside",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.8
+        },
+        {
+          "moment_id": "hm_024_03",
+          "minute": 20,
+          "kind": "goal",
+          "team": "Ashgrove United",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.68
+        },
+        {
+          "moment_id": "hm_024_01",
+          "minute": 26,
+          "kind": "offside",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_024_00",
+          "minute": 80,
+          "kind": "offside",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.63
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_025",
+      "kickoff_date": "2025-12-30",
+      "home": "Kingsbridge Athletic",
+      "away": "Harbour Town",
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 60,
+        "passes_home": 389,
+        "passes_away": 558,
+        "shots_home": 9,
+        "shots_away": 15,
+        "shots_on_target_home": 4,
+        "shots_on_target_away": 6
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_025_06",
+          "minute": 38,
+          "kind": "comeback",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_025_04",
+          "minute": 45,
+          "kind": "goal",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_025_03",
+          "minute": 57,
+          "kind": "activity_surge",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_025_02",
+          "minute": 60,
+          "kind": "comeback",
+          "team": "Harbour Town",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.59
+        },
+        {
+          "moment_id": "hm_025_07",
+          "minute": 62,
+          "kind": "offside",
+          "team": "Harbour Town",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.73
+        },
+        {
+          "moment_id": "hm_025_05",
+          "minute": 64,
+          "kind": "offside",
+          "team": "Kingsbridge Athletic",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.96
+        },
+        {
+          "moment_id": "hm_025_00",
+          "minute": 70,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.81
+        },
+        {
+          "moment_id": "hm_025_01",
+          "minute": 75,
+          "kind": "comeback",
+          "team": "Harbour Town",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.58
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_026",
+      "kickoff_date": "2026-01-05",
+      "home": "Marshfield Rovers",
+      "away": "Kingsbridge Athletic",
+      "score": {
+        "home": 0,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 44,
+        "passes_home": 440,
+        "passes_away": 351,
+        "shots_home": 15,
+        "shots_away": 11,
+        "shots_on_target_home": 4,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_026_06",
+          "minute": 21,
+          "kind": "comeback",
+          "team": "Marshfield Rovers",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.61
+        },
+        {
+          "moment_id": "hm_026_01",
+          "minute": 22,
+          "kind": "comeback",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.55
+        },
+        {
+          "moment_id": "hm_026_00",
+          "minute": 27,
+          "kind": "tactical_foul_yellow",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_026_04",
+          "minute": 28,
+          "kind": "comeback",
+          "team": "Kingsbridge Athletic",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_026_03",
+          "minute": 29,
+          "kind": "lead_change",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.9
+        },
+        {
+          "moment_id": "hm_026_02",
+          "minute": 49,
+          "kind": "penalty",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.65
+        },
+        {
+          "moment_id": "hm_026_05",
+          "minute": 55,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.73
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_027",
+      "kickoff_date": "2026-01-11",
+      "home": "Ashgrove United",
+      "away": "Marshfield Rovers",
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 57,
+        "passes_home": 492,
+        "passes_away": 449,
+        "shots_home": 20,
+        "shots_away": 9,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 2
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_027_01",
+          "minute": 40,
+          "kind": "activity_surge",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.86
+        },
+        {
+          "moment_id": "hm_027_04",
+          "minute": 40,
+          "kind": "penalty",
+          "team": "Ashgrove United",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_027_05",
+          "minute": 55,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.91
+        },
+        {
+          "moment_id": "hm_027_02",
+          "minute": 56,
+          "kind": "goal",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.56
+        },
+        {
+          "moment_id": "hm_027_00",
+          "minute": 64,
+          "kind": "activity_surge",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.79
+        },
+        {
+          "moment_id": "hm_027_03",
+          "minute": 89,
+          "kind": "comeback",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.96
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_028",
+      "kickoff_date": "2026-01-17",
+      "home": "Marshfield Rovers",
+      "away": "Bellweather City",
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "statistics": {
+        "possession_home": 62,
+        "passes_home": 611,
+        "passes_away": 517,
+        "shots_home": 9,
+        "shots_away": 11,
+        "shots_on_target_home": 5,
+        "shots_on_target_away": 5
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_028_07",
+          "minute": 7,
+          "kind": "tactical_foul_yellow",
+          "team": "Bellweather City",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_028_05",
+          "minute": 12,
+          "kind": "offside",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_028_02",
+          "minute": 30,
+          "kind": "offside",
+          "team": "Bellweather City",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.86
+        },
+        {
+          "moment_id": "hm_028_03",
+          "minute": 31,
+          "kind": "offside",
+          "team": "Marshfield Rovers",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.83
+        },
+        {
+          "moment_id": "hm_028_04",
+          "minute": 36,
+          "kind": "lead_change",
+          "team": "Marshfield Rovers",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.77
+        },
+        {
+          "moment_id": "hm_028_00",
+          "minute": 43,
+          "kind": "activity_surge",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.83
+        },
+        {
+          "moment_id": "hm_028_01",
+          "minute": 85,
+          "kind": "penalty",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.64
+        },
+        {
+          "moment_id": "hm_028_06",
+          "minute": 88,
+          "kind": "goal",
+          "team": "Marshfield Rovers",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.61
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_029",
+      "kickoff_date": "2026-01-23",
+      "home": "Kingsbridge Athletic",
+      "away": "Ashgrove United",
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 43,
+        "passes_home": 358,
+        "passes_away": 357,
+        "shots_home": 18,
+        "shots_away": 20,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 5
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_029_02",
+          "minute": 41,
+          "kind": "comeback",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_029_03",
+          "minute": 42,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.69
+        },
+        {
+          "moment_id": "hm_029_00",
+          "minute": 47,
+          "kind": "tactical_foul_yellow",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_029_04",
+          "minute": 55,
+          "kind": "offside",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.98
+        },
+        {
+          "moment_id": "hm_029_01",
+          "minute": 84,
+          "kind": "lead_change",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.81
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_030",
+      "kickoff_date": "2026-01-29",
+      "home": "Ashgrove United",
+      "away": "Bellweather City",
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 57,
+        "passes_home": 565,
+        "passes_away": 592,
+        "shots_home": 11,
+        "shots_away": 8,
+        "shots_on_target_home": 7,
+        "shots_on_target_away": 3
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_030_03",
+          "minute": 31,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.93
+        },
+        {
+          "moment_id": "hm_030_04",
+          "minute": 44,
+          "kind": "tactical_foul_yellow",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.65
+        },
+        {
+          "moment_id": "hm_030_01",
+          "minute": 60,
+          "kind": "offside",
+          "team": "Bellweather City",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.58
+        },
+        {
+          "moment_id": "hm_030_02",
+          "minute": 62,
+          "kind": "goal",
+          "team": "Ashgrove United",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.88
+        },
+        {
+          "moment_id": "hm_030_05",
+          "minute": 63,
+          "kind": "lead_change",
+          "team": "Ashgrove United",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.59
+        },
+        {
+          "moment_id": "hm_030_00",
+          "minute": 69,
+          "kind": "tactical_foul_yellow",
+          "team": "Bellweather City",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.77
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_031",
+      "kickoff_date": "2026-02-04",
+      "home": "Riverside FC",
+      "away": "Northmere AFC",
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "statistics": {
+        "possession_home": 47,
+        "passes_home": 388,
+        "passes_away": 440,
+        "shots_home": 16,
+        "shots_away": 19,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 7
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_031_05",
+          "minute": 14,
+          "kind": "activity_surge",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_031_00",
+          "minute": 21,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.6
+        },
+        {
+          "moment_id": "hm_031_02",
+          "minute": 21,
+          "kind": "tactical_foul_yellow",
+          "team": "Northmere AFC",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.84
+        },
+        {
+          "moment_id": "hm_031_06",
+          "minute": 27,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.83
+        },
+        {
+          "moment_id": "hm_031_04",
+          "minute": 61,
+          "kind": "goal",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.67
+        },
+        {
+          "moment_id": "hm_031_01",
+          "minute": 65,
+          "kind": "offside",
+          "team": "Northmere AFC",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.58
+        },
+        {
+          "moment_id": "hm_031_03",
+          "minute": 77,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.81
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_032",
+      "kickoff_date": "2026-02-10",
+      "home": "Northmere AFC",
+      "away": "Riverside FC",
+      "score": {
+        "home": 4,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 39,
+        "passes_home": 565,
+        "passes_away": 422,
+        "shots_home": 15,
+        "shots_away": 16,
+        "shots_on_target_home": 8,
+        "shots_on_target_away": 8
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_032_03",
+          "minute": 9,
+          "kind": "offside",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_032_01",
+          "minute": 17,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.79
+        },
+        {
+          "moment_id": "hm_032_02",
+          "minute": 21,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_032_00",
+          "minute": 25,
+          "kind": "goal",
+          "team": "Riverside FC",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_032_06",
+          "minute": 34,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.77
+        },
+        {
+          "moment_id": "hm_032_07",
+          "minute": 62,
+          "kind": "penalty",
+          "team": "Northmere AFC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.62
+        },
+        {
+          "moment_id": "hm_032_04",
+          "minute": 83,
+          "kind": "activity_surge",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.72
+        },
+        {
+          "moment_id": "hm_032_05",
+          "minute": 84,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.85
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_033",
+      "kickoff_date": "2026-02-16",
+      "home": "Riverside FC",
+      "away": "Northmere AFC",
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "statistics": {
+        "possession_home": 44,
+        "passes_home": 383,
+        "passes_away": 620,
+        "shots_home": 6,
+        "shots_away": 19,
+        "shots_on_target_home": 3,
+        "shots_on_target_away": 5
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_033_02",
+          "minute": 12,
+          "kind": "goal",
+          "team": "Northmere AFC",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.91
+        },
+        {
+          "moment_id": "hm_033_01",
+          "minute": 18,
+          "kind": "offside",
+          "team": "Northmere AFC",
+          "zone": "penalty_area",
+          "score_swing": 1,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_033_00",
+          "minute": 65,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": 0,
+          "importance": 0.78
+        },
+        {
+          "moment_id": "hm_033_03",
+          "minute": 90,
+          "kind": "comeback",
+          "team": "Northmere AFC",
+          "zone": "final_third",
+          "score_swing": 1,
+          "importance": 0.85
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_034",
+      "kickoff_date": "2026-02-22",
+      "home": "Cedar Vale",
+      "away": "Bellweather City",
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "statistics": {
+        "possession_home": 53,
+        "passes_home": 383,
+        "passes_away": 477,
+        "shots_home": 11,
+        "shots_away": 18,
+        "shots_on_target_home": 6,
+        "shots_on_target_away": 5
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_034_02",
+          "minute": 18,
+          "kind": "activity_surge",
+          "team": "Cedar Vale",
+          "zone": "defensive",
+          "score_swing": 1,
+          "importance": 0.86
+        },
+        {
+          "moment_id": "hm_034_00",
+          "minute": 34,
+          "kind": "comeback",
+          "team": "Bellweather City",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.95
+        },
+        {
+          "moment_id": "hm_034_01",
+          "minute": 44,
+          "kind": "activity_surge",
+          "team": "Bellweather City",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.86
+        },
+        {
+          "moment_id": "hm_034_03",
+          "minute": 59,
+          "kind": "lead_change",
+          "team": "Cedar Vale",
+          "zone": "middle",
+          "score_swing": 1,
+          "importance": 0.83
+        }
+      ],
+      "synthetic": true
+    },
+    {
+      "history_match_id": "hm_035",
+      "kickoff_date": "2026-02-28",
+      "home": "Riverside FC",
+      "away": "Kingsbridge Athletic",
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "statistics": {
+        "possession_home": 44,
+        "passes_home": 538,
+        "passes_away": 464,
+        "shots_home": 7,
+        "shots_away": 15,
+        "shots_on_target_home": 9,
+        "shots_on_target_away": 2
+      },
+      "key_moments": [
+        {
+          "moment_id": "hm_035_07",
+          "minute": 23,
+          "kind": "comeback",
+          "team": "Riverside FC",
+          "zone": "defensive",
+          "score_swing": -1,
+          "importance": 0.76
+        },
+        {
+          "moment_id": "hm_035_03",
+          "minute": 25,
+          "kind": "penalty",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.62
+        },
+        {
+          "moment_id": "hm_035_05",
+          "minute": 28,
+          "kind": "goal",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": 0,
+          "importance": 0.92
+        },
+        {
+          "moment_id": "hm_035_06",
+          "minute": 44,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "final_third",
+          "score_swing": -1,
+          "importance": 0.82
+        },
+        {
+          "moment_id": "hm_035_04",
+          "minute": 60,
+          "kind": "activity_surge",
+          "team": "Kingsbridge Athletic",
+          "zone": "penalty_area",
+          "score_swing": -1,
+          "importance": 0.71
+        },
+        {
+          "moment_id": "hm_035_01",
+          "minute": 65,
+          "kind": "offside",
+          "team": "Riverside FC",
+          "zone": "final_third",
+          "score_swing": 0,
+          "importance": 0.57
+        },
+        {
+          "moment_id": "hm_035_00",
+          "minute": 71,
+          "kind": "lead_change",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": 0,
+          "importance": 0.7
+        },
+        {
+          "moment_id": "hm_035_02",
+          "minute": 81,
+          "kind": "offside",
+          "team": "Riverside FC",
+          "zone": "middle",
+          "score_swing": -1,
+          "importance": 0.56
+        }
+      ],
+      "synthetic": true
+    }
+  ]
+}

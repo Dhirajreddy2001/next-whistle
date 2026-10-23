@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "dataset_version": "1.1.0",
+  "rules_version": "1.1.0",
+  "rule_edition": "2026/27",
+  "generated_at": "2026-10-22T00:00:00Z",
+  "generator_seed": 4242,
+  "synthetic": true,
+  "history": {
+    "file": "history/matches.json",
+    "sha256": "d74f0b04b0081d75aeae0286b9aa12697b00a7f819ee606485d1feb82d5844bb"
+  },
+  "matches": [
+    {
+      "match_id": "m_hrb_ash",
+      "kickoff_date": "2026-08-23",
+      "label": "Harbour Town v Ashgrove United",
+      "files": {
+        "match": "m_hrb_ash/match.json",
+        "events": "m_hrb_ash/events.json",
+        "snapshots": "m_hrb_ash/snapshots.json",
+        "clips": "m_hrb_ash/clips.json",
+        "animation": "m_hrb_ash/animation.json",
+        "tracking": "m_hrb_ash/tracking/manifest.json"
+      },
+      "sha256": {
+        "match": "7dd3f40a9961ed93b96f478270d6913f8e810516ddac9b2916f8ce7fe994f9b1",
+        "events": "cc232b650b725a893182a2e56aa1eeda7f40f6cb021ab035b8b10035266f1815",
+        "snapshots": "094f99379952b86f6b80cca1138ce934a3c7bf386834a31c6003d4dee95fb4e7",
+        "clips": "7ec0eb0bd9401d35e5ac46dba79bc4c4dd043a83e602d54c1dd3282f5b44fb4f",
+        "animation": "6deb9c6ac26782ce3383e40a8a49c65c7231fdc9a90d74b4ba3a895b14a8876f",
+        "tracking": "0d834a221c089996b46c74101a4a6ab3b1934d73b7fed4998348e0dd1e1d401f"
+      }
+    },
+    {
+      "match_id": "m_rvr_hrb",
+      "kickoff_date": "2026-08-16",
+      "label": "Riverside FC v Harbour Town",
+      "files": {
+        "match": "m_rvr_hrb/match.json",
+        "events": "m_rvr_hrb/events.json",
+        "snapshots": "m_rvr_hrb/snapshots.json",
+        "clips": "m_rvr_hrb/clips.json",
+        "animation": "m_rvr_hrb/animation.json",
+        "tracking": "m_rvr_hrb/tracking/manifest.json"
+      },
+      "sha256": {
+        "match": "b39675edab0e1f6748a0b183350cd6b485df339cd6b7ac30fda92c0944afa605",
+        "events": "609c3e7b263aeb8e5c630fb36af258fdd456dc25db1a4b22feb7dbf1f516d5f0",
+        "snapshots": "6655e5195135b85bc0fde44c11da33c8a9d3c4fe28eb03b6602853bd0d2d6e00",
+        "clips": "a435486d950a3a2ff3067755fd6eaa215fe2d684d1e14438c9b5ba0ed0434d46",
+        "animation": "2c6c8b79f21a2aa5aab807865e7b5d7781a7a7d2dad15af6fd7994eb5456a7a0",
+        "tracking": "95997e0d31b47b777fb70c21aecddac15f526a26e6af78f735f60ddfd85b821c"
+      }
+    }
+  ]
+}

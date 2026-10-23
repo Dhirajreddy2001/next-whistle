@@ -83,8 +83,9 @@ Do not duplicate server responses into the playback store. Query data remains im
 
 #### Replay and request behavior
 
+- `GET /api/live-state` binds all viewers to one wall-clock-driven match cycle. The response is never cached; the browser uses server time to correct local clock skew. Reloading later enters the current stage, while concurrent viewers share the same instance and cutoff.
 - `requestAnimationFrame` advances the browser clock at 1× or 4× and stops at full time.
-- The frontend fetches bounded replay deltas near `heldUntilMs`; it never sends a request per animation frame.
+- The frontend fetches bounded replay deltas near `heldUntilMs` and immutable one-minute tracking chunks; it never sends a request per animation frame.
 - Events, markers, cards, cues, and decisions render only when `availableMs <= clockMs`.
 - Seeking pauses playback, increments `contextEpoch`, cancels obsolete queries, loads a full state snapshot, and optionally resumes.
 - Generation results carry the request epoch and clock. Stale results never replace the active panel; they may remain as clearly labeled historical cards.
@@ -93,7 +94,7 @@ Do not duplicate server responses into the playback store. Query data remains im
 
 #### Presentation and accessibility
 
-Desktop uses a pitch-and-panel layout; mobile stacks the pitch above panels with reachable playback controls. The SVG pitch uses a `105 × 68` view box and renders only supplied geometry. Required feature surfaces are Match Picker, Score Bug, Pitch, Overlay Layer, Timeline, Moments, Stats, Player, Explain, Referee, Settings, and Status Banner.
+Desktop uses a pitch-and-panel layout; mobile stacks the pitch above panels with reachable playback controls. The SVG pitch uses a `105 × 68` view box. It interpolates supplied tracking keyframes for presentation but renders decision evidence only from explicit evidence geometry. Required feature surfaces are Match Picker, Score Bug, Pitch, Overlay Layer, Timeline, Moments, Stats, Player, Explain, Referee, Settings, and Status Banner.
 
 All controls have accessible names and visible focus. Space toggles playback; arrow keys seek by five seconds. Pitch-only information has an equivalent text description. Respect `prefers-reduced-motion`, maintain WCAG AA contrast, avoid color-only status, and keep status/error updates in suitable live regions. UI strings live in reviewed locale files; generated content is displayed in the language reported by the response.
 

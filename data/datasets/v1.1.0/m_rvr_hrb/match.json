@@ -1,0 +1,742 @@
+{
+  "match_id": "m_rvr_hrb",
+  "kickoff_date": "2026-08-16",
+  "home": {
+    "team_id": "t_rvr",
+    "name": "Riverside FC",
+    "short_name": "RVR",
+    "primary_color": "#bbf174",
+    "secondary_color": "#142c24",
+    "squad": [
+      {
+        "player_id": "p_rvr_01",
+        "name": "Ivo Mercer",
+        "shirt": 1,
+        "position": "GK",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.9,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.84,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 178,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_01",
+          "skin_tone_token": "tone_03",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_02",
+        "name": "Tomas Vale",
+        "shirt": 2,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.5,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.89,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 185,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_04",
+          "skin_tone_token": "tone_08",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_03",
+        "name": "Eli Rowan",
+        "shirt": 3,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.6,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.94,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 168,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_07",
+          "skin_tone_token": "tone_05",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_04",
+        "name": "Noah Penn",
+        "shirt": 4,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.2,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.74,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 175,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_02",
+          "skin_tone_token": "tone_02",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_05",
+        "name": "Dario Moss",
+        "shirt": 5,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.3,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.79,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 182,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_05",
+          "skin_tone_token": "tone_07",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_06",
+        "name": "Kian Holt",
+        "shirt": 6,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 9.4,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.84,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 189,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_08",
+          "skin_tone_token": "tone_04",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_07",
+        "name": "Lina Park",
+        "shirt": 7,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.0,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.89,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 172,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_03",
+          "skin_tone_token": "tone_01",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_08",
+        "name": "Owen Cade",
+        "shirt": 8,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 9.1,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.94,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 179,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_06",
+          "skin_tone_token": "tone_06",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_09",
+        "name": "Mara Voss",
+        "shirt": 9,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.7,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.74,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 186,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_01",
+          "skin_tone_token": "tone_03",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_10",
+        "name": "Sofia Marin",
+        "shirt": 10,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.8,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.79,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 169,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_04",
+          "skin_tone_token": "tone_08",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_11",
+        "name": "Rafi Bell",
+        "shirt": 11,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.4,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.84,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 176,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_07",
+          "skin_tone_token": "tone_05",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_12",
+        "name": "Jules Reed",
+        "shirt": 12,
+        "position": "GK",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 8.5,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.89,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 183,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_02",
+          "skin_tone_token": "tone_02",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_13",
+        "name": "Mina Shaw",
+        "shirt": 13,
+        "position": "DF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 7.1,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.94,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 166,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_05",
+          "skin_tone_token": "tone_07",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_14",
+        "name": "Theo Wren",
+        "shirt": 14,
+        "position": "MF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 8.2,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.74,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 173,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_08",
+          "skin_tone_token": "tone_04",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_15",
+        "name": "Aya North",
+        "shirt": 15,
+        "position": "FW",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 9.3,
+          "acceleration_mps2": 2.8,
+          "stamina": 0.79,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 180,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_03",
+          "skin_tone_token": "tone_01",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_rvr_16",
+        "name": "Leon Pike",
+        "shirt": 16,
+        "position": "MF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 7.9,
+          "acceleration_mps2": 3.5,
+          "stamina": 0.84,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 187,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_06",
+          "skin_tone_token": "tone_06",
+          "original_synthetic": true
+        }
+      }
+    ]
+  },
+  "away": {
+    "team_id": "t_hrb",
+    "name": "Harbour Town",
+    "short_name": "HRB",
+    "primary_color": "#89bfff",
+    "secondary_color": "#162639",
+    "squad": [
+      {
+        "player_id": "p_hrb_01",
+        "name": "Arlo Dane",
+        "shirt": 1,
+        "position": "GK",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.4,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.79,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 172,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_03",
+          "skin_tone_token": "tone_05",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_02",
+        "name": "Iris Cove",
+        "shirt": 2,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 9.5,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.84,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 179,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_06",
+          "skin_tone_token": "tone_02",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_03",
+        "name": "Milo Reed",
+        "shirt": 3,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.1,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.89,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 186,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_01",
+          "skin_tone_token": "tone_07",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_04",
+        "name": "Nora Finch",
+        "shirt": 4,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 9.2,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.94,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 169,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_04",
+          "skin_tone_token": "tone_04",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_05",
+        "name": "Evan Shore",
+        "shirt": 5,
+        "position": "DF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.8,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.74,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 176,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_07",
+          "skin_tone_token": "tone_01",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_06",
+        "name": "Cleo Hart",
+        "shirt": 6,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.9,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.79,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 183,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_02",
+          "skin_tone_token": "tone_06",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_07",
+        "name": "Jalen Moss",
+        "shirt": 7,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.5,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.84,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 166,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_05",
+          "skin_tone_token": "tone_03",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_08",
+        "name": "Ada Quinn",
+        "shirt": 8,
+        "position": "MF",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.6,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.89,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 173,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_08",
+          "skin_tone_token": "tone_08",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_09",
+        "name": "Nia Cole",
+        "shirt": 9,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 7.2,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.94,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 180,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_03",
+          "skin_tone_token": "tone_05",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_10",
+        "name": "Leila Okafor",
+        "shirt": 10,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 8.3,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.74,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 187,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_06",
+          "skin_tone_token": "tone_02",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_11",
+        "name": "Remy Ford",
+        "shirt": 11,
+        "position": "FW",
+        "starter": true,
+        "movement_profile": {
+          "max_speed_mps": 9.4,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.79,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 170,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_01",
+          "skin_tone_token": "tone_07",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_12",
+        "name": "Zara Wynn",
+        "shirt": 12,
+        "position": "GK",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 8.0,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.84,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 177,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_04",
+          "skin_tone_token": "tone_04",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_13",
+        "name": "Cal Rook",
+        "shirt": 13,
+        "position": "DF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 9.1,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.89,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 184,
+          "dominant_foot": "left",
+          "body_preset": "athletic_a",
+          "hair_preset": "hair_07",
+          "skin_tone_token": "tone_01",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_14",
+        "name": "Maya Snow",
+        "shirt": 14,
+        "position": "MF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 7.7,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.94,
+          "work_rate": "high"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 167,
+          "dominant_foot": "right",
+          "body_preset": "athletic_b",
+          "hair_preset": "hair_02",
+          "skin_tone_token": "tone_06",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_15",
+        "name": "Omar Lake",
+        "shirt": 15,
+        "position": "FW",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 8.8,
+          "acceleration_mps2": 2.6,
+          "stamina": 0.74,
+          "work_rate": "balanced"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 174,
+          "dominant_foot": "right",
+          "body_preset": "athletic_c",
+          "hair_preset": "hair_05",
+          "skin_tone_token": "tone_03",
+          "original_synthetic": true
+        }
+      },
+      {
+        "player_id": "p_hrb_16",
+        "name": "Tess Gray",
+        "shirt": 16,
+        "position": "MF",
+        "starter": false,
+        "movement_profile": {
+          "max_speed_mps": 7.4,
+          "acceleration_mps2": 3.3,
+          "stamina": 0.79,
+          "work_rate": "conservative"
+        },
+        "visual_profile": {
+          "model_id": "nw_humanoid_v1",
+          "height_cm": 181,
+          "dominant_foot": "right",
+          "body_preset": "athletic_d",
+          "hair_preset": "hair_08",
+          "skin_tone_token": "tone_08",
+          "original_synthetic": true
+        }
+      }
+    ]
+  },
+  "periods": [
+    {
+      "period": 1,
+      "start_match_ms": 0,
+      "end_match_ms": 2820000,
+      "home_attack_direction": "ltr"
+    },
+    {
+      "period": 2,
+      "start_match_ms": 2820000,
+      "end_match_ms": 5760000,
+      "home_attack_direction": "rtl"
+    }
+  ],
+  "venue": "Willowbank Ground",
+  "final_state_hash": "83e7b5c314ccd65a3898e09545262180e667f5f3040880e3cea4af042b705b23"
+}

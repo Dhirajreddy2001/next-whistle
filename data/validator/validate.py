@@ -28,8 +28,9 @@ def validate(root: Path) -> list[str]:
     for entry in manifest["matches"]:
         folder = root / entry["match_id"]
         for name, expected in entry["sha256"].items():
-            if sha(folder / f"{name}.json") != expected: errors.append(f"{entry['match_id']} {name} checksum mismatch")
+            if sha(root / entry["files"][name]) != expected: errors.append(f"{entry['match_id']} {name} checksum mismatch")
         match, events, snapshots, clips, animation = (load(folder / f"{name}.json") for name in ("match", "events", "snapshots", "clips", "animation"))
+        tracking = load(root / entry["files"]["tracking"])
         if not 1500 <= len(events) <= 2500: errors.append(f"{entry['match_id']} event count {len(events)}")
         if not 20 <= len(snapshots) <= 40: errors.append(f"{entry['match_id']} snapshot count {len(snapshots)}")
         ids = {e["event_id"] for e in events}; player_ids = {p["player_id"] for t in (match["home"], match["away"]) for p in t["squad"]}; snapshot_ids = {s["snapshot_id"] for s in snapshots}
@@ -38,6 +39,8 @@ def validate(root: Path) -> list[str]:
             for player in side["squad"]:
                 profile = player.get("visual_profile", {})
                 if profile.get("model_id") != "nw_humanoid_v1" or not profile.get("original_synthetic"): errors.append(f"{player['player_id']} invalid visual profile")
+                movement = player.get("movement_profile", {})
+                if not 6 <= movement.get("max_speed_mps", 0) <= 10 or not 2 <= movement.get("acceleration_mps2", 0) <= 5: errors.append(f"{player['player_id']} invalid movement profile")
         previous = (-1, -1)
         for event in events:
             if (event["period"], event["match_ms"]) < previous: errors.append(f"{entry['match_id']} events not ordered")
@@ -59,18 +62,35 @@ def validate(root: Path) -> list[str]:
         animation_by_id = {track["animation_track_id"]: track for track in animation["clips"]}
         for clip in clips:
             track = animation_by_id.get(clip["animation_track_id"])
-            if not track or track["sample_rate_hz"] != 10 or not track["synthetic_presentation_only"]: errors.append(f"{clip['clip_id']} invalid animation track"); continue
+            if not track or track["sample_rate_hz"] != 20 or not track["synthetic_presentation_only"]: errors.append(f"{clip['clip_id']} invalid animation track"); continue
             if {item["player_id"] for item in track["player_tracks"]} != starters: errors.append(f"{clip['clip_id']} animation must cover 22 starters")
             for player_track in track["player_tracks"]:
                 if any(len(sample) != 7 or not 0 <= sample[1] <= 105 or not 0 <= sample[2] <= 68 for sample in player_track["samples"]): errors.append(f"{clip['clip_id']} invalid player animation sample")
             if any(len(sample) != 4 or not 0 <= sample[1] <= 105 or not 0 <= sample[2] <= 68 or sample[3] < 0 for sample in track["ball_track"]): errors.append(f"{clip['clip_id']} invalid ball animation sample")
+        if tracking.get("source") != "authoritative_synthetic_simulation" or tracking.get("simulation_hz") != 20 or tracking.get("base_sample_rate_hz") != 2: errors.append(f"{entry['match_id']} invalid tracking manifest")
+        if set(tracking.get("player_order", [])) != starters: errors.append(f"{entry['match_id']} tracking must cover 22 starters")
+        last_time = -1
+        for chunk in tracking.get("chunks", []):
+            chunk_path = folder / chunk["file"]
+            if sha(chunk_path) != chunk["sha256"]: errors.append(f"{entry['match_id']} tracking chunk checksum mismatch")
+            payload = load(chunk_path)
+            for frame in payload.get("frames", []):
+                if len(frame) != 6 or len(frame[5]) != 22 * 4: errors.append(f"{entry['match_id']} malformed tracking frame"); continue
+                if frame[0] <= last_time: errors.append(f"{entry['match_id']} tracking frames not ordered")
+                last_time = frame[0]
+                if not 0 <= frame[1] <= 105 or not 0 <= frame[2] <= 68 or frame[3] < 0: errors.append(f"{entry['match_id']} invalid tracked ball")
+                for offset in range(0, len(frame[5]), 4):
+                    x, y, vx, vy = frame[5][offset:offset + 4]
+                    if not 0 <= x <= 105 or not 0 <= y <= 68: errors.append(f"{entry['match_id']} tracked player out of bounds")
+                    if (vx * vx + vy * vy) ** .5 > 10: errors.append(f"{entry['match_id']} tracked player exceeds speed limit")
+        if last_time != tracking.get("duration_ms"): errors.append(f"{entry['match_id']} tracking does not cover full match")
     missing = required - all_kinds
     if missing: errors.append(f"missing scenario event types: {sorted(missing)}")
     return errors
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.0.0"); args = parser.parse_args()
+    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.1.0"); args = parser.parse_args()
     failures = validate(args.root)
     if failures: raise SystemExit("\n".join(failures))
     print(f"valid dataset: {args.root}")

@@ -6,14 +6,20 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import random
 from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = Path(__file__).with_name("scenarios")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 RULES_VERSION = "1.1.0"
+TRACKING_SCHEMA_VERSION = 1
+SIMULATION_HZ = 20
+BASE_TRACKING_HZ = 2
+CLIP_TRACKING_HZ = 20
+TRACKING_CHUNK_MS = 60_000
 
 TEAMS = {
     "t_rvr": ("Riverside FC", "RVR", "#bbf174", "#142c24", ["Ivo Mercer", "Tomas Vale", "Eli Rowan", "Noah Penn", "Dario Moss", "Kian Holt", "Lina Park", "Owen Cade", "Mara Voss", "Sofia Marin", "Rafi Bell", "Jules Reed", "Mina Shaw", "Theo Wren", "Aya North", "Leon Pike"]),
@@ -28,6 +34,11 @@ def dump(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def dump_compact(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+
+
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -38,6 +49,12 @@ def squad(team_id: str) -> list[dict]:
     return [{
         "player_id": f"p_{team_id[2:]}_{i:02d}", "name": name, "shirt": i,
         "position": POSITIONS[i - 1], "starter": i <= 11,
+        "movement_profile": {
+            "max_speed_mps": round(7.1 + ((i * 11 + team_offset) % 25) / 10, 1),
+            "acceleration_mps2": round(2.4 + ((i * 7 + team_offset) % 14) / 10, 1),
+            "stamina": round(.72 + ((i * 5 + team_offset) % 25) / 100, 2),
+            "work_rate": ["balanced", "high", "balanced", "conservative"][(i + team_offset) % 4],
+        },
         "visual_profile": {
             "model_id": "nw_humanoid_v1", "height_cm": 166 + ((i * 7 + team_offset) % 24),
             "dominant_foot": "left" if (i + team_offset) % 4 == 0 else "right",
@@ -128,12 +145,137 @@ def make_positions(rng: random.Random, home: dict, away: dict) -> list[dict]:
     return positions
 
 
+def _formation(team_is_home: bool, period: int) -> list[tuple[float, float]]:
+    home_shape = [(5,34),(22,10),(22,27),(22,44),(22,58),(43,15),(43,34),(43,53),(65,12),(68,34),(65,56)]
+    away_shape = [(100,34),(83,10),(83,27),(83,44),(83,58),(62,15),(62,34),(62,53),(40,12),(37,34),(40,56)]
+    shape = home_shape if team_is_home else away_shape
+    if period == 2:
+        shape = [(105 - x, y) for x, y in shape]
+    return shape
+
+
+def _ball_at(events: list[dict], index: int, at_ms: int) -> tuple[float, float, float]:
+    if index < 0:
+        return 52.5, 34.0, 0.0
+    event = events[index]
+    following = events[index + 1] if index + 1 < len(events) else None
+    start = event["start"]
+    end = event.get("end") or (following["start"] if following else start)
+    gap = max(1, (following["match_ms"] if following else at_ms + 1000) - event["match_ms"])
+    travel_ms = min(gap, 1200 if event["type"] in {"pass", "shot"} else gap)
+    progress = min(1.0, max(0.0, (at_ms - event["match_ms"]) / max(1, travel_ms)))
+    eased = progress * progress * (3 - 2 * progress)
+    x = start["x"] + (end["x"] - start["x"]) * eased
+    y = start["y"] + (end["y"] - start["y"]) * eased
+    height = 0.0
+    if event["type"] in {"pass", "shot"}:
+        height = (1.1 if event["type"] == "pass" else 2.4) * math.sin(math.pi * progress)
+    return round(x, 2), round(y, 2), round(max(0.0, height), 2)
+
+
+def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict], folder: Path) -> dict:
+    """Generate deterministic full-match tracking constrained by the event stream."""
+    duration = sum(scenario["period_lengths_ms"])
+    first_period_end = scenario["period_lengths_ms"][0]
+    players = [*home["squad"][:11], *away["squad"][:11]]
+    player_order = [player["player_id"] for player in players]
+    team_for_player = {player["player_id"]: home["team_id"] if index < 11 else away["team_id"] for index, player in enumerate(players)}
+    states: dict[str, list[float]] = {}
+    for index, player in enumerate(players):
+        x, y = (_formation(index < 11, 1)[index if index < 11 else index - 11])
+        states[player["player_id"]] = [x, y, 0.0, 0.0]
+
+    chunks: dict[int, list[list]] = {}
+    event_index = -1
+    step_ms = 1000 // SIMULATION_HZ
+    store_every = SIMULATION_HZ // BASE_TRACKING_HZ
+    previous_period = 1
+    for tick, at_ms in enumerate(range(0, duration + 1, step_ms)):
+        while event_index + 1 < len(events) and events[event_index + 1]["match_ms"] <= at_ms:
+            event_index += 1
+        period = 1 if at_ms <= first_period_end else 2
+        if period != previous_period:
+            for index, player in enumerate(players):
+                x, y = _formation(index < 11, period)[index if index < 11 else index - 11]
+                states[player["player_id"]] = [x, y, 0.0, 0.0]
+            previous_period = period
+
+        ball_x, ball_y, ball_z = _ball_at(events, event_index, at_ms)
+        current = events[event_index] if event_index >= 0 else None
+        possession_team = current["team_id"] if current else home["team_id"]
+        next_event = events[event_index + 1] if event_index + 1 < len(events) else None
+        for index, player in enumerate(players):
+            team_is_home = index < 11
+            team_id = team_for_player[player["player_id"]]
+            base_x, base_y = _formation(team_is_home, period)[index if team_is_home else index - 11]
+            in_possession = team_id == possession_team
+            target_x = base_x + (ball_x - 52.5) * (.34 if in_possession else .20)
+            target_y = base_y + (ball_y - 34) * (.23 if in_possession else .14)
+            if current and current.get("player_id") == player["player_id"] and at_ms - current["match_ms"] <= 1400:
+                target_x, target_y = ball_x, ball_y
+            elif next_event and next_event.get("player_id") == player["player_id"] and next_event["match_ms"] - at_ms <= 1600:
+                target_x, target_y = next_event["start"]["x"], next_event["start"]["y"]
+            elif current and current.get("target_player_id") == player["player_id"] and current.get("end"):
+                target_x, target_y = current["end"]["x"], current["end"]["y"]
+
+            target_x, target_y = min(103, max(2, target_x)), min(66, max(2, target_y))
+            x, y, vx, vy = states[player["player_id"]]
+            dx, dy = target_x - x, target_y - y
+            distance = math.hypot(dx, dy)
+            profile = player["movement_profile"]
+            fatigue = 1 - (at_ms / duration) * (1 - profile["stamina"]) * .38
+            max_speed = profile["max_speed_mps"] * fatigue
+            desired_speed = min(max_speed, distance * 1.35)
+            desired_vx = dx / distance * desired_speed if distance else 0.0
+            desired_vy = dy / distance * desired_speed if distance else 0.0
+            max_delta = profile["acceleration_mps2"] / SIMULATION_HZ
+            velocity_delta = math.hypot(desired_vx - vx, desired_vy - vy)
+            scale = min(1.0, max_delta / velocity_delta) if velocity_delta else 0.0
+            vx += (desired_vx - vx) * scale
+            vy += (desired_vy - vy) * scale
+            x = min(105, max(0, x + vx / SIMULATION_HZ))
+            y = min(68, max(0, y + vy / SIMULATION_HZ))
+            states[player["player_id"]] = [x, y, vx, vy]
+
+        if tick % store_every == 0 or at_ms == duration:
+            flat_players = []
+            for player_id in player_order:
+                flat_players.extend(round(value, 2) for value in states[player_id])
+            possession_code = 0 if possession_team == home["team_id"] else 1
+            frame = [at_ms, ball_x, ball_y, ball_z, possession_code, flat_players]
+            chunks.setdefault(at_ms // TRACKING_CHUNK_MS, []).append(frame)
+
+    tracking_dir = folder / "tracking"
+    chunk_entries = []
+    for chunk_index, frames in sorted(chunks.items()):
+        filename = f"{chunk_index * 60:04d}-{(chunk_index + 1) * 60:04d}.json"
+        path = tracking_dir / filename
+        payload = {"schema_version": TRACKING_SCHEMA_VERSION, "from_ms": frames[0][0], "to_ms": frames[-1][0], "frames": frames}
+        dump_compact(path, payload)
+        chunk_entries.append({"from_ms": frames[0][0], "to_ms": frames[-1][0], "file": f"tracking/{filename}", "sha256": digest(path)})
+    manifest = {
+        "schema_version": TRACKING_SCHEMA_VERSION,
+        "source": "authoritative_synthetic_simulation",
+        "simulation_hz": SIMULATION_HZ,
+        "base_sample_rate_hz": BASE_TRACKING_HZ,
+        "render_interpolation": "cubic_hermite",
+        "duration_ms": duration,
+        "player_order": player_order,
+        "player_sample_columns": ["x", "y", "vx", "vy"],
+        "frame_columns": ["match_ms", "ball_x", "ball_y", "ball_z", "possession_team_index", "players_flat"],
+        "chunks": chunk_entries,
+    }
+    dump(tracking_dir / "manifest.json", manifest)
+    return manifest
+
+
 def make_animation(rng: random.Random, home: dict, away: dict, clips: list[dict], events: list[dict], first_period_end: int) -> dict:
     """Create presentation-only movement tracks; evidence remains in events/snapshots."""
     event_by_id = {event["event_id"]: event for event in events}
     clip_tracks = []
+    sample_interval_ms = 1000 // CLIP_TRACKING_HZ
     for clip in clips:
-        frames = max(2, (clip["to_ms"] - clip["from_ms"]) // 100 + 1)
+        frames = max(2, (clip["to_ms"] - clip["from_ms"]) // sample_interval_ms + 1)
         base = {p["player_id"]: p for p in make_positions(rng, home, away)}
         focus_events = [event_by_id[event_id] for event_id in clip["focus_event_ids"]]
         focus_players = {event["player_id"] for event in focus_events if event["player_id"]}
@@ -157,17 +299,17 @@ def make_animation(rng: random.Random, home: dict, away: dict, clips: list[dict]
                     y = y * (1 - .72 * pull) + target_event["start"]["y"] * .72 * pull
                 x, y = round(min(105, max(0, x)), 2), round(min(68, max(0, y)), 2)
                 dx, dy = x - previous[0], y - previous[1]
-                speed = round(min(9.5, (dx * dx + dy * dy) ** .5 * 10), 2)
+                speed = round(min(9.5, (dx * dx + dy * dy) ** .5 * CLIP_TRACKING_HZ), 2)
                 heading = round((__import__("math").degrees(__import__("math").atan2(dy, dx)) + 360) % 360, 1) if speed else 0
                 pose = "sprint" if speed >= 6.5 else "jog" if speed >= 2 else "idle"
                 if player["player_id"] == target_event.get("player_id") and .48 <= progress <= .58:
                     pose = "shoot" if target_event["type"] in {"shot", "goal"} else "challenge" if target_event["type"] in {"foul", "card_yellow"} else "receive"
-                samples.append([index * 100, x, y, heading, speed, pose, round((index % 8) / 8, 3)])
+                samples.append([index * sample_interval_ms, x, y, heading, speed, pose, round((index % 8) / 8, 3)])
                 previous = (x, y)
             tracks.append({"player_id": player["player_id"], "samples": samples})
         start, end = target_event["start"], target_event.get("end") or target_event["start"]
-        ball = [[index * 100, round(start["x"] + (end["x"] - start["x"]) * index / (frames - 1), 2), round(start["y"] + (end["y"] - start["y"]) * index / (frames - 1), 2), round(2.2 * __import__("math").sin(__import__("math").pi * index / (frames - 1)), 2)] for index in range(frames)]
-        clip_tracks.append({"animation_track_id": clip["animation_track_id"], "clip_id": clip["clip_id"], "sample_rate_hz": 10, "synthetic_presentation_only": True, "source_event_ids": clip["focus_event_ids"], "player_tracks": tracks, "ball_track": ball})
+        ball = [[index * sample_interval_ms, round(start["x"] + (end["x"] - start["x"]) * index / (frames - 1), 2), round(start["y"] + (end["y"] - start["y"]) * index / (frames - 1), 2), round(2.2 * __import__("math").sin(__import__("math").pi * index / (frames - 1)), 2)] for index in range(frames)]
+        clip_tracks.append({"animation_track_id": clip["animation_track_id"], "clip_id": clip["clip_id"], "sample_rate_hz": CLIP_TRACKING_HZ, "synthetic_presentation_only": True, "source_event_ids": clip["focus_event_ids"], "player_tracks": tracks, "ball_track": ball})
     return {"schema_version": 1, "model_id": "nw_humanoid_v1", "poses": ["idle", "jog", "sprint", "receive", "shoot", "challenge"], "clips": clip_tracks}
 
 
@@ -245,11 +387,13 @@ def generate_match(scenario: dict, out: Path) -> dict:
         related = [e["event_id"] for e in events if abs(e["match_ms"] - moment["at_ms"]) <= 12000]
         clip_id = f"clip_{scenario['match_id']}_{moment['id']}"
         clips.append({"clip_id": clip_id, "kind": moment["kind"], "from_ms": max(0, moment["at_ms"] - 12000), "to_ms": min(duration, moment["at_ms"] + 10000), "focus_event_ids": related, "render_mode": "svg_replay", "animation_file": "animation.json", "animation_track_id": f"anim_{clip_id}", "copyright": "original_synthetic"})
-    animation = make_animation(rng, home, away, clips, events, scenario["period_lengths_ms"][0])
     folder = out / scenario["match_id"]
+    animation = make_animation(rng, home, away, clips, events, scenario["period_lengths_ms"][0])
+    make_full_tracking(scenario, home, away, events, folder)
     dump(folder / "match.json", match); dump(folder / "events.json", events); dump(folder / "snapshots.json", snapshots); dump(folder / "clips.json", clips); dump(folder / "animation.json", animation)
-    names = ("match", "events", "snapshots", "clips", "animation")
-    return {"match_id": scenario["match_id"], "kickoff_date": scenario["kickoff_date"], "label": f"{home['name']} v {away['name']}", "files": {name: f"{scenario['match_id']}/{name}.json" for name in names}, "sha256": {name: digest(folder / f"{name}.json") for name in names}}
+    paths = {name: folder / f"{name}.json" for name in ("match", "events", "snapshots", "clips", "animation")}
+    paths["tracking"] = folder / "tracking" / "manifest.json"
+    return {"match_id": scenario["match_id"], "kickoff_date": scenario["kickoff_date"], "label": f"{home['name']} v {away['name']}", "files": {name: str(path.relative_to(out)) for name, path in paths.items()}, "sha256": {name: digest(path) for name, path in paths.items()}}
 
 
 def generate_history(out: Path, seed: int = 9917) -> Path:
