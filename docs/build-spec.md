@@ -146,7 +146,7 @@ Required npm scripts:
 
 ### Screens and layout
 
-The `/` route loads a score-free catalog and viewer defaults. Selecting a fixture navigates to `/match/:matchId` with valid query parameters. The match route contains the score/clock header, SVG pitch, timed overlays, timeline controls, and panels for Moments, Stats, Player, Explain, and Referee. Desktop presents pitch and panel side by side; mobile stacks them and keeps playback controls reachable without covering content.
+The `/` route loads a score-free catalog and viewer defaults. Selecting a fixture navigates to `/match/:matchId` with valid query parameters. The match route contains the score/clock header, compact live statistics, SVG pitch, tactical overlays, floating match feed, timeline controls, and panels for Insights, Stats, Players, and Decisions. Desktop presents pitch and panel side by side; mobile stacks them and keeps playback controls reachable without covering content.
 
 Do not split into separate pages for panels. A tab change must preserve clock, loaded replay data, selected evidence, and completed explanations.
 
@@ -247,7 +247,7 @@ The pitch loads bounded one-minute tracking chunks and uses cubic Hermite interp
 - Establish the app/router/providers structure, generated API types, typed client, error boundary, design tokens, and `en` plus the reviewed second locale.
 - Move the existing match picker into the catalog feature without changing its working catalog request.
 - Implement Zustand playback/settings state and TanStack Query resources before building the match screen.
-- Implement the SVG pitch, local replay clock, delta prefetch/merge, score bug, spoiler-safe timeline, cue overlays, Moments, Stats, and Player panels.
+- Implement the SVG pitch, local replay clock, delta prefetch/merge, score bug, spoiler-safe timeline, tactical overlays, floating match feed, Insights, Stats, Players, and Decisions panels.
 - Implement anonymous-session acquisition, explanation/compare/recap slots, evidence navigation, decisions, Ask the Ref, and deterministic geometry overlays.
 - Ignore or archive stale mutation results using `contextEpoch`; abort stale GET requests.
 - Provide loading, waking-server, offline, rate-limit, cached, generation-disabled, and facts-only states.

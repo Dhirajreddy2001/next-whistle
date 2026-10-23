@@ -65,7 +65,7 @@ The Core OpenAPI document is the source for public API types. Generate frontend 
 | Route | Responsibility |
 | --- | --- |
 | `/` | Spoiler-free two-match catalog and initial viewer settings |
-| `/match/:matchId` | Replay, pitch, timeline, panels, explanations, and Ask the Ref |
+| `/match/:matchId` | Live match pitch, timeline, tactical overlays, insights, and decision explanations |
 
 The match URL mirrors shareable state in query parameters: replay time, level, language, club, and focus player. Validate all URL values and fall back to safe defaults. Playing/paused state, open tabs, tokens, and pending requests are not shareable URL state.
 
@@ -94,7 +94,7 @@ Do not duplicate server responses into the playback store. Query data remains im
 
 #### Presentation and accessibility
 
-Desktop uses a pitch-and-panel layout; mobile stacks the pitch above panels with reachable playback controls. The SVG pitch uses a `105 × 68` view box. It interpolates supplied tracking keyframes for presentation but renders decision evidence only from explicit evidence geometry. Required feature surfaces are Match Picker, Score Bug, Pitch, Overlay Layer, Timeline, Moments, Stats, Player, Explain, Referee, Settings, and Status Banner.
+Desktop uses a pitch-and-panel layout; mobile stacks the pitch above a tabbed detail panel with reachable playback controls. The SVG pitch uses a `105 × 68` view box. It interpolates supplied tracking keyframes for presentation but renders decision evidence only from explicit evidence geometry. Required feature surfaces are Match Picker, Score Bug, Pitch, Tactical Overlays, Floating Match Feed, Timeline, Insights, Stats, Players, Decisions, Personalization, and Status Banner.
 
 All controls have accessible names and visible focus. Space toggles playback; arrow keys seek by five seconds. Pitch-only information has an equivalent text description. Respect `prefers-reduced-motion`, maintain WCAG AA contrast, avoid color-only status, and keep status/error updates in suitable live regions. UI strings live in reviewed locale files; generated content is displayed in the language reported by the response.
 
