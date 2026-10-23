@@ -190,6 +190,8 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
     step_ms = 1000 // SIMULATION_HZ
     store_every = SIMULATION_HZ // BASE_TRACKING_HZ
     previous_period = 1
+    flight_event_id = None
+    flight_start = (52.5, 34.0)
     for tick, at_ms in enumerate(range(0, duration + 1, step_ms)):
         while event_index + 1 < len(events) and events[event_index + 1]["match_ms"] <= at_ms:
             event_index += 1
@@ -204,6 +206,9 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
         current = events[event_index] if event_index >= 0 else None
         possession_team = current["team_id"] if current else home["team_id"]
         next_event = events[event_index + 1] if event_index + 1 < len(events) else None
+        event_gap_ms = (next_event["match_ms"] if next_event else at_ms + 1000) - current["match_ms"] if current else 0
+        travel_ms = min(max(1, event_gap_ms), 1200) if current and current["type"] in {"pass", "shot"} else 0
+        ball_in_flight = bool(current and current["type"] in {"pass", "shot"} and at_ms - current["match_ms"] < travel_ms)
         for index, player in enumerate(players):
             team_is_home = index < 11
             team_id = team_for_player[player["player_id"]]
@@ -237,12 +242,49 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
             y = min(68, max(0, y + vy / SIMULATION_HZ))
             states[player["player_id"]] = [x, y, vx, vy]
 
+        carrier_id = None
+        if current and not ball_in_flight:
+            if current["type"] == "pass":
+                carrier_id = current.get("target_player_id") or (next_event.get("player_id") if next_event else None)
+            elif current["type"] not in {"shot", "goal", "goal_disallowed"}:
+                carrier_id = current.get("player_id")
+        if carrier_id in states:
+            carrier_x, carrier_y, carrier_vx, carrier_vy = states[carrier_id]
+            carrier_speed = math.hypot(carrier_vx, carrier_vy)
+            if carrier_speed > .25:
+                offset_x, offset_y = carrier_vx / carrier_speed * .7, carrier_vy / carrier_speed * .7
+            else:
+                carrier_is_home = team_for_player[carrier_id] == home["team_id"]
+                attacks_right = carrier_is_home == (period == 1)
+                offset_x, offset_y = (.7 if attacks_right else -.7), 0.0
+            ball_x = min(105, max(0, carrier_x + offset_x))
+            ball_y = min(68, max(0, carrier_y + offset_y))
+            ball_z = 0.0
+            ball_phase = "controlled"
+        elif ball_in_flight and current:
+            if flight_event_id != current["event_id"]:
+                flight_event_id = current["event_id"]
+                origin = states.get(current.get("player_id"))
+                flight_start = (origin[0], origin[1]) if origin else (current["start"]["x"], current["start"]["y"])
+            receiver = states.get(current.get("target_player_id"))
+            destination = (receiver[0], receiver[1]) if current["type"] == "pass" and receiver else ((current.get("end") or current["start"])["x"], (current.get("end") or current["start"])["y"])
+            flight_progress = min(1.0, max(0.0, (at_ms - current["match_ms"]) / max(1, travel_ms)))
+            flight_eased = flight_progress * flight_progress * (3 - 2 * flight_progress)
+            ball_x = flight_start[0] + (destination[0] - flight_start[0]) * flight_eased
+            ball_y = flight_start[1] + (destination[1] - flight_start[1]) * flight_eased
+            ball_z = (1.1 if current["type"] == "pass" else 2.4) * math.sin(math.pi * flight_progress)
+            ball_phase = "flight"
+        else:
+            resting_point = (current.get("end") or current["start"]) if current else {"x": ball_x, "y": ball_y}
+            ball_x, ball_y, ball_z = resting_point["x"], resting_point["y"], 0.0
+            ball_phase = "dead"
+
         if tick % store_every == 0 or at_ms == duration:
             flat_players = []
             for player_id in player_order:
                 flat_players.extend(round(value, 2) for value in states[player_id])
             possession_code = 0 if possession_team == home["team_id"] else 1
-            frame = [at_ms, ball_x, ball_y, ball_z, possession_code, flat_players]
+            frame = [at_ms, round(ball_x, 2), round(ball_y, 2), round(ball_z, 2), possession_code, flat_players, ball_phase]
             chunks.setdefault(at_ms // TRACKING_CHUNK_MS, []).append(frame)
 
     tracking_dir = folder / "tracking"
@@ -262,7 +304,7 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
         "duration_ms": duration,
         "player_order": player_order,
         "player_sample_columns": ["x", "y", "vx", "vy"],
-        "frame_columns": ["match_ms", "ball_x", "ball_y", "ball_z", "possession_team_index", "players_flat"],
+        "frame_columns": ["match_ms", "ball_x", "ball_y", "ball_z", "possession_team_index", "players_flat", "ball_phase"],
         "chunks": chunk_entries,
     }
     dump(tracking_dir / "manifest.json", manifest)

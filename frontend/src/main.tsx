@@ -39,7 +39,7 @@ type PlayerProfile = {
   topSpeed: number;
   touches: number;
 };
-type TrackingFrame = [number, number, number, number, number, number[]];
+type TrackingFrame = [number, number, number, number, number, number[], 'controlled' | 'flight' | 'dead'];
 type TrackingSample = { ball: [number, number]; players: Record<string, [number, number]> };
 
 const MATCH_END_MS = 96 * 60 * 1000;
@@ -154,13 +154,17 @@ function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggl
   });
   const fallbackHome = animatePlayers(snapshot.home, nextSnapshot?.home);
   const fallbackAway = animatePlayers(snapshot.away, nextSnapshot?.away);
-  const fallbackBallBase = nextSnapshot
-    ? [snapshot.ball[0] + (nextSnapshot.ball[0] - snapshot.ball[0]) * progress, snapshot.ball[1] + (nextSnapshot.ball[1] - snapshot.ball[1]) * progress]
-    : snapshot.ball;
-  const fallbackBall = [Math.max(1, Math.min(99, fallbackBallBase[0] + Math.sin(phase * 1.15) * 1.1)), Math.max(2, Math.min(98, fallbackBallBase[1] + Math.cos(phase * .9) * .8))];
   const trackedPosition = (player: PlayerProfile): [number, number] | null => { const position = trackingSample?.players[player.id]; return position ? [position[0] / 1.05, position[1] / .68] : null; };
   const home = playerProfiles.filter(player => player.team === 'home').map(player => trackedPosition(player) ?? fallbackHome[player.markerIndex]);
   const away = playerProfiles.filter(player => player.team === 'away').map(player => trackedPosition(player) ?? fallbackAway[player.markerIndex]);
+  const fallbackPlayers = [...fallbackHome, ...fallbackAway];
+  const possessionSequence = [6, 9, 7, 8, 16, 20, 17, 19, 5, 10, 15, 18];
+  const touchDuration = 4; const touchStep = Math.floor(phase / touchDuration); const touchProgress = (phase % touchDuration) / touchDuration;
+  const carrier = fallbackPlayers[possessionSequence[touchStep % possessionSequence.length]];
+  const receiver = fallbackPlayers[possessionSequence[(touchStep + 1) % possessionSequence.length]];
+  const passProgress = Math.max(0, (touchProgress - .82) / .18); const passEased = passProgress * passProgress * (3 - 2 * passProgress);
+  const footOffset = carrier[0] < receiver[0] ? .8 : -.8;
+  const fallbackBall = touchProgress < .82 ? [carrier[0] + footOffset, carrier[1] + .35] : [carrier[0] + (receiver[0] - carrier[0]) * passEased, carrier[1] + (receiver[1] - carrier[1]) * passEased];
   const ball = trackingSample ? [trackingSample.ball[0] / 1.05, trackingSample.ball[1] / .68] : fallbackBall;
   const highlight = selectedEvent && selectedEvent.availableMs <= clockMs && selectedEvent.x !== undefined ? { x: selectedEvent.x, y: selectedEvent.y! } : null;
   const activeProfile = playerProfiles.find(player => player.id === hoveredId) ?? playerProfiles.find(player => player.id === trackedIds[trackedIds.length - 1]);

@@ -70,20 +70,27 @@ def validate(root: Path) -> list[str]:
         if tracking.get("source") != "authoritative_synthetic_simulation" or tracking.get("simulation_hz") != 20 or tracking.get("base_sample_rate_hz") != 2: errors.append(f"{entry['match_id']} invalid tracking manifest")
         if set(tracking.get("player_order", [])) != starters: errors.append(f"{entry['match_id']} tracking must cover 22 starters")
         last_time = -1
+        grounded_frames = 0; controlled_frames = 0
         for chunk in tracking.get("chunks", []):
             chunk_path = folder / chunk["file"]
             if sha(chunk_path) != chunk["sha256"]: errors.append(f"{entry['match_id']} tracking chunk checksum mismatch")
             payload = load(chunk_path)
             for frame in payload.get("frames", []):
-                if len(frame) != 6 or len(frame[5]) != 22 * 4: errors.append(f"{entry['match_id']} malformed tracking frame"); continue
+                if len(frame) != 7 or len(frame[5]) != 22 * 4 or frame[6] not in {"controlled", "flight", "dead"}: errors.append(f"{entry['match_id']} malformed tracking frame"); continue
                 if frame[0] <= last_time: errors.append(f"{entry['match_id']} tracking frames not ordered")
                 last_time = frame[0]
                 if not 0 <= frame[1] <= 105 or not 0 <= frame[2] <= 68 or frame[3] < 0: errors.append(f"{entry['match_id']} invalid tracked ball")
+                if frame[3] <= .05:
+                    grounded_frames += 1
+                    distances = [((frame[1] - frame[5][offset]) ** 2 + (frame[2] - frame[5][offset + 1]) ** 2) ** .5 for offset in range(0, len(frame[5]), 4)]
+                    if min(distances, default=999) <= 1.5: controlled_frames += 1
+                    if frame[6] == "controlled" and min(distances, default=999) > 1.5: errors.append(f"{entry['match_id']} controlled ball is not at a player's feet")
                 for offset in range(0, len(frame[5]), 4):
                     x, y, vx, vy = frame[5][offset:offset + 4]
                     if not 0 <= x <= 105 or not 0 <= y <= 68: errors.append(f"{entry['match_id']} tracked player out of bounds")
                     if (vx * vx + vy * vy) ** .5 > 10: errors.append(f"{entry['match_id']} tracked player exceeds speed limit")
         if last_time != tracking.get("duration_ms"): errors.append(f"{entry['match_id']} tracking does not cover full match")
+        if not grounded_frames or controlled_frames / grounded_frames < .85: errors.append(f"{entry['match_id']} ball control continuity below 85%")
     missing = required - all_kinds
     if missing: errors.append(f"missing scenario event types: {sorted(missing)}")
     return errors
