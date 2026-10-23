@@ -1,302 +1,202 @@
-import { StrictMode, useEffect, useMemo, useRef, useState } from 'react';
+import { StrictMode, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
 
-type Panel = 'insights' | 'stats' | 'players' | 'decisions';
-type TacticalLayer = 'pressure' | 'passing' | 'offside' | 'none';
-type TeamKey = 'rvr' | 'hrb' | 'ash';
-type MatchEvent = {
-  id: string;
-  minute: string;
-  timeMs: number;
-  availableMs: number;
-  team: TeamKey | null;
-  type: 'goal' | 'card' | 'break' | 'review';
-  title: string;
-  detail: string;
-  player?: string;
-  x?: number;
-  y?: number;
-};
-type MatchMetrics = {
-  possessionHome: number;
-  xgHome: number;
-  xgAway: number;
-  winHome: number;
-  winDraw: number;
-  winAway: number;
-  momentum: number;
-};
-type PlayerProfile = {
-  id: string;
-  team: 'home' | 'away';
-  markerIndex: number;
-  number: number;
-  name: string;
-  position: string;
-  archetype: string;
-  description: string;
-  distanceKm: number;
-  topSpeed: number;
-  touches: number;
-};
-type TrackingFrame = [number, number, number, number, number, number[], 'controlled' | 'flight' | 'dead'];
-type TrackingSample = { ball: [number, number]; players: Record<string, [number, number]> };
+type Team = { teamId: string; name: string; shortName: string; colors: string[] };
+type Match = { matchId: string; label: string; kickoffDate: string; home: Team; away: Team };
+type Player = { playerId: string; teamId: string; name: string; shirt: number; position: string; starter: boolean };
+type Event = { eventId: string; matchMs: number; availableMs: number; type: string; teamId?: string; playerId?: string; outcome?: string; start?: { x: number; y: number }; decision?: { decisionType: string; recordedRuling: string; reversesEventId?: string; ruleIds?: string[] } };
+type TeamStats = { teamId: string; shots: number; shotsOnTarget: number; passes: number; passesCompleted: number; passCompletionPct: number | null; possessionPct: number; goals: number; yellowCards: number; redCards: number };
+type Frame = [number, number, number, number, number, number[], 'controlled' | 'flight' | 'dead'];
+type TrackingSample = { positions: Record<string, [number, number]>; ball: [number, number] };
+type DatasetView = { match: Match; players: Player[]; events: Event[]; stats: TeamStats[]; cutoffMs: number; error: string | null };
+type UiEvent = Event & { title: string; detail: string; minute: string; kind: 'goal' | 'card' | 'break' | 'review' };
+const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+const url = (path: string) => `${API}${path}`;
+const MATCH_END_MS = 96 * 60_000;
+const emptyView: DatasetView = { match: { matchId: '', label: '', kickoffDate: '', home: { teamId: '', name: '', shortName: '', colors: [] }, away: { teamId: '', name: '', shortName: '', colors: [] } }, players: [], events: [], stats: [], cutoffMs: 0, error: null };
+const Context = createContext<DatasetView>(emptyView);
+const useData = () => useContext(Context);
 
-const MATCH_END_MS = 96 * 60 * 1000;
-const TRACKING_REVISION = '1.1.0-ball-control-1';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-const apiUrl = (path: string) => `${API_BASE_URL}${path}`;
-const DEMO_SNAPSHOT_MS = 75 * 60 * 1000;
-const SHARED_LIVE_EPOCH_MS = Date.UTC(2026, 9, 6, 16, 0, 0);
-type LiveClock = { serverOffsetMs: number; epochMs: number; durationMs: number };
-const defaultLiveClock: LiveClock = { serverOffsetMs: 0, epochMs: SHARED_LIVE_EPOCH_MS, durationMs: MATCH_END_MS };
-const sharedMatchMs = (clock = defaultLiveClock, nowMs = Date.now()) => {
-  const elapsedMs = nowMs + clock.serverOffsetMs - clock.epochMs;
-  return ((elapsedMs % clock.durationMs) + clock.durationMs) % clock.durationMs;
-};
-const events: MatchEvent[] = [
-  { id: 'e_m_rvr_hrb_00412', minute: "24'", timeMs: 1421000, availableMs: 1421000, team: 'rvr', type: 'goal', title: 'Riverside goal', detail: 'Mara Voss finishes Sofia Marin’s pass after a three-pass counter.', player: 'Mara Voss', x: 91, y: 39 },
-  { id: 'e_m_rvr_hrb_00786', minute: "45'", timeMs: 2820000, availableMs: 2820000, team: null, type: 'break', title: 'Half-time', detail: 'Riverside lead by one at the interval.' },
-  { id: 'e_m_rvr_hrb_01038', minute: "62'", timeMs: 3665000, availableMs: 3760000, team: 'hrb', type: 'review', title: 'Harbour goal ruled out', detail: 'The review finds Nia Cole 0.60 m beyond the second-last defender when the pass is played.', player: 'Nia Cole', x: 89, y: 33 },
-  { id: 'e_m_rvr_hrb_01264', minute: "75'", timeMs: 4460000, availableMs: 4464000, team: 'hrb', type: 'goal', title: 'Harbour penalty scored', detail: 'Leila Okafor converts after a recorded foul inside the Riverside penalty area.', player: 'Leila Okafor', x: 11, y: 34 },
-  { id: 'e_m_rvr_hrb_01328', minute: "79'", timeMs: 4728000, availableMs: 4728000, team: 'rvr', type: 'card', title: 'Riverside caution', detail: 'This event remains hidden until the replay reaches 78:48.', player: 'Tomas Vale', x: 52, y: 46 },
-];
-const snapshots = [
-  { at: 0, home: [[8, 50], [25, 28], [28, 70], [44, 40], [48, 65], [60, 24], [61, 52], [72, 76], [77, 42], [85, 62], [90, 35]], away: [[94, 50], [76, 25], [79, 68], [62, 38], [64, 62], [51, 26], [52, 75], [40, 46], [31, 22], [28, 58], [18, 43]], ball: [51, 50] },
-  { at: 3092000, home: [[7, 50], [20, 30], [19, 68], [36, 42], [42, 65], [53, 27], [57, 56], [67, 77], [72, 42], [80, 62], [86, 31]], away: [[95, 50], [80, 20], [82, 73], [65, 36], [67, 67], [54, 18], [52, 72], [39, 50], [27, 26], [22, 55], [12, 38]], ball: [12, 38] },
-  { at: DEMO_SNAPSHOT_MS, home: [[8, 50], [31, 24], [27, 76], [49, 30], [51, 67], [63, 18], [65, 50], [73, 74], [80, 28], [84, 37], [89, 56]], away: [[95, 50], [86, 18], [88, 74], [78, 44], [73, 61], [60, 27], [58, 70], [45, 45], [37, 20], [34, 62], [23, 38]], ball: [84, 37] },
-];
-const metricFrames = [
-  { at: 0, possessionHome: 50, xgHome: 0, xgAway: 0, winHome: 38, winDraw: 30, momentum: 0 },
-  { at: 24 * 60 * 1000, possessionHome: 53, xgHome: .62, xgAway: .21, winHome: 58, winDraw: 24, momentum: 34 },
-  { at: 45 * 60 * 1000, possessionHome: 55, xgHome: .89, xgAway: .44, winHome: 63, winDraw: 23, momentum: 42 },
-  { at: 62 * 60 * 1000, possessionHome: 52, xgHome: 1.08, xgAway: .96, winHome: 56, winDraw: 28, momentum: 12 },
-  { at: 75 * 60 * 1000, possessionHome: 54, xgHome: 1.24, xgAway: 1.39, winHome: 27, winDraw: 48, momentum: -9 },
-  { at: MATCH_END_MS, possessionHome: 52, xgHome: 1.55, xgAway: 1.61, winHome: 24, winDraw: 52, momentum: -4 },
-];
-const playerProfiles: PlayerProfile[] = [
-  { id: 'p_rvr_01', team: 'home', markerIndex: 0, number: 1, name: 'Eli Ward', position: 'Goalkeeper', archetype: 'Sweeper keeper', description: 'Starts attacks early and holds a high position behind the back line.', distanceKm: 4.1, topSpeed: 25.4, touches: 38 },
-  { id: 'p_rvr_02', team: 'home', markerIndex: 1, number: 2, name: 'Tomas Vale', position: 'Right back', archetype: 'Overlap runner', description: 'Provides width, then recovers quickly when possession turns over.', distanceKm: 8.7, topSpeed: 32.1, touches: 61 },
-  { id: 'p_rvr_03', team: 'home', markerIndex: 2, number: 3, name: 'Idris Bell', position: 'Centre back', archetype: 'Front-foot defender', description: 'Steps into midfield to contest direct passes before they settle.', distanceKm: 7.2, topSpeed: 29.2, touches: 69 },
-  { id: 'p_rvr_04', team: 'home', markerIndex: 3, number: 4, name: 'Jonah Price', position: 'Centre back', archetype: 'Cover defender', description: 'Protects the space behind the press and keeps the defensive line balanced.', distanceKm: 6.9, topSpeed: 28.7, touches: 72 },
-  { id: 'p_rvr_05', team: 'home', markerIndex: 4, number: 5, name: 'Ravi Shah', position: 'Left back', archetype: 'Progressive carrier', description: 'Moves the ball through pressure and supports attacks from deeper areas.', distanceKm: 8.9, topSpeed: 31.8, touches: 67 },
-  { id: 'p_rvr_06', team: 'home', markerIndex: 5, number: 6, name: 'Sofia Marin', position: 'Holding midfield', archetype: 'Tempo setter', description: 'Receives under pressure and changes the direction of Riverside attacks.', distanceKm: 9.4, topSpeed: 29.8, touches: 83 },
-  { id: 'p_rvr_07', team: 'home', markerIndex: 6, number: 8, name: 'Avery Brooks', position: 'Central midfield', archetype: 'Box-to-box runner', description: 'Connects both penalty areas and leads the counter-press after turnovers.', distanceKm: 10.2, topSpeed: 31.2, touches: 74 },
-  { id: 'p_rvr_08', team: 'home', markerIndex: 7, number: 7, name: 'Lena Park', position: 'Right wing', archetype: 'Direct winger', description: 'Attacks the outside shoulder and creates separation with early acceleration.', distanceKm: 8.5, topSpeed: 33.4, touches: 49 },
-  { id: 'p_rvr_09', team: 'home', markerIndex: 8, number: 9, name: 'Mara Voss', position: 'Striker', archetype: 'Channel runner', description: 'Pins centre backs, then breaks into the space behind when the pass opens.', distanceKm: 8.1, topSpeed: 32.8, touches: 42 },
-  { id: 'p_rvr_10', team: 'home', markerIndex: 9, number: 10, name: 'Noor Haddad', position: 'Attacking midfield', archetype: 'Chance creator', description: 'Finds pockets between the lines and looks for the final pass.', distanceKm: 8.8, topSpeed: 30.6, touches: 71 },
-  { id: 'p_rvr_11', team: 'home', markerIndex: 10, number: 11, name: 'Cleo Mensah', position: 'Left wing', archetype: 'Inside forward', description: 'Drives toward goal from wide positions and combines around the box.', distanceKm: 8.3, topSpeed: 33.0, touches: 53 },
-  { id: 'p_hrb_01', team: 'away', markerIndex: 0, number: 1, name: 'Mina Holt', position: 'Goalkeeper', archetype: 'Line keeper', description: 'Protects the goal area and prefers secure distribution into midfield.', distanceKm: 3.8, topSpeed: 24.6, touches: 34 },
-  { id: 'p_hrb_02', team: 'away', markerIndex: 1, number: 2, name: 'Priya Nair', position: 'Right back', archetype: 'Defensive fullback', description: 'Controls wide space first and joins attacks when the route is secure.', distanceKm: 8.4, topSpeed: 31.1, touches: 58 },
-  { id: 'p_hrb_03', team: 'away', markerIndex: 2, number: 4, name: 'Ada Byrne', position: 'Centre back', archetype: 'Aerial stopper', description: 'Attacks crosses and direct balls while organizing the defensive line.', distanceKm: 7.0, topSpeed: 28.9, touches: 64 },
-  { id: 'p_hrb_04', team: 'away', markerIndex: 3, number: 5, name: 'Inez Costa', position: 'Centre back', archetype: 'Ball-playing defender', description: 'Breaks the first line with measured passes into central midfield.', distanceKm: 7.3, topSpeed: 29.4, touches: 78 },
-  { id: 'p_hrb_05', team: 'away', markerIndex: 4, number: 3, name: 'Nia Cole', position: 'Left back', archetype: 'High outlet', description: 'Advances early to stretch the pitch and support attacks on the left.', distanceKm: 9.1, topSpeed: 32.2, touches: 66 },
-  { id: 'p_hrb_06', team: 'away', markerIndex: 5, number: 6, name: 'Yara Finch', position: 'Holding midfield', archetype: 'Ball winner', description: 'Closes central passing lanes and protects the defence during transitions.', distanceKm: 9.7, topSpeed: 30.1, touches: 76 },
-  { id: 'p_hrb_07', team: 'away', markerIndex: 6, number: 8, name: 'Mae Tan', position: 'Central midfield', archetype: 'Press-resistant carrier', description: 'Escapes pressure with close control and carries play into the next line.', distanceKm: 10.0, topSpeed: 31.0, touches: 81 },
-  { id: 'p_hrb_08', team: 'away', markerIndex: 7, number: 7, name: 'Zoe Quinn', position: 'Right wing', archetype: 'Touchline winger', description: 'Stays wide to create one-versus-one situations and crossing angles.', distanceKm: 8.6, topSpeed: 33.2, touches: 51 },
-  { id: 'p_hrb_09', team: 'away', markerIndex: 8, number: 9, name: 'Leila Okafor', position: 'Striker', archetype: 'Penalty-box finisher', description: 'Times short movements inside the box and attacks loose second balls.', distanceKm: 7.9, topSpeed: 31.9, touches: 39 },
-  { id: 'p_hrb_10', team: 'away', markerIndex: 9, number: 10, name: 'Esme Laurent', position: 'Attacking midfield', archetype: 'Between-lines creator', description: 'Receives behind midfield and turns quickly toward the final third.', distanceKm: 8.9, topSpeed: 30.8, touches: 73 },
-  { id: 'p_hrb_11', team: 'away', markerIndex: 10, number: 11, name: 'Talia Reed', position: 'Left wing', archetype: 'Counterattack runner', description: 'Accelerates into open space as soon as Harbour recover possession.', distanceKm: 8.2, topSpeed: 33.6, touches: 47 },
-];
-const trackingPlayerOrder = playerProfiles.map(player => player.id);
-console.assert(events.every((event, index) => index === 0 || event.timeMs > events[index - 1].timeMs), 'Events must be chronological');
-console.assert(snapshots.every((snapshot, index) => index === 0 || snapshot.at > snapshots[index - 1].at), 'Snapshots must be chronological');
-
-function sampleTracking(frames: TrackingFrame[], clockMs: number): TrackingSample | null {
+type Level = 'beginner' | 'intermediate' | 'pro';
+type Theme = 'dark' | 'light';
+type Prefs = { perspective: string; level: Level; language: string; theme: Theme };
+const PERSPECTIVES = ['Neutral', 'Home supporter', 'Away supporter', 'Analyst'];
+const LANGUAGES = ['English', 'Español', 'Français', 'Deutsch'];
+const LEVEL_HINTS: Record<Level, string> = { beginner: 'Plain-language explanations, fewer numbers.', intermediate: 'Adds shot quality and key stats.', pro: 'Full detail: xG, momentum and rule references.' };
+const prefsKey = 'next-whistle-viewer';
+const defaults: Prefs = { perspective: 'Neutral', level: 'beginner', language: 'English', theme: 'dark' };
+function readPrefs(): Prefs { try { return { ...defaults, ...JSON.parse(localStorage.getItem(prefsKey) ?? '{}') }; } catch { return defaults; } }
+try { document.documentElement.dataset.theme = readPrefs().theme; } catch { /* theme falls back to the stylesheet default */ }
+function formatClock(ms: number) { const seconds = Math.floor(ms / 1000); return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`; }
+function sampleTracking(frames: Frame[], order: string[], clockMs: number): TrackingSample | null {
   if (!frames.length) return null;
-  const upperIndex = frames.findIndex(frame => frame[0] >= clockMs);
-  const next = frames[upperIndex === -1 ? frames.length - 1 : upperIndex];
-  const previous = frames[Math.max(0, (upperIndex === -1 ? frames.length - 1 : upperIndex) - 1)];
-  const durationSeconds = Math.max(.001, (next[0] - previous[0]) / 1000);
-  const t = next[0] === previous[0] ? 0 : Math.max(0, Math.min(1, (clockMs - previous[0]) / (next[0] - previous[0])));
-  const h00 = 2 * t ** 3 - 3 * t ** 2 + 1; const h10 = t ** 3 - 2 * t ** 2 + t;
-  const h01 = -2 * t ** 3 + 3 * t ** 2; const h11 = t ** 3 - t ** 2;
-  const players = Object.fromEntries(trackingPlayerOrder.map((id, index) => {
-    const offset = index * 4; const start = previous[5]; const end = next[5];
-    const x = h00 * start[offset] + h10 * durationSeconds * start[offset + 2] + h01 * end[offset] + h11 * durationSeconds * end[offset + 2];
-    const y = h00 * start[offset + 1] + h10 * durationSeconds * start[offset + 3] + h01 * end[offset + 1] + h11 * durationSeconds * end[offset + 3];
-    return [id, [Math.max(0, Math.min(105, x)), Math.max(0, Math.min(68, y))]];
-  })) as Record<string, [number, number]>;
-  return { ball: [previous[1] + (next[1] - previous[1]) * t, previous[2] + (next[2] - previous[2]) * t], players };
+  const last = frames[frames.length - 1]; const previous = frames.length > 1 ? frames[frames.length - 2] : last;
+  const dt = Math.max(0, Math.min(.5, (clockMs - last[0]) / 1000));
+  const positions = Object.fromEntries(order.map((id, index) => {
+    const offset = index * 4; const x = last[5][offset] + last[5][offset + 2] * dt; const y = last[5][offset + 1] + last[5][offset + 3] * dt;
+    return [id, [Math.max(0, Math.min(105, x)), Math.max(0, Math.min(68, y))] as [number, number]];
+  }));
+  const span = Math.max(.001, (last[0] - previous[0]) / 1000);
+  const ball = [last[1] + (last[1] - previous[1]) / span * dt, last[2] + (last[2] - previous[2]) / span * dt] as [number, number];
+  return { positions, ball: [Math.max(0, Math.min(105, ball[0])), Math.max(0, Math.min(68, ball[1]))] };
 }
-
-function formatClock(timeMs: number) { const seconds = Math.floor(timeMs / 1000); return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`; }
-function getMetrics(timeMs: number): MatchMetrics {
-  const nextIndex = metricFrames.findIndex(frame => frame.at >= timeMs);
-  const next = metricFrames[nextIndex === -1 ? metricFrames.length - 1 : nextIndex];
-  const previous = metricFrames[Math.max(0, (nextIndex === -1 ? metricFrames.length - 1 : nextIndex) - 1)];
-  const progress = next.at === previous.at ? 0 : Math.max(0, Math.min(1, (timeMs - previous.at) / (next.at - previous.at)));
-  const interpolate = (start: number, end: number) => start + (end - start) * progress;
-  const winHome = Math.round(interpolate(previous.winHome, next.winHome));
-  const winDraw = Math.round(interpolate(previous.winDraw, next.winDraw));
-  return {
-    possessionHome: Math.round(interpolate(previous.possessionHome, next.possessionHome)),
-    xgHome: interpolate(previous.xgHome, next.xgHome),
-    xgAway: interpolate(previous.xgAway, next.xgAway),
-    winHome,
-    winDraw,
-    winAway: 100 - winHome - winDraw,
-    momentum: Math.round(interpolate(previous.momentum, next.momentum)),
-  };
-}
-function Button({ children, className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) { return <button className={`button ${className}`.trim()} {...props}>{children}</button>; }
+function badgeClass(teamId: string) { return teamId.replace(/^t_/, ''); }
+function TeamBadge({ team }: { team: Team }) { return <span className={`team-badge ${badgeClass(team.teamId)}`} style={{ background: team.colors[0], color: team.colors[1] }} aria-label={team.name}>{team.shortName}</span>; }
 function Mark() { return <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>; }
-function TeamBadge({ team }: { team: TeamKey }) { const short = { rvr: 'RVR', hrb: 'HRB', ash: 'ASH' }[team]; return <span className={`team-badge ${team}`} aria-hidden="true">{short}</span>; }
-
-function Personalize() {
+function Button({ children, className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) { return <button className={`button ${className}`.trim()} {...props}>{children}</button>; }
+function useMatchData(match: Match, clockMs: number) {
+  const [data, setData] = useState<DatasetView>({ ...emptyView, match });
+  const eventCache = useRef<Event[]>([]); const loadedThrough = useRef(-1);
+  useEffect(() => {
+    if (!match.matchId) return;
+    const controller = new AbortController();
+    const cutoff = Math.floor(clockMs / 5000) * 5000;
+    const get = async (path: string) => { const response = await fetch(url(path), { signal: controller.signal, cache: 'no-store' }); if (!response.ok) throw new Error(`Request failed (${response.status}): ${path}`); return response.json(); };
+    const load = async () => {
+      const [squads, stats] = await Promise.all([get(`/api/matches/${match.matchId}/squads`), get(`/api/matches/${match.matchId}/stats?cutoffMs=${cutoff}`)]);
+      if (cutoff > loadedThrough.current) {
+        const timeline = loadedThrough.current < 0
+          ? await get(`/api/matches/${match.matchId}/timeline?cutoffMs=${cutoff}`)
+          : await get(`/api/matches/${match.matchId}/replay?cutoffMs=${cutoff}&fromMs=${loadedThrough.current}`);
+        if (loadedThrough.current < 0) eventCache.current = timeline.events ?? [];
+        else eventCache.current = [...eventCache.current, ...(timeline.events ?? [])];
+        loadedThrough.current = cutoff;
+      }
+      if (!controller.signal.aborted) setData({ match, players: squads.teams.flatMap((side: { teamId: string; players: Omit<Player, 'teamId'>[] }) => side.players.map(player => ({ ...player, teamId: side.teamId })).filter(player => player.starter).sort((a, b) => a.shirt - b.shirt)), events: eventCache.current, stats: stats.teams ?? [], cutoffMs: cutoff, error: null });
+    };
+    load().catch(error => { if (error.name !== 'AbortError') setData(current => ({ ...current, error: 'Could not load generated match data. Check that the backend is running, then retry.' })); });
+    return () => controller.abort();
+  }, [match.matchId, Math.floor(clockMs / 5000)]);
+  return data;
+}
+function eventPresentation(event: Event, data: DatasetView): UiEvent {
+  const home = event.teamId === data.match.home.teamId;
+  const teamName = event.teamId ? (home ? data.match.home.name : data.match.away.name) : '';
+  const playerName = data.players.find(player => player.playerId === event.playerId)?.name;
+  const minute = `${Math.floor(event.matchMs / 60_000) + 1}'`;
+  let title = `${playerName ?? teamName} ${event.type.replaceAll('_', ' ')}`.trim();
+  if (event.type === 'goal_disallowed') title = `${teamName} goal disallowed`;
+  if (event.type === 'period_end') title = 'Half-time';
+  if (event.type === 'period_start') title = 'Kick-off';
+  if (playerName && event.type.startsWith('card')) title = `${playerName} shown a ${event.type === 'card_red' ? 'red' : 'yellow'} card`;
+  if (event.type === 'goal' && playerName) title = `${playerName} scores`;
+  const detail = event.decision ? `Recorded ruling: ${event.decision.recordedRuling.replaceAll('_', ' ')}${event.decision.ruleIds?.length ? ` · ${event.decision.ruleIds.join(', ')}` : ''}.` : playerName ? `${playerName}${event.outcome ? ` · ${event.outcome.replaceAll('_', ' ')}` : ''}.` : `${event.type.replaceAll('_', ' ')} recorded.`;
+  const kind = event.type.includes('goal') ? 'goal' : event.type.includes('card') ? 'card' : event.type.startsWith('period') ? 'break' : event.decision ? 'review' : 'break';
+  return { ...event, title, detail, minute, kind };
+}
+function App() {
+  const [prefs, setPrefs] = useState(readPrefs);
+  useEffect(() => { document.documentElement.dataset.theme = prefs.theme; localStorage.setItem(prefsKey, JSON.stringify(prefs)); }, [prefs]);
+  const matchId = window.location.pathname.match(/^\/match\/([^/]+)/)?.[1];
+  return matchId ? <ReplayApp matchId={matchId} prefs={prefs} setPrefs={setPrefs} /> : <MatchPicker />;
+}
+function MatchPicker() {
+  const [matches, setMatches] = useState<Match[]>([]); const [error, setError] = useState('');
+  const load = () => fetch(url('/api/matches')).then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(result => { setMatches(result.matches); setError(''); }).catch(() => setError('Match catalog unavailable. Start the backend and try again.'));
+  useEffect(() => { void load(); }, []);
+  return <div className="picker"><header className="topbar"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a></header><main><header><h1>Choose a match</h1><p>Follow the action, inspect turning points, and understand the decisions shaping the game.</p></header>{error ? <div className="empty-panel"><p role="alert">{error}</p><Button onClick={() => void load()}>Retry</Button></div> : <div className="fixture-list">{matches.map((match, index) => <a className="fixture" href={`/match/${match.matchId}`} key={match.matchId}><div><span>{match.label} · Matchday {index + 1}</span><time>{new Date(`${match.kickoffDate}T12:00:00`).toLocaleDateString()}</time></div><div className="fixture-teams"><TeamBadge team={match.home} /><strong>{match.home.name}</strong><span>v</span><strong>{match.away.name}</strong><TeamBadge team={match.away} /></div><span className="open-match">Open match →</span></a>)}</div>}</main></div>;
+}
+function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs; setPrefs: (p: Prefs) => void }) {
+  const [catalog, setCatalog] = useState<Match[]>([]); const [liveEdge, setLiveEdge] = useState(0); const [clock, setClock] = useState(0); const [playing, setPlaying] = useState(true); const [selected, setSelected] = useState<string | null>(null); const [panel, setPanel] = useState<Panel>('insights'); const [tracked, setTracked] = useState<string[]>([]); const [hovered, setHovered] = useState<string | null>(null); const [trackingFrames, setTrackingFrames] = useState<Frame[]>([]); const [trackingOrder, setTrackingOrder] = useState<string[]>([]);
+  const [liveClock, setLiveClock] = useState<{ offset: number; epoch: number; duration: number } | null>(null);
+  const clockRef = useRef(clock); clockRef.current = clock;
+  const trackingCursor = useRef(-1);
+  useEffect(() => { fetch(url('/api/matches')).then(r => r.json()).then(v => setCatalog(v.matches ?? [])).catch(() => undefined); fetch(url('/api/live-state'), { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(s => { const lc = { offset: s.serverTimeMs - Date.now(), epoch: s.instanceStartMs - s.cycleNumber * s.durationMs, duration: s.durationMs }; setLiveClock(lc); setLiveEdge(s.matchMs); setClock(s.matchMs); }).catch(() => undefined); }, []);
+  const match = catalog.find(item => item.matchId === matchId);
+  const data = useMatchData(match ?? emptyView.match, clock);
+  useEffect(() => {
+    if (!match) return;
+    let active = true; let busy = false; let timer = 0;
+    trackingCursor.current = -1; setTrackingFrames([]); setTrackingOrder([]);
+    const run = async (manifest: { player_order: string[]; chunks: { from_ms: number }[] }) => {
+      if (!active || busy) return; busy = true;
+      try {
+        const cutoff = Math.floor(clockRef.current); const index = Math.floor(cutoff / 60_000); const chunk = manifest.chunks[index];
+        if (!chunk || chunk.from_ms > cutoff) return;
+        if (trackingCursor.current > cutoff) { trackingCursor.current = -1; setTrackingFrames([]); }
+        const cursor = trackingCursor.current;
+        const suffix = cursor >= 0 ? `&fromMs=${cursor}` : '';
+        const response = await fetch(url(`/api/matches/${match.matchId}/tracking/chunks/${index}?cutoffMs=${cutoff}${suffix}`), { cache: 'no-store' });
+        if (!response.ok || !active) return;
+        const rows = (await response.json()).frames as Frame[];
+        if (rows.length) {
+          trackingCursor.current = rows[rows.length - 1][0];
+          setTrackingFrames(current => [...current, ...rows].slice(-2));
+        }
+      } catch { /* Tracking can recover on the next poll; match events and stats remain available. */ }
+      finally { busy = false; }
+    };
+    fetch(url(`/api/matches/${match.matchId}/tracking/manifest`)).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(manifest => {
+      if (!active) return;
+      setTrackingOrder(manifest.player_order ?? []);
+      void run(manifest);
+      timer = window.setInterval(() => void run(manifest), 500);
+    }).catch(() => undefined);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [match?.matchId]);
+  const dataCurrent = data.cutoffMs <= clock;
+  const events = useMemo(() => (dataCurrent ? data.events : []).map(event => eventPresentation(event, data)).filter(event => event.availableMs <= clock), [data.events, data.players, data.match, dataCurrent, clock]);
+  const stats = dataCurrent ? data.stats : []; const homeStats = stats.find(t => t.teamId === data.match.home.teamId); const awayStats = stats.find(t => t.teamId === data.match.away.teamId);
+  const reversed = new Set(events.map(e => e.decision?.reversesEventId).filter(Boolean));
+  const goals = (teamId: string) => events.filter(e => e.type === 'goal' && e.teamId === teamId && !reversed.has(e.eventId)).length;
+  const selectedEvent = events.find(e => e.eventId === selected) ?? null;
+  const displayedPlayers = data.players.filter(p => p.starter);
+  const trackingSample = sampleTracking(trackingFrames.filter(frame => frame[0] <= clock), trackingOrder, clock);
+  const gridRef = useRef<HTMLDivElement>(null); const dragging = useRef(false);
+  const [panelWidth, setPanelWidth] = useState(260); const [panelOpen, setPanelOpen] = useState(true);
+  useEffect(() => { if (!liveClock) return; const timer = window.setInterval(() => { const elapsed = Date.now() + liveClock.offset - liveClock.epoch; const edge = ((elapsed % liveClock.duration) + liveClock.duration) % liveClock.duration; setLiveEdge(edge); setClock(current => playing ? edge : Math.min(current, edge)); }, 100); return () => window.clearInterval(timer); }, [liveClock, playing]);
+  const seek = (ms: number, event?: UiEvent) => { const t = Math.max(0, Math.min(liveEdge, event ? Math.max(ms, event.availableMs) : ms)); setPlaying(false); setClock(t); setSelected(event?.eventId ?? null); };
+  const resizeTo = (clientX: number) => { const rect = gridRef.current?.getBoundingClientRect(); if (!rect) return; setPanelOpen(true); setPanelWidth(Math.round(Math.max(220, Math.min(560, rect.width * .55, rect.right - clientX - 8)))); };
+  const resizeKey = (event: React.KeyboardEvent) => { if (event.key === 'ArrowLeft') { event.preventDefault(); setPanelOpen(true); setPanelWidth(width => Math.min(560, width + 16)); } else if (event.key === 'ArrowRight') { event.preventDefault(); setPanelWidth(width => Math.max(220, width - 16)); } else if (event.key === 'Home') { event.preventDefault(); setPanelOpen(true); setPanelWidth(260); } else if (event.key === 'Enter') { event.preventDefault(); setPanelOpen(value => !value); } };
+  const toggleTracking = (id: string) => setTracked(current => current.includes(id) ? current.filter(v => v !== id) : current.length < 3 ? [...current, id] : current);
+  const activePlayer = displayedPlayers.find(p => p.playerId === (hovered ?? tracked.at(-1)));
+  const metricCards = homeStats && awayStats;
+  if (!match) return <div className="picker"><main><h1>{catalog.length ? 'Match not found' : 'Loading match…'}</h1><a href="/">Back to matches</a></main></div>;
+  if (data.error) return <div className="picker"><main><h1>{match.label}</h1><p role="alert">{data.error}</p><Button onClick={() => window.location.reload()}>Retry</Button></main></div>;
+  return <Context.Provider value={data}><div className="app-shell">
+    <header className="live-header"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><div className="compact-score"><div><TeamBadge team={match.home} /><span>{match.home.name}</span></div><strong aria-label={`${match.home.name} ${goals(match.home.teamId)}, ${match.away.name} ${goals(match.away.teamId)}`}>{goals(match.home.teamId)}<i>–</i>{goals(match.away.teamId)}</strong><div><span>{match.away.name}</span><TeamBadge team={match.away} /></div></div><div className="header-live"><span className="header-date">{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span><Personalize prefs={prefs} onChange={setPrefs} /><span className="header-clock"><strong>{formatClock(clock)}</strong><small>{clock < 45 * 60_000 ? 'First half' : 'Second half'}</small></span><button className={`live-state ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><span />{playing && Math.abs(clock - liveEdge) < 2500 ? 'Live' : 'Go live'}</button></div><section className="match-insights" aria-label="Generated match statistics"><div className="insight-grid">{metricCards ? <><Metric label="Possession" value={`${homeStats.possessionPct}% – ${awayStats.possessionPct}%`} detail={`${match.home.shortName} — ${match.away.shortName}`} /><Metric label="Shots" value={`${homeStats.shots} – ${awayStats.shots}`} detail={`Through ${formatClock(data.cutoffMs)}`} /><Metric label="On target" value={`${homeStats.shotsOnTarget} – ${awayStats.shotsOnTarget}`} detail="Attempts on target" /><Metric label="Pass completion" value={`${homeStats.passCompletionPct ?? '—'}% – ${awayStats.passCompletionPct ?? '—'}%`} detail="Completed passes / attempts" /></> : <div className="metric-card">Loading statistics for {formatClock(clock)}…</div>}</div></section></header>
+    <main className="workspace"><h1 className="sr-only">{match.label} live match</h1>
+      <div className={`replay-grid ${panelOpen ? '' : 'panel-collapsed'}`} ref={gridRef} style={{ '--panel-width': `${panelOpen ? panelWidth : 0}px` } as React.CSSProperties}><section className="replay-stage" aria-label="Live match replay"><Pitch clock={clock} event={selectedEvent} tracking={trackingSample} tracked={tracked} activePlayer={activePlayer} setHovered={setHovered} toggleTracking={toggleTracking} events={events} /><div className="playback" role="group" aria-label="Playback controls"><button className="play-toggle" onClick={() => setPlaying(value => !value)} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}</button><span className="playback-time">{formatClock(clock)}</span><label className="scrubber"><span className="sr-only">Match time</span><input type="range" min="0" max={liveEdge} step="1000" value={clock} onChange={event => seek(Number(event.target.value))} /></label><button type="button" className={`playback-live ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><i />{playing ? 'Live' : 'Go live'}</button></div></section><div className="panel-divider"><div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize match details panel. Arrow keys adjust, Home resets, Enter collapses." aria-valuemin={220} aria-valuemax={560} aria-valuenow={panelOpen ? panelWidth : 0} tabIndex={0} onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (dragging.current) resizeTo(event.clientX); }} onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }} onDoubleClick={() => setPanelWidth(260)} onKeyDown={resizeKey}><span aria-hidden="true" /></div><button type="button" className="panel-collapse" aria-label={panelOpen ? 'Collapse match details panel' : 'Expand match details panel'} aria-expanded={panelOpen} onClick={() => setPanelOpen(value => !value)}>{panelOpen ? '›' : '‹'}</button></div><SidePanel level={prefs.level} panel={panel} setPanel={setPanel} clock={clock} events={events} selected={selected} seek={seek} stats={stats} /></div>
+    </main>
+  </div></Context.Provider>;
+}
+function Metric({ label, value, detail }: { label: string; value: string; detail: string }) { return <article className="metric-card"><div className="metric-heading"><span>{label}</span><strong>{value}</strong></div><p>{detail}</p></article>; }
+function Personalize({ prefs, onChange }: { prefs: Prefs; onChange: (p: Prefs) => void }) {
   const [open, setOpen] = useState(false);
-  const [perspective, setPerspective] = useState('Riverside fan');
-  const [detail, setDetail] = useState('Regular');
-  return <div className="personalize"><button className="personalize-trigger" onClick={() => setOpen(value => !value)} aria-expanded={open}>Personalize</button>{open && <form className="personalize-menu" aria-label="Personalize match view"><header><strong>Your match view</strong><button type="button" onClick={() => setOpen(false)} aria-label="Close personalization">×</button></header><label>Perspective<select value={perspective} onChange={event => setPerspective(event.target.value)}><option>Riverside fan</option><option>Neutral</option><option>Harbour fan</option></select></label><label>Explanation detail<select value={detail} onChange={event => setDetail(event.target.value)}><option>Quick</option><option>Regular</option><option>Deep</option></select></label><label>Language<select defaultValue="English"><option>English</option></select></label></form>}</div>;
+  return <div className="personalize"><button className="personalize-trigger" onClick={() => setOpen(!open)}>Personalize</button>{open && <form className="personalize-menu" onSubmit={e => e.preventDefault()}><header><strong>Your match view</strong><button type="button" onClick={() => setOpen(false)} aria-label="Close">×</button></header>
+    <label>Perspective<select value={prefs.perspective} onChange={e => onChange({ ...prefs, perspective: e.target.value })}>{PERSPECTIVES.map(p => <option key={p}>{p}</option>)}</select></label>
+    <label>Viewer level<select value={prefs.level} onChange={e => onChange({ ...prefs, level: e.target.value as Level })}><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="pro">Pro</option></select></label><p className="level-hint">{LEVEL_HINTS[prefs.level]}</p>
+    <label>Language<select value={prefs.language} onChange={e => onChange({ ...prefs, language: e.target.value })}>{LANGUAGES.map(l => <option key={l}>{l}</option>)}</select></label>
+    <fieldset className="theme-field"><legend>Appearance</legend><div className="theme-toggle">{(['dark', 'light'] as Theme[]).map(theme => <button type="button" key={theme} aria-pressed={prefs.theme === theme} onClick={() => onChange({ ...prefs, theme })}>{theme === 'dark' ? 'Dark' : 'Light'}</button>)}</div></fieldset></form>}</div>;
 }
-
-function Pitch({ clockMs, selectedEvent, trackedIds, hoveredId, onHover, onToggleTrack, trackingSample }: { clockMs: number; selectedEvent: MatchEvent | null; trackedIds: string[]; hoveredId: string | null; onHover: (id: string | null) => void; onToggleTrack: (id: string) => void; trackingSample: TrackingSample | null }) {
-  const [activeLayer, setActiveLayer] = useState<TacticalLayer>('pressure');
-  const [feedOpen, setFeedOpen] = useState(true);
-  const upcomingIndex = snapshots.findIndex(item => item.at > clockMs);
-  const baseIndex = upcomingIndex === -1 ? snapshots.length - 1 : Math.max(0, upcomingIndex - 1);
-  const snapshot = snapshots[baseIndex] ?? snapshots[0];
-  const nextSnapshot = snapshots[baseIndex + 1];
-  const progress = nextSnapshot ? Math.max(0, Math.min(1, (clockMs - snapshot.at) / (nextSnapshot.at - snapshot.at))) : 0;
-  const phase = clockMs / 1000;
-  const animatePlayers = (players: number[][], nextPlayers?: number[][]) => players.map(([x, y], index) => {
-    const baseX = nextPlayers ? x + (nextPlayers[index][0] - x) * progress : x;
-    const baseY = nextPlayers ? y + (nextPlayers[index][1] - y) * progress : y;
-    return [Math.max(2, Math.min(98, baseX + Math.sin(phase * .72 + index * 1.37) * .75)), Math.max(3, Math.min(97, baseY + Math.cos(phase * .61 + index * .93) * 1.05))];
-  });
-  const fallbackHome = animatePlayers(snapshot.home, nextSnapshot?.home);
-  const fallbackAway = animatePlayers(snapshot.away, nextSnapshot?.away);
-  const trackedPosition = (player: PlayerProfile): [number, number] | null => { const position = trackingSample?.players[player.id]; return position ? [position[0] / 1.05, position[1] / .68] : null; };
-  const home = playerProfiles.filter(player => player.team === 'home').map(player => trackedPosition(player) ?? fallbackHome[player.markerIndex]);
-  const away = playerProfiles.filter(player => player.team === 'away').map(player => trackedPosition(player) ?? fallbackAway[player.markerIndex]);
-  const fallbackPlayers = [...fallbackHome, ...fallbackAway];
-  const possessionSequence = [6, 9, 7, 8, 16, 20, 17, 19, 5, 10, 15, 18];
-  const touchDuration = 4; const touchStep = Math.floor(phase / touchDuration); const touchProgress = (phase % touchDuration) / touchDuration;
-  const carrier = fallbackPlayers[possessionSequence[touchStep % possessionSequence.length]];
-  const receiver = fallbackPlayers[possessionSequence[(touchStep + 1) % possessionSequence.length]];
-  const passProgress = Math.max(0, (touchProgress - .82) / .18); const passEased = passProgress * passProgress * (3 - 2 * passProgress);
-  const footOffset = carrier[0] < receiver[0] ? .8 : -.8;
-  const fallbackBall = touchProgress < .82 ? [carrier[0] + footOffset, carrier[1] + .35] : [carrier[0] + (receiver[0] - carrier[0]) * passEased, carrier[1] + (receiver[1] - carrier[1]) * passEased];
-  const ball = trackingSample ? [trackingSample.ball[0] / 1.05, trackingSample.ball[1] / .68] : fallbackBall;
-  const feedEvents = events.filter(event => event.availableMs <= clockMs).slice(-3).reverse();
-  const passingTargets = [...home, ...away].sort((first, second) => Math.hypot(first[0] - ball[0], first[1] - ball[1]) - Math.hypot(second[0] - ball[0], second[1] - ball[1])).slice(1, 4);
-  const offsideX = Math.max(18, Math.min(87, away.slice(1, 5).reduce((total, player) => total + player[0], 0) / 4));
-  const highlight = selectedEvent && selectedEvent.availableMs <= clockMs && selectedEvent.x !== undefined ? { x: selectedEvent.x, y: selectedEvent.y! } : null;
-  const activeProfile = playerProfiles.find(player => player.id === hoveredId) ?? playerProfiles.find(player => player.id === trackedIds[trackedIds.length - 1]);
-  const positionFor = (player: PlayerProfile) => (player.team === 'home' ? home : away)[player.markerIndex];
-  const trailPoints = (player: PlayerProfile) => {
-    const [x, y] = positionFor(player);
-    const direction = player.team === 'home' ? 1 : -1;
-    return Array.from({ length: 7 }, (_, point) => {
-      const lag = 6 - point;
-      const trailX = x - direction * lag * .8 + Math.sin(player.markerIndex + lag * .7) * .22;
-      const trailY = y + Math.cos(player.markerIndex * .8 + lag) * lag * .12;
-      return `${trailX * 1.05},${trailY * .68}`;
-    }).join(' ');
-  };
-  const renderPlayer = (player: PlayerProfile, position: number[]) => {
-    const [x, y] = position;
-    const tracked = trackedIds.includes(player.id);
-    return <g className={`player-marker ${player.team} ${tracked ? 'tracked' : ''}`} key={player.id} transform={`translate(${x * 1.05} ${y * .68})`} role="button" tabIndex={0} aria-label={`${player.name}, number ${player.number}, ${player.position}. ${tracked ? 'Remove from tracking' : 'Track player'}`} aria-pressed={tracked} onMouseEnter={() => onHover(player.id)} onMouseLeave={() => onHover(null)} onFocus={() => onHover(player.id)} onBlur={() => onHover(null)} onClick={() => onToggleTrack(player.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onToggleTrack(player.id); } }}>
-      <circle className="hit-area" r="3.6" />
-      {tracked && <circle className="selection-ring" r="2.75" />}
-      <circle r="1.8" /><text y=".65" textAnchor="middle">{player.number}</text>
-    </g>;
-  };
-  return <figure className="pitch-shell">
-    <div className="tactical-toolbar" role="group" aria-label="Tactical overlays">{(['pressure', 'passing', 'offside'] as TacticalLayer[]).map(layer => <button key={layer} aria-pressed={activeLayer === layer} onClick={() => setActiveLayer(current => current === layer ? 'none' : layer)}>{layer === 'passing' ? 'Passing lanes' : layer === 'offside' ? 'Offside line' : 'Pressure'}</button>)}</div>
-    <svg className="pitch" viewBox="0 0 105 68" role="img" aria-labelledby="pitch-title pitch-desc">
-      <title id="pitch-title">Player positions at {formatClock(clockMs)}</title><desc id="pitch-desc">Riverside attack from left to right. The selected incident is highlighted when evidence is available.</desc>
-      <rect className="pitch-ground" x="0" y="0" width="105" height="68" rx="1" />
-      <g className="pitch-lines"><rect x="1" y="1" width="103" height="66" /><path d="M52.5 1V67" /><circle cx="52.5" cy="34" r="9.15" /><circle cx="52.5" cy="34" r=".55" className="pitch-dot" /><path d="M1 13.85H17.5V54.15H1M104 13.85H87.5V54.15H104" /><path d="M1 24.85H6.5V43.15H1M104 24.85H98.5V43.15H104" /><circle cx="11" cy="34" r=".55" className="pitch-dot" /><circle cx="94" cy="34" r=".55" className="pitch-dot" /></g>
-      {activeLayer === 'pressure' && <circle className="pressure-zone" cx={ball[0] * 1.05} cy={ball[1] * .68} r="11" />}
-      {activeLayer === 'passing' && <g className="passing-lanes">{passingTargets.map((target, index) => <line key={index} x1={ball[0] * 1.05} y1={ball[1] * .68} x2={target[0] * 1.05} y2={target[1] * .68} />)}</g>}
-      {activeLayer === 'offside' && <line className="offside-line" x1={offsideX * 1.05} x2={offsideX * 1.05} y1="1" y2="67" />}
-      {highlight && <g className="evidence-zone"><circle cx={highlight.x * 1.05} cy={highlight.y * .68} r="5.5" /><path d={`M${highlight.x * 1.05 - 8} ${highlight.y * .68 + 7} L${highlight.x * 1.05 + 4} ${highlight.y * .68 - 4}`} /></g>}
-      {trackedIds.map(id => playerProfiles.find(player => player.id === id)).filter((player): player is PlayerProfile => Boolean(player)).map(player => <polyline className={`tracking-trail ${player.team}`} points={trailPoints(player)} key={`trail-${player.id}`} />)}
-      {playerProfiles.filter(player => player.team === 'home').map(player => renderPlayer(player, home[player.markerIndex]))}
-      {playerProfiles.filter(player => player.team === 'away').map(player => renderPlayer(player, away[player.markerIndex]))}
-      <circle className="ball-marker" cx={ball[0] * 1.05} cy={ball[1] * .68} r=".85" />
-    </svg>
-    {activeProfile && <aside className="player-persona" aria-live="polite"><div className="persona-top"><span className={`persona-number ${activeProfile.team}`}>{activeProfile.number}</span><div><strong>{activeProfile.name}</strong><span>{activeProfile.position} · {activeProfile.archetype}</span></div><em>{trackedIds.includes(activeProfile.id) ? 'Tracking' : 'Player profile'}</em></div><p>{activeProfile.description}</p><dl><div><dt>Distance</dt><dd>{activeProfile.distanceKm.toFixed(1)} km</dd></div><div><dt>Top speed</dt><dd>{activeProfile.topSpeed.toFixed(1)} km/h</dd></div><div><dt>Touches</dt><dd>{activeProfile.touches}</dd></div></dl></aside>}
-    <aside className={`match-feed-overlay ${feedOpen ? 'open' : 'closed'}`} aria-label="Match feed"><button className="feed-toggle" onClick={() => setFeedOpen(value => !value)} aria-expanded={feedOpen}>{feedOpen ? 'Hide feed' : 'Match feed'}</button>{feedOpen && <div>{feedEvents.length ? feedEvents.map((event, index) => <article className={index === 0 ? 'latest' : ''} key={event.id}><time>{event.minute}</time><div><strong>{event.title}</strong><p>{event.detail}</p></div></article>) : <article className="latest"><time>{formatClock(clockMs)}</time><div><strong>Match underway</strong><p>Live movement and match statistics update with the clock.</p></div></article>}</div>}</aside>
-    <figcaption><span>Hover a player · Select up to 3</span><span>Synthetic match visualization</span></figcaption>
-  </figure>;
+function Pitch({ clock, event, tracking, tracked, activePlayer, setHovered, toggleTracking, events }: { clock: number; event: UiEvent | null; tracking: TrackingSample | null; tracked: string[]; activePlayer?: Player; setHovered: (id: string | null) => void; toggleTracking: (id: string) => void; events: UiEvent[] }) {
+  const data = useData(); const [feedOpen, setFeedOpen] = useState(true);
+  const teamById = new Map([[data.match.home.teamId, 'home'], [data.match.away.teamId, 'away']]);
+  const positions = tracking?.positions ?? {};
+  const ball = tracking?.ball;
+  const visibleFeed = events.slice(-40); const feedRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { const el = feedRef.current; if (el) el.scrollTop = el.scrollHeight; }, [visibleFeed.at(-1)?.eventId, feedOpen]);
+  const highlighted = event?.start;
+  return <figure className={`pitch-shell ${feedOpen ? '' : 'feed-collapsed'}`}><svg className="pitch" viewBox="-2.5 -2.5 110 73" role="img" aria-label={`Match positions at ${formatClock(clock)}`}><rect className="pitch-ground" x="-2.5" y="-2.5" width="110" height="73" /><g className="pitch-lines"><rect width="105" height="68" /><path d="M52.5 0V68" /><circle cx="52.5" cy="34" r="9.15" /><circle className="pitch-dot" cx="52.5" cy="34" r=".5" /><path d="M0 13.84H16.5V54.16H0M105 13.84H88.5V54.16H105M0 24.84H5.5V43.16H0M105 24.84H99.5V43.16H105" /><circle className="pitch-dot" cx="11" cy="34" r=".5" /><circle className="pitch-dot" cx="94" cy="34" r=".5" /><path d="M16.5 26.7A9.15 9.15 0 0 1 16.5 41.3M88.5 26.7A9.15 9.15 0 0 0 88.5 41.3" /></g><g className="pitch-goals"><rect x="-2" y="30.34" width="2" height="7.32" /><rect x="105" y="30.34" width="2" height="7.32" /></g>{highlighted && <circle className="evidence-zone" cx={highlighted.x} cy={highlighted.y} r="5" />}{data.players.map(player => { const xy = positions[player.playerId]; if (!xy) return null; const side = teamById.get(player.teamId); const isTracked = tracked.includes(player.playerId); return <g key={player.playerId} className={`player-marker ${side} ${isTracked ? 'tracked' : ''}`} transform={`translate(${xy[0]} ${xy[1]})`} role="button" tabIndex={0} aria-label={`${player.name}, ${player.position}. ${isTracked ? 'Untrack' : 'Track player'}`} onMouseEnter={() => setHovered(player.playerId)} onMouseLeave={() => setHovered(null)} onFocus={() => setHovered(player.playerId)} onBlur={() => setHovered(null)} onClick={() => toggleTracking(player.playerId)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleTracking(player.playerId); }}><circle className="hit-area" r="2.6" />{isTracked && <circle className="selection-ring" r="1.9" />}<circle r="1.25" /><text y=".4" textAnchor="middle">{player.shirt}</text></g>; })}{ball && <circle className="ball-marker" cx={ball[0]} cy={ball[1]} r=".6" />}</svg>{activePlayer && <aside className="player-persona"><div className="persona-top"><span className={`persona-number ${teamById.get(activePlayer.teamId)}`}>{activePlayer.shirt}</span><div><strong>{activePlayer.name}</strong><span>{activePlayer.position}</span></div><em>{tracked.includes(activePlayer.playerId) ? 'Tracking' : 'Player profile'}</em></div><p>Project generated player profile. Match events shown here are limited to the current replay time.</p><dl><div><dt>Events</dt><dd>{events.filter(row => row.playerId === activePlayer.playerId).length}</dd></div></dl></aside>}<aside className={`match-feed-overlay ${feedOpen ? 'open' : 'closed'}`} aria-label="Match feed"><div className="feed-inner" ref={feedRef}><div className="feed-head"><span>Match feed</span><button className="feed-toggle" onClick={() => setFeedOpen(v => !v)}>{feedOpen ? 'Hide' : 'Show'}</button></div>{feedOpen && <div className="feed-list">{visibleFeed.length ? visibleFeed.map((row, index) => <article key={row.eventId} className={index === visibleFeed.length - 1 ? 'latest' : ''}><time>{row.minute}</time><div><strong>{row.title}</strong><p>{row.detail}</p></div></article>) : <article><time>{formatClock(clock)}</time><div><strong>Waiting for play</strong><p>Match events appear here as they become available.</p></div></article>}</div>}</div></aside><figcaption><span>Hover a player · Select up to 3</span></figcaption></figure>;
 }
-
-function Timeline({ clockMs, liveEdgeMs, onSeek, selectedId }: { clockMs: number; liveEdgeMs: number; onSeek: (time: number, event?: MatchEvent) => void; selectedId: string | null }) {
-  const visible = events.filter(event => event.availableMs <= clockMs);
-  const timelineMax = Math.max(1, liveEdgeMs);
-  return <section className="timeline-panel" aria-labelledby="timeline-title"><div className="panel-heading"><h2 id="timeline-title">Match timeline</h2><span>{visible.length} moments available</span></div><div className="timeline-track" aria-hidden="true"><span style={{ width: `${clockMs / timelineMax * 100}%` }} />{events.map(event => event.availableMs <= liveEdgeMs ? <i key={event.id} style={{ left: `${event.timeMs / timelineMax * 100}%` }} /> : null)}</div><div className="event-row">{visible.map(event => <Button key={event.id} className={`event-chip ${selectedId === event.id ? 'selected' : ''}`} onClick={() => onSeek(event.timeMs, event)} aria-pressed={selectedId === event.id}><span>{event.minute}</span>{event.title}</Button>)}</div></section>;
-}
-
-function LiveMetrics({ metrics }: { metrics: MatchMetrics }) {
-  const awayPossession = 100 - metrics.possessionHome;
-  const momentumTeam = metrics.momentum > 5 ? 'Riverside' : metrics.momentum < -5 ? 'Harbour' : 'Even';
-  return <section className="match-insights" aria-label="Live match statistics">
-    <div className="insight-grid">
-      <article className="metric-card possession-card"><div className="metric-heading"><span>Possession</span><strong>{metrics.possessionHome}% <i>–</i> {awayPossession}%</strong></div><div className="split-bar" aria-label={`Riverside ${metrics.possessionHome} percent possession, Harbour ${awayPossession} percent`}><i style={{ width: `${metrics.possessionHome}%` }} /><i style={{ width: `${awayPossession}%` }} /></div><div className="metric-legend"><span>RVR</span><span>HRB</span></div></article>
-      <article className="metric-card"><div className="metric-heading"><span>Expected goals</span><strong>{metrics.xgHome.toFixed(2)} <i>–</i> {metrics.xgAway.toFixed(2)}</strong></div><p>Chance quality through the current match time</p></article>
-      <article className="metric-card win-card"><div className="metric-heading"><span>Win chance</span><em>Stat estimate</em></div><div className="probability-values"><strong>{metrics.winHome}%<small>RVR</small></strong><strong>{metrics.winDraw}%<small>Draw</small></strong><strong>{metrics.winAway}%<small>HRB</small></strong></div><div className="probability-bar" aria-label={`Riverside win ${metrics.winHome} percent, draw ${metrics.winDraw} percent, Harbour win ${metrics.winAway} percent`}><i style={{ width: `${metrics.winHome}%` }} /><i style={{ width: `${metrics.winDraw}%` }} /><i style={{ width: `${metrics.winAway}%` }} /></div></article>
-      <article className="metric-card momentum-card"><div className="metric-heading"><span>Momentum</span><strong>{momentumTeam}</strong></div><div className="momentum-track" aria-label={`${momentumTeam} has the current momentum`}><i className="midpoint" /><i className="momentum-value" style={{ left: `${50 + metrics.momentum / 2}%` }} /></div><div className="metric-legend"><span>RVR</span><span>HRB</span></div></article>
-    </div>
-  </section>;
-}
-
-function SidePanel({ panel, setPanel, clockMs, selectedEvent, metrics }: { panel: Panel; setPanel: (panel: Panel) => void; clockMs: number; selectedEvent: MatchEvent | null; metrics: MatchMetrics }) {
-  const visible = events.filter(event => event.availableMs <= clockMs);
-  const progress = Math.max(.1, Math.min(1, clockMs / MATCH_END_MS));
-  const shots = Math.round(14 * progress);
-  const [showInsightDetail, setShowInsightDetail] = useState(false);
-  const [showDecisionDetail, setShowDecisionDetail] = useState(false);
-  const views: { id: Panel; label: string }[] = [{ id: 'insights', label: 'Insights' }, { id: 'stats', label: 'Stats' }, { id: 'players', label: 'Players' }, { id: 'decisions', label: 'Decisions' }];
-  const latestEvent = selectedEvent && selectedEvent.availableMs <= clockMs ? selectedEvent : visible.at(-1) ?? null;
-  const momentumTeam = metrics.momentum > 5 ? 'Riverside' : metrics.momentum < -5 ? 'Harbour' : 'Neither side';
-  const visibleDecision = [...visible].reverse().find(event => event.type === 'review' || event.id === 'e_m_rvr_hrb_01264');
-  const viewsGoals = (name: string) => visible.filter(event => event.type === 'goal' && event.player === name).length;
-  return <section className="side-panel" aria-label="Match details"><nav className="panel-tabs" aria-label="Match details">{views.map(view => <button key={view.id} className={panel === view.id ? 'active' : ''} onClick={() => setPanel(view.id)} aria-pressed={panel === view.id}>{view.label}</button>)}</nav><div className="panel-content">
-    {panel === 'insights' && <><div className="panel-heading"><div><span className="panel-kicker">Current reading</span><h2>What is shaping the match</h2></div><span>{formatClock(clockMs)}</span></div><div className="explanation"><p className="finding">{momentumTeam === 'Neither side' ? 'The match is balanced in the current phase.' : `${momentumTeam} have the stronger current momentum.`}</p><p>{latestEvent ? latestEvent.detail : 'Both teams are still establishing their shape. No major turning point is visible yet.'}</p><ul className="signal-list"><li><span>Possession</span><strong>{metrics.possessionHome}% Riverside</strong></li><li><span>Chance quality</span><strong>{metrics.xgHome.toFixed(2)}–{metrics.xgAway.toFixed(2)} xG</strong></li><li><span>Most likely outcome</span><strong>{metrics.winDraw >= Math.max(metrics.winHome, metrics.winAway) ? 'Draw' : metrics.winHome > metrics.winAway ? 'Riverside win' : 'Harbour win'}</strong></li></ul>{showInsightDetail && <p className="insight-detail">The reading combines possession, chance quality, momentum, and match events available by {formatClock(clockMs)}. It does not use later match information.</p>}{latestEvent && <Button className="primary" onClick={() => setShowInsightDetail(value => !value)}>{showInsightDetail ? 'Hide explanation' : 'Explain this moment'}</Button>}</div></>}
-    {panel === 'stats' && <><div className="panel-heading"><h2>Match pulse</h2><span>Through {formatClock(clockMs)}</span></div><div className="stat-strip"><div><span>Possession</span><strong>{metrics.possessionHome}<span>%</span></strong></div><div><span>Shots</span><strong>{shots}</strong></div><div><span>RVR xG</span><strong>{metrics.xgHome.toFixed(2)}</strong></div></div><div className="pressure"><div><span>Current momentum</span><strong>{metrics.momentum > 5 ? 'Riverside' : metrics.momentum < -5 ? 'Harbour' : 'Even'}</strong></div><span><i style={{ width: `${50 + metrics.momentum / 2}%` }} /></span><p>Calculated from visible possession, chance quality, and final-third entries.</p></div></>}
-    {panel === 'players' && <><div className="panel-heading"><h2>Players in focus</h2><span>At {formatClock(clockMs)}</span></div><div className="player-list"><article><TeamBadge team="rvr" /><div><h3>Mara Voss</h3><p>{viewsGoals('Mara Voss')} goals · {Math.round(3 * progress)} shots</p></div><strong>{(6.4 + viewsGoals('Mara Voss') * 1.4).toFixed(1)}</strong></article><article><TeamBadge team="hrb" /><div><h3>Leila Okafor</h3><p>{viewsGoals('Leila Okafor')} goals · {Math.round(2 * progress)} shots</p></div><strong>{(6.3 + viewsGoals('Leila Okafor') * 1.2).toFixed(1)}</strong></article><article><TeamBadge team="hrb" /><div><h3>Nia Cole</h3><p>{visible.some(event => event.player === 'Nia Cole') ? '1 reviewed run' : 'No major moment yet'} · {Math.round(3 * progress)} recoveries</p></div><strong>{(6.5 + (visible.some(event => event.player === 'Nia Cole') ? .8 : 0)).toFixed(1)}</strong></article></div></>}
-    {panel === 'decisions' && <>{visibleDecision ? <><div className="panel-heading"><h2>Decision review</h2><span>{visibleDecision.minute}</span></div><div className="decision"><span className="status">Recorded decision</span><h3>{visibleDecision.title}</h3><p>{visibleDecision.detail}</p><dl><div><dt>Incident</dt><dd>{visibleDecision.type === 'review' ? 'Offside review' : 'Penalty'}</dd></div><div><dt>Outcome</dt><dd>{visibleDecision.type === 'review' ? 'Goal disallowed' : 'Goal awarded'}</dd></div></dl>{showDecisionDetail && <p className="insight-detail">The answer is limited to the recorded incident and decision information visible at {formatClock(clockMs)}.</p>}<Button className="primary" onClick={() => setShowDecisionDetail(value => !value)}>{showDecisionDetail ? 'Close answer' : 'Ask the referee'}</Button></div></> : <div className="empty-panel"><span>Decisions</span><h2>No major decision yet</h2><p>Reviews, penalties, cards, and referee explanations will appear here when they become visible in the match.</p></div>}</>}
+type Panel = 'insights' | 'stats' | 'players' | 'decisions' | 'timeline';
+const PANEL_TABS: Panel[] = ['insights', 'stats', 'players', 'decisions', 'timeline'];
+const typeLabel = (type: string) => type.replace(/^card_/, '').replaceAll('_', ' ');
+function SidePanel({ level, panel, setPanel, clock, events, selected, seek, stats }: { level: Level; panel: Panel; setPanel: (panel: Panel) => void; clock: number; events: UiEvent[]; selected: string | null; seek: (ms: number, event?: UiEvent) => void; stats: TeamStats[] }) {
+  const data = useData(); const home = stats.find(s => s.teamId === data.match.home.teamId); const away = stats.find(s => s.teamId === data.match.away.teamId);
+  const moments = events.filter(e => e.kind !== 'break' || e.type === 'period_end' || e.type === 'period_start').slice().reverse();
+  const [dir, setDir] = useState(1); const touchX = useRef<number | null>(null);
+  const go = (next: Panel) => { setDir(PANEL_TABS.indexOf(next) >= PANEL_TABS.indexOf(panel) ? 1 : -1); setPanel(next); };
+  const step = (delta: number) => { const next = PANEL_TABS[PANEL_TABS.indexOf(panel) + delta]; if (next) go(next); };
+  const onTouchEnd = (event: React.TouchEvent) => { if (touchX.current === null) return; const dx = event.changedTouches[0].clientX - touchX.current; touchX.current = null; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); };
+  const shots = (home?.shots ?? 0) + (away?.shots ?? 0); const homeShare = shots ? Math.round(((home?.shots ?? 0) / shots) * 100) : 50;
+  return <section className="side-panel" aria-label="Match details"><nav className="panel-tabs">{PANEL_TABS.map(tab => <button key={tab} className={panel === tab ? 'active' : ''} onClick={() => go(tab)}>{tab[0].toUpperCase() + tab.slice(1)}</button>)}</nav><div key={panel} className="panel-content slide" style={{ '--dir': dir } as React.CSSProperties} onTouchStart={event => { touchX.current = event.touches[0].clientX; }} onTouchEnd={onTouchEnd}>
+    {panel === 'insights' && <><div className="panel-heading"><div><span className="panel-kicker">Current reading</span><h2>What is shaping the match</h2></div><span>{formatClock(clock)}</span></div><div className="explanation"><p className="finding">{moments[0]?.title ?? 'The match is underway.'}</p><p>{moments[0]?.detail ?? 'Match evidence will appear here as the replay progresses.'}</p><ul className="signal-list"><li><span>Possession</span><strong>{home?.possessionPct ?? '—'}% {data.match.home.name}</strong></li><li><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></li>{level !== 'beginner' && <li><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></li>}<li><span>Pass completion</span><strong>{home?.passCompletionPct ?? '—'}% – {away?.passCompletionPct ?? '—'}%</strong></li></ul>{level === 'pro' && <div className="momentum"><span className="estimate-label">Shot share {homeShare}% – {100 - homeShare}%</span><div className="momentum-track"><i className="midpoint" /><i className="momentum-value" style={{ left: `${homeShare}%` }} /></div></div>}{level === 'beginner' && <p className="insight-detail">Tip: shots on target force the goalkeeper to act; most goals come from them.</p>}</div></>}
+    {panel === 'stats' && <><div className="panel-heading"><h2>Match pulse</h2><span>Through {formatClock(clock)}</span></div><div className="stat-strip"><div><span>Possession</span><strong>{home?.possessionPct ?? '—'}<span>%</span></strong></div><div><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></div><div><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></div></div><div className="pressure"><div><span>Passes completed</span><strong>{home?.passesCompleted ?? 0} – {away?.passesCompleted ?? 0}</strong></div><p>Statistics are calculated from generated events available by {formatClock(clock)}.</p></div></>}
+    {panel === 'players' && <><div className="panel-heading"><h2>Players in focus</h2><span>{data.players.length} starters</span></div><div className="player-list">{data.players.map(player => <article key={player.playerId}><TeamBadge team={player.teamId === data.match.home.teamId ? data.match.home : data.match.away} /><div><h3>{player.name}</h3><p>{player.position} · #{player.shirt}</p></div><strong>{events.filter(e => e.playerId === player.playerId).length}</strong></article>)}</div></>}
+    {panel === 'decisions' && <><div className="panel-heading"><h2>Recorded decisions</h2><span>{formatClock(clock)}</span></div>{moments.filter(e => e.decision).length ? moments.filter(e => e.decision).map(e => <article className="decision" key={e.eventId}><span className="status">{e.decision?.recordedRuling.replaceAll('_', ' ')}</span><h3>{e.title}</h3><p>{e.detail}</p><small>{e.decision?.ruleIds?.join(', ')}</small></article>) : <div className="empty-panel"><span>Decisions</span><h2>No decision visible yet</h2><p>Recorded rulings appear when their evidence cutoff is reached.</p></div>}</>}
+    {panel === 'timeline' && <section className="timeline-panel"><div className="panel-heading"><h2>Match timeline</h2><span>{moments.length} moments</span></div><ol className="v-timeline"><li className="v-now"><span className="v-dot" /><span>Now · {formatClock(clock)}</span></li>{moments.map(e => <li key={e.eventId} className={`v-item ${e.kind}`}><span className="v-dot" /><button className={`v-card ${selected === e.eventId ? 'selected' : ''}`} onClick={() => seek(e.matchMs, e)}><span className="v-meta"><time>{e.minute}</time><em>{typeLabel(e.type)}</em></span><strong>{e.title}</strong><span className="v-detail">{e.detail}</span><span className="clip-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none" /></svg>Video clip · coming soon</span></button></li>)}</ol></section>}
   </div></section>;
 }
-
-function ReplayApp() {
-  const [clockMs, setClockMs] = useState(sharedMatchMs); const [liveEdgeMs, setLiveEdgeMs] = useState(sharedMatchMs); const [playing, setPlaying] = useState(true); const [speed, setSpeed] = useState<1 | 4>(1); const [panel, setPanel] = useState<Panel>('insights'); const [selectedEvent, setSelectedEvent] = useState<MatchEvent | null>(null);
-  const [liveClock, setLiveClock] = useState<LiveClock>(defaultLiveClock);
-  const [trackingFrames, setTrackingFrames] = useState<TrackingFrame[]>([]);
-  const resumeLiveWhenVisible = useRef(false);
-  const [trackedIds, setTrackedIds] = useState<string[]>([]); const [hoveredId, setHoveredId] = useState<string | null>(null); const [trackingNotice, setTrackingNotice] = useState('Select up to three players to compare their movement.');
-  const visibleEvents = useMemo(() => events.filter(event => event.availableMs <= clockMs), [clockMs]); const homeScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'rvr').length; const awayScore = visibleEvents.filter(event => event.type === 'goal' && event.team === 'hrb').length;
-  const metrics = useMemo(() => getMetrics(clockMs), [clockMs]);
-  const trackedPlayers = useMemo(() => trackedIds.map(id => playerProfiles.find(player => player.id === id)).filter((player): player is PlayerProfile => Boolean(player)), [trackedIds]);
-  const trackingChunkIndex = Math.floor(clockMs / 60_000);
-  const trackingSample = useMemo(() => sampleTracking(trackingFrames, clockMs), [trackingFrames, clockMs]);
-  useEffect(() => { if (window.location.protocol === 'file:') return; const controller = new AbortController(); const load = async () => { const response = await fetch(apiUrl(`/api/matches/m_rvr_hrb/tracking/chunks/${trackingChunkIndex}?revision=${TRACKING_REVISION}`), { signal: controller.signal }); if (!response.ok) throw new Error('Tracking unavailable'); const chunk = await response.json(); const frames = Array.isArray(chunk.frames) ? chunk.frames : []; const nextResponse = await fetch(apiUrl(`/api/matches/m_rvr_hrb/tracking/chunks/${trackingChunkIndex + 1}?revision=${TRACKING_REVISION}`), { signal: controller.signal }); if (nextResponse.ok) { const nextChunk = await nextResponse.json(); if (Array.isArray(nextChunk.frames) && nextChunk.frames.length) frames.push(nextChunk.frames[0]); } setTrackingFrames(frames); }; load().catch(error => { if (error?.name !== 'AbortError') setTrackingFrames([]); }); return () => controller.abort(); }, [trackingChunkIndex]);
-  useEffect(() => { if (window.location.protocol === 'file:') return; let active = true; fetch(apiUrl('/api/live-state'), { cache: 'no-store' }).then(response => response.ok ? response.json() : Promise.reject()).then(state => { if (!active || state.matchId !== 'm_rvr_hrb') return; const synchronizedClock = { serverOffsetMs: state.serverTimeMs - Date.now(), epochMs: state.instanceStartMs - state.cycleNumber * state.durationMs, durationMs: state.durationMs }; setLiveClock(synchronizedClock); setLiveEdgeMs(state.matchMs); setClockMs(state.matchMs); }).catch(() => undefined); return () => { active = false; }; }, []);
-  useEffect(() => { const timer = window.setInterval(() => { const nextEdge = sharedMatchMs(liveClock); setLiveEdgeMs(nextEdge); setClockMs(current => playing || current > nextEdge ? nextEdge : current); }, 100); return () => window.clearInterval(timer); }, [playing, liveClock]);
-  const goLive = () => { const currentLiveEdge = sharedMatchMs(liveClock); setLiveEdgeMs(currentLiveEdge); setClockMs(currentLiveEdge); setPlaying(true); };
-  const togglePlayback = () => { if (playing) setPlaying(false); else goLive(); };
-  useEffect(() => { const handleKey = (event: KeyboardEvent) => { if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) return; if (event.code === 'Space') { event.preventDefault(); if (playing) setPlaying(false); else goLive(); } if (event.code === 'ArrowLeft') { setPlaying(false); setClockMs(value => Math.max(0, value - 5000)); } if (event.code === 'ArrowRight') setClockMs(value => Math.min(liveEdgeMs, value + 5000)); }; window.addEventListener('keydown', handleKey); return () => window.removeEventListener('keydown', handleKey); }, [liveEdgeMs, playing]);
-  useEffect(() => { const handleVisibility = () => { if (document.hidden) { setPlaying(current => { resumeLiveWhenVisible.current = current; return false; }); } else if (resumeLiveWhenVisible.current) { resumeLiveWhenVisible.current = false; goLive(); } }; document.addEventListener('visibilitychange', handleVisibility); return () => document.removeEventListener('visibilitychange', handleVisibility); }, [liveClock]);
-  useEffect(() => { if (clockMs >= MATCH_END_MS) setPlaying(false); if (selectedEvent && selectedEvent.availableMs > clockMs) setSelectedEvent(null); }, [clockMs, selectedEvent]);
-  const toggleTrack = (id: string) => { setTrackedIds(current => { if (current.includes(id)) { setTrackingNotice('Player removed. Select another player from the pitch.'); return current.filter(playerId => playerId !== id); } if (current.length >= 3) { setTrackingNotice('You can track up to three players. Remove one before adding another.'); return current; } setTrackingNotice(current.length === 2 ? 'Three-player tracking limit reached.' : `Select ${2 - current.length} more player${current.length === 1 ? '' : 's'} to compare movement.`); return [...current, id]; }); };
-  const seek = (time: number, event?: MatchEvent) => { setPlaying(false); setClockMs(Math.max(0, Math.min(liveEdgeMs, time))); if (event) setSelectedEvent(event); };
-  return <div className="app-shell">
-    <header className="live-header">
-      <a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a>
-      <div className="compact-score"><div><TeamBadge team="rvr" /><span>Riverside FC</span></div><strong aria-label={`Riverside ${homeScore}, Harbour ${awayScore}`}>{homeScore}<i>–</i>{awayScore}</strong><div><span>Harbour Town</span><TeamBadge team="hrb" /></div></div>
-      <div className="header-live"><Personalize /><span className="header-clock"><strong>{formatClock(clockMs)}</strong><small>{clockMs < 45 * 60 * 1000 ? 'First half' : 'Second half'}</small></span><button className={`live-state ${playing ? 'is-live' : ''}`} onClick={goLive} aria-label="Jump to the live point"><span />{playing ? 'Live' : 'Go live'}</button></div>
-    </header>
-    <main className="workspace"><h1 className="sr-only">Riverside FC versus Harbour Town live match</h1><div className="match-context"><span>Northbank Cup · Matchday 1</span><span>Willowbank Ground</span></div><LiveMetrics metrics={metrics} /><div className="replay-grid"><section className="replay-stage" aria-label="Live match replay"><Pitch clockMs={clockMs} selectedEvent={selectedEvent} trackedIds={trackedIds} hoveredId={hoveredId} onHover={setHoveredId} onToggleTrack={toggleTrack} trackingSample={trackingSample} /><section className="tracking-dock" aria-labelledby="tracking-title"><div className="tracking-summary"><div><span>Player tracking</span><strong id="tracking-title">{trackedIds.length} of 3 selected</strong></div><p aria-live="polite">{trackingNotice}</p></div><div className="tracking-chips">{trackedPlayers.map(player => <button key={player.id} className={player.team} onClick={() => toggleTrack(player.id)} aria-label={`Stop tracking ${player.name}`}><span>{player.number}</span>{player.name}<i aria-hidden="true">×</i></button>)}</div></section><div className="playback" aria-label="Playback controls"><Button className="play" onClick={togglePlayback} aria-pressed={playing}>{playing ? 'Pause' : 'Play live'}</Button><label className="scrubber"><span className="sr-only">Match time, ending at the live point</span><input type="range" min="0" max={liveEdgeMs} step="1000" value={Math.round(clockMs)} onChange={event => seek(Number(event.target.value))} /></label><Button className="speed" onClick={() => setSpeed(value => value === 1 ? 4 : 1)} aria-label={`Playback speed ${speed} times`}>{speed}×</Button></div></section><SidePanel panel={panel} setPanel={setPanel} clockMs={clockMs} selectedEvent={selectedEvent} metrics={metrics} /></div><Timeline clockMs={clockMs} liveEdgeMs={liveEdgeMs} selectedId={selectedEvent?.id ?? null} onSeek={(time, event) => seek(time, event)} /></main>
-  </div>;
-}
-
-function MatchPicker() {
-  const fixtures = [{ id: 'm_rvr_hrb', round: 'Northbank Cup · Matchday 1', date: '16 Aug 2026', home: 'Riverside FC', away: 'Harbour Town', homeKey: 'rvr' as TeamKey, awayKey: 'hrb' as TeamKey }, { id: 'm_hrb_ash', round: 'Northbank Cup · Matchday 2', date: '23 Aug 2026', home: 'Harbour Town', away: 'Ashgrove United', homeKey: 'hrb' as TeamKey, awayKey: 'ash' as TeamKey }];
-  return <div className="picker"><header className="topbar"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a></header><main><header><h1>Choose a match</h1><p>Follow the action, inspect turning points, and understand the decisions shaping the game.</p></header><div className="fixture-list">{fixtures.map(fixture => <a className="fixture" href={`/match/${fixture.id}`} key={fixture.id}><div><span>{fixture.round}</span><time>{fixture.date}</time></div><div className="fixture-teams"><TeamBadge team={fixture.homeKey} /><strong>{fixture.home}</strong><span>v</span><strong>{fixture.away}</strong><TeamBadge team={fixture.awayKey} /></div><span className="open-match">Open match →</span></a>)}</div></main></div>;
-}
-function App() { const isReplay = window.location.protocol === 'file:' || window.location.pathname.startsWith('/match/') || new URLSearchParams(window.location.search).get('view') === 'replay'; return isReplay ? <ReplayApp /> : <MatchPicker />; }
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
