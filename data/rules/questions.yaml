@@ -1,0 +1,9 @@
+[
+  {"question_id":"q_off_why","decision_type":"offside","text":{"en":"Why was the flag raised?","es":"¿Por qué se levantó la bandera?"},"focus":"why"},
+  {"question_id":"q_off_position","decision_type":"offside","text":{"en":"Was the attacker beyond the defender?","es":"¿Estaba el atacante más adelantado que el defensor?"},"focus":"position"},
+  {"question_id":"q_off_review","decision_type":"offside","text":{"en":"Why was the goal ruled out after review?","es":"¿Por qué se anuló el gol después de la revisión?"},"focus":"why"},
+  {"question_id":"q_yel_why","decision_type":"tactical_foul_yellow","text":{"en":"Why was this a yellow card?","es":"¿Por qué fue tarjeta amarilla?"},"focus":"severity"},
+  {"question_id":"q_yel_advantage","decision_type":"tactical_foul_yellow","text":{"en":"Why did the referee stop play?","es":"¿Por qué detuvo el juego el árbitro?"},"focus":"alternative"},
+  {"question_id":"q_pen_why","decision_type":"penalty","text":{"en":"Why was a penalty awarded?","es":"¿Por qué se concedió un penalti?"},"focus":"why"},
+  {"question_id":"q_pen_position","decision_type":"penalty","text":{"en":"Did the foul occur inside the penalty area?","es":"¿Ocurrió la falta dentro del área penal?"},"focus":"position"}
+]

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": "1.0.0",
+  "rules_version": "1.1.0",
+  "rule_edition": "2026/27",
+  "generated_at": "2026-10-22T00:00:00Z",
+  "generator_seed": 4242,
+  "synthetic": true,
+  "history": {
+    "file": "history/matches.json",
+    "sha256": "09105b943e81e94a5fb0c42f4c17d4ecdc619e771c9ef9b0d3763dce140fb9a0"
+  },
+  "matches": [
+    {
+      "match_id": "m_hrb_ash",
+      "kickoff_date": "2026-08-23",
+      "label": "Harbour Town v Ashgrove United",
+      "files": {
+        "match": "m_hrb_ash/match.json",
+        "events": "m_hrb_ash/events.json",
+        "snapshots": "m_hrb_ash/snapshots.json",
+        "clips": "m_hrb_ash/clips.json",
+        "animation": "m_hrb_ash/animation.json"
+      },
+      "sha256": {
+        "match": "7cd9be9b58e6ea3817e14cf5721a5bd224a56661c9895c2f256127c7a8134bd1",
+        "events": "cc232b650b725a893182a2e56aa1eeda7f40f6cb021ab035b8b10035266f1815",
+        "snapshots": "094f99379952b86f6b80cca1138ce934a3c7bf386834a31c6003d4dee95fb4e7",
+        "clips": "7ec0eb0bd9401d35e5ac46dba79bc4c4dd043a83e602d54c1dd3282f5b44fb4f",
+        "animation": "c6f18efdc194288e2b120b923d7c8630134be562a848ce81e4236e9e99c126b4"
+      }
+    },
+    {
+      "match_id": "m_rvr_hrb",
+      "kickoff_date": "2026-08-16",
+      "label": "Riverside FC v Harbour Town",
+      "files": {
+        "match": "m_rvr_hrb/match.json",
+        "events": "m_rvr_hrb/events.json",
+        "snapshots": "m_rvr_hrb/snapshots.json",
+        "clips": "m_rvr_hrb/clips.json",
+        "animation": "m_rvr_hrb/animation.json"
+      },
+      "sha256": {
+        "match": "3199b55aadbf65b02a2450f7d4b2f0e3bf3af4cf2599673dbc6405733a2b9c45",
+        "events": "609c3e7b263aeb8e5c630fb36af258fdd456dc25db1a4b22feb7dbf1f516d5f0",
+        "snapshots": "6655e5195135b85bc0fde44c11da33c8a9d3c4fe28eb03b6602853bd0d2d6e00",
+        "clips": "a435486d950a3a2ff3067755fd6eaa215fe2d684d1e14438c9b5ba0ed0434d46",
+        "animation": "708fb23a04d388d099d2d373604502e7754937e406afa68e0a518bf02856f419"
+      }
+    }
+  ]
+}

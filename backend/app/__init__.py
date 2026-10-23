@@ -1,0 +1,1 @@
+"""Football Match Companion backend."""

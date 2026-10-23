@@ -1,0 +1,1 @@
+"""Deterministic fictional match generator."""

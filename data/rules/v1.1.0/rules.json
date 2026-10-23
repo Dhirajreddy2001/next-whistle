@@ -1,0 +1,32 @@
+[
+  {
+    "rule_id": "r_law11_offside",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "incident_tags": ["offside", "goal_review"],
+    "summary": "A player is considered in an offside position only in the opponents' half and when nearer the goal line than both the ball and the second-last opponent. A position alone is not an offence; the player must then become involved in active play.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law12_promising_attack",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": ["foul", "tactical_foul_yellow", "stopping_promising_attack"],
+    "summary": "A foul that stops or interferes with a promising attack can be punished as unsporting behaviour with a caution. The referee considers the attack's direction, distance from goal, likelihood of control and the positions of other players.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law14_penalty_kick",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "incident_tags": ["penalty", "penalty_kick"],
+    "summary": "A penalty kick is awarded for a direct-free-kick offence committed by a defender inside that team's penalty area while the ball is in play. The ball is placed on the penalty mark, the kicker is identified and the other players take the positions required by the procedure.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  }
+]

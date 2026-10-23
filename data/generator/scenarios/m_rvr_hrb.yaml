@@ -1,0 +1,14 @@
+{
+  "match_id": "m_rvr_hrb",
+  "seed": 4242,
+  "kickoff_date": "2026-08-16",
+  "home": "t_rvr",
+  "away": "t_hrb",
+  "venue": "Willowbank Ground",
+  "period_lengths_ms": [2820000, 2940000],
+  "moments": [
+    {"id": "opening_goal", "at_ms": 1421000, "kind": "goal", "team": "home", "scorer_shirt": 9, "assist_shirt": 10},
+    {"id": "offside_review", "at_ms": 3665000, "kind": "goal_disallowed", "team": "away", "scorer_shirt": 9, "assist_shirt": 7, "review_delay_ms": 95000, "offside_margin_m": 0.60},
+    {"id": "penalty_equalizer", "at_ms": 4460000, "kind": "penalty_goal", "team": "away", "scorer_shirt": 10, "fouled_shirt": 11, "offender_shirt": 5}
+  ]
+}

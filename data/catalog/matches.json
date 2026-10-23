@@ -1,0 +1,19 @@
+{
+  "dataset_version": "0.1.0",
+  "matches": [
+    {
+      "match_id": "m_rvr_hrb",
+      "label": "Riverside FC v Harbour Town",
+      "kickoff_date": "2026-08-16",
+      "home": {"team_id": "t_rvr", "name": "Riverside FC", "short_name": "RVR", "colors": ["#bbf174", "#142c24"]},
+      "away": {"team_id": "t_hrb", "name": "Harbour Town", "short_name": "HRB", "colors": ["#89bfff", "#162639"]}
+    },
+    {
+      "match_id": "m_hrb_ash",
+      "label": "Harbour Town v Ashgrove United",
+      "kickoff_date": "2026-08-23",
+      "home": {"team_id": "t_hrb", "name": "Harbour Town", "short_name": "HRB", "colors": ["#89bfff", "#162639"]},
+      "away": {"team_id": "t_ash", "name": "Ashgrove United", "short_name": "ASH", "colors": ["#ffb49b", "#3d211c"]}
+    }
+  ]
+}

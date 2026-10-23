@@ -1,0 +1,15 @@
+{
+  "match_id": "m_hrb_ash",
+  "seed": 7331,
+  "kickoff_date": "2026-08-23",
+  "home": "t_hrb",
+  "away": "t_ash",
+  "venue": "Breakwater Park",
+  "period_lengths_ms": [2760000, 3000000],
+  "moments": [
+    {"id": "first_goal", "at_ms": 1874000, "kind": "goal", "team": "away", "scorer_shirt": 11, "assist_shirt": 8},
+    {"id": "borderline_offside", "at_ms": 2292000, "kind": "offside", "team": "home", "scorer_shirt": 9, "assist_shirt": 10, "review_delay_ms": 12000, "offside_margin_m": 0.08},
+    {"id": "tactical_foul", "at_ms": 4338000, "kind": "tactical_foul_yellow", "team": "away", "offender_shirt": 6, "target_shirt": 7},
+    {"id": "late_equalizer", "at_ms": 5216000, "kind": "goal", "team": "home", "scorer_shirt": 10, "assist_shirt": 7}
+  ]
+}
