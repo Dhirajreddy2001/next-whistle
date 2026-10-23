@@ -1,16 +1,17 @@
-import json
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from dataclasses import replace
 
 from app.config import Settings
 from app.main import create_app
 
 
 @pytest.fixture
-def client():
-    with TestClient(create_app()) as client:
+def client(tmp_path: Path):
+    settings = replace(Settings.from_env(), session_db_path=tmp_path / "sessions.sqlite3", session_signing_key="test-signing-key-that-is-long-enough")
+    with TestClient(create_app(settings)) as client:
         yield client
 
 
@@ -19,7 +20,7 @@ def test_catalog_is_spoiler_free_and_uses_api_names(client):
     assert response.status_code == 200
     payload = response.json()
     assert len(payload["matches"]) == 2
-    assert payload["datasetVersion"] == "0.1.0"
+    assert payload["datasetVersion"] == "1.2.0"
     assert payload["matches"][0]["matchId"] == "m_rvr_hrb"
     assert set(payload["matches"][0]) == {"matchId", "label", "kickoffDate", "home", "away"}
     assert "score" not in response.text.lower()
@@ -31,12 +32,14 @@ def test_health_is_independent_of_azure(client):
     assert client.get("/health/ready").json() == {"status": "ready"}
 
 
-def test_live_state_is_shared_and_wall_clock_driven():
+def test_live_state_is_shared_and_wall_clock_driven(tmp_path: Path):
     settings = Settings(
         catalog_path=Path(__file__).resolve().parents[2] / "data/catalog/matches.json",
         dataset_path=Path(__file__).resolve().parents[2] / "data/datasets/v1.1.0",
         live_instance_epoch_ms=1_000_000,
         live_match_duration_ms=5_760_000,
+        session_db_path=tmp_path / "sessions.sqlite3",
+        session_signing_key="test-signing-key-that-is-long-enough",
     )
     with TestClient(create_app(settings, now_ms=lambda: 1_000_000 + 2_345_678)) as first:
         first_state = first.get("/api/live-state").json()
@@ -60,6 +63,79 @@ def test_tracking_is_chunked_and_cacheable(client):
     assert client.get("/api/matches/missing/tracking/chunks/0").status_code == 404
 
 
+def test_tracking_never_returns_keyframes_after_cutoff(client):
+    current = client.get("/api/matches/m_rvr_hrb/tracking/chunks/0", params={"cutoffMs": 0})
+    assert current.status_code == 200
+    assert all(frame[0] <= 0 for frame in current.json()["frames"])
+    future = client.get("/api/matches/m_rvr_hrb/tracking/chunks/1", params={"cutoffMs": 0})
+    assert future.status_code == 404
+
+
+def test_replay_returns_only_available_events_and_full_match_data(client):
+    early = client.get("/api/matches/m_rvr_hrb/replay", params={"cutoffMs": 45 * 60 * 1000})
+    assert early.status_code == 200
+    assert early.json()["cutoffMs"] == 45 * 60 * 1000
+    assert all(event["availableMs"] <= 45 * 60 * 1000 for event in early.json()["events"])
+
+    full = client.get("/api/matches/m_rvr_hrb/replay", params={"cutoffMs": 5_760_000})
+    assert full.status_code == 200
+    assert full.json()["state"]["status"] == "full_time"
+    assert any(event["matchMs"] > 50 * 60 * 1000 for event in full.json()["events"])
+
+
+def test_delayed_decision_and_evidence_respect_availability_cutoff(client):
+    before = client.get("/api/matches/m_rvr_hrb/decisions", params={"cutoffMs": 3_759_999})
+    after = client.get("/api/matches/m_rvr_hrb/decisions", params={"cutoffMs": 3_760_000})
+    assert all(row["decisionType"] != "offside" or row["matchMs"] != 3_666_000 for row in before.json()["decisions"])
+    assert any(row["decisionType"] == "offside" and row["matchMs"] == 3_666_000 for row in after.json()["decisions"])
+    hidden = client.get("/api/matches/m_rvr_hrb/evidence/e_m_rvr_hrb_01167", params={"cutoffMs": 3_759_999})
+    assert hidden.status_code == 404
+    visible = client.get("/api/matches/m_rvr_hrb/evidence/e_m_rvr_hrb_01167", params={"cutoffMs": 3_760_000})
+    assert visible.status_code == 200
+    delta = client.get("/api/matches/m_rvr_hrb/replay", params={"cutoffMs": 3_760_000, "fromMs": 3_759_999})
+    assert any(event["eventId"] == "e_m_rvr_hrb_01167" for event in delta.json()["events"])
+
+
+def test_replay_rejects_invalid_cutoff_and_delta(client):
+    assert client.get("/api/matches/m_rvr_hrb/replay", params={"cutoffMs": -1}).status_code == 422
+    assert client.get("/api/matches/m_rvr_hrb/replay", params={"cutoffMs": 1_000, "fromMs": 1_001}).status_code == 422
+
+
+def test_statistics_are_derived_from_data_available_at_cutoff(client):
+    response = client.get("/api/matches/m_rvr_hrb/stats", params={"cutoffMs": 2_000_000})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["cutoffMs"] == 2_000_000
+    home, away = payload["teams"]
+    assert round(home["possessionPct"] + away["possessionPct"], 1) == 100.0
+    assert all(team["shots"] >= team["shotsOnTarget"] for team in payload["teams"])
+    assert all(team["passesCompleted"] <= team["passes"] for team in payload["teams"])
+
+
+def test_player_stats_are_cutoff_bound(client):
+    response = client.get("/api/matches/m_rvr_hrb/players/p_rvr_09", params={"cutoffMs": 1_000_000})
+    assert response.status_code == 200
+    assert response.json()["playerId"] == "p_rvr_09"
+    assert response.json()["cutoffMs"] == 1_000_000
+
+
+def test_anonymous_session_refresh_rotates_and_revocation_works(client):
+    created = client.post("/api/sessions")
+    assert created.status_code == 201
+    tokens = created.json()
+    assert tokens["accessToken"] and tokens["refreshToken"]
+
+    refreshed = client.post("/api/sessions/refresh", json={"refreshToken": tokens["refreshToken"]})
+    assert refreshed.status_code == 200
+    rotated = refreshed.json()
+    assert rotated["refreshToken"] != tokens["refreshToken"]
+    assert client.post("/api/sessions/refresh", json={"refreshToken": tokens["refreshToken"]}).status_code == 401
+
+    revoked = client.delete("/api/sessions/current", headers={"Authorization": f"Bearer {rotated['accessToken']}"})
+    assert revoked.status_code == 204
+    assert client.delete("/api/sessions/current", headers={"Authorization": f"Bearer {rotated['accessToken']}"}).status_code == 401
+
+
 def test_unknown_route_returns_problem_json(client):
     response = client.get("/api/missing")
     assert response.status_code == 404
@@ -74,9 +150,6 @@ def test_only_configured_origin_receives_cors_headers(client):
     assert "access-control-allow-origin" not in blocked.headers
 
 
-def test_invalid_catalog_fails_startup(tmp_path: Path):
-    path = tmp_path / "matches.json"
-    path.write_text(json.dumps({"dataset_version": "0.1.0", "matches": [{"score": 2}]}))
-    dataset_path = Path(__file__).resolve().parents[2] / "data/datasets/v1.1.0"
-    with pytest.raises(ValueError), TestClient(create_app(Settings(catalog_path=path, dataset_path=dataset_path))):
+def test_missing_dataset_fails_startup(tmp_path: Path):
+    with pytest.raises(FileNotFoundError), TestClient(create_app(Settings(catalog_path=tmp_path / "catalog.json", dataset_path=tmp_path))):
         pass

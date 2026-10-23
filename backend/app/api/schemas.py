@@ -37,3 +37,7 @@ class LiveMatchState(ApiModel):
     match_ms: int
     duration_ms: int
     cycle_number: int
+
+
+class RefreshSessionRequest(ApiModel):
+    refresh_token: str = Field(min_length=32, max_length=256)
