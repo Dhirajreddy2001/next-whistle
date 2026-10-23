@@ -24,6 +24,7 @@ def validate(root: Path) -> list[str]:
     if len(history["matches"]) < 24: errors.append("history must contain at least 24 matches")
     if not all(m.get("synthetic") for m in history["matches"]): errors.append("history must be synthetic")
     required = {"goal", "goal_disallowed", "offside", "card_yellow", "foul", "shot"}
+    if manifest["dataset_version"] >= "1.2.0": required |= {"card_red", "save", "substitution", "kickoff", "period_end", "period_start", "clearance"}
     all_kinds = set()
     for entry in manifest["matches"]:
         folder = root / entry["match_id"]
@@ -54,6 +55,10 @@ def validate(root: Path) -> list[str]:
             decision = event.get("decision")
             if decision and not decision.get("geometry_snapshot_id"): errors.append(f"{event['event_id']} decision missing geometry")
             all_kinds.add(event["type"])
+        key_events = {"goal", "goal_disallowed", "offside", "card_yellow", "card_red", "save"}
+        later_match_start = max(50 * 60 * 1000, match["periods"][1]["start_match_ms"])
+        if not any(event["type"] in key_events and event["match_ms"] >= later_match_start for event in events):
+            errors.append(f"{entry['match_id']} needs at least one key moment after minute 50")
         for snapshot in snapshots:
             points = [snapshot["ball"], *snapshot["players"]]
             if len(snapshot["players"]) != 22: errors.append(f"{snapshot['snapshot_id']} needs 22 players")
@@ -97,7 +102,7 @@ def validate(root: Path) -> list[str]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.1.0"); args = parser.parse_args()
+    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.2.0"); args = parser.parse_args()
     failures = validate(args.root)
     if failures: raise SystemExit("\n".join(failures))
     print(f"valid dataset: {args.root}")

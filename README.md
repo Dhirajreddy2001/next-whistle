@@ -43,10 +43,10 @@ See the [cloud deployment and cleanup plan](docs/cloud-plan.md) for the Azure re
 
 ## Synthetic data
 
-Run `make data` to deterministically generate two data products under `data/datasets/v1.1.0/`:
+Run `make data` to deterministically generate two data products under `data/datasets/v1.2.0/` (the backend still defaults to `v1.1.0` until it is switched over):
 
 - A 36-match fictional history corpus with aggregate statistics and indexed key moments for comparisons and turning-point retrieval.
-- Two complete scripted demo matches with event feeds, evidence snapshots, decisions, fictional player movement profiles, original SVG replay clips, and complete 90-minute-plus tracking. Tracking is simulated at 20 Hz, stored at 2 Hz in one-minute chunks, and rendered with browser interpolation; key-moment clips retain 20 Hz detail.
+- Two complete scripted demo matches, each with about 17 scripted moments (goals, offside-disallowed goals, penalties scored, saved or missed, shots saved, wide, over the bar or off the post, yellow, second-yellow and red cards, corners, a free-kick goal, substitutions, and kick-off, half-time and full-time markers), with event feeds, evidence snapshots, decisions, fictional player movement profiles, original SVG replay clips, and complete 90-minute-plus tracking. Tracking is simulated at 20 Hz, stored at 2 Hz in one-minute chunks, and rendered with browser interpolation; key-moment clips retain 20 Hz detail.
 
 Run `make validate-data` to verify hashes, chronology, availability cutoffs, references, coordinates, movement limits, full-match coverage, required scenarios, and synthetic provenance. Clip records contain `from_ms`, `to_ms`, evidence IDs, and an animation track ID; the frontend renders those windows from project-created match data, so no broadcast footage is downloaded or licensed. Animation and tracking data are presentation-only unless a record is explicitly linked as evidence.
 Use the [architecture specification](docs/architecture.md) for service boundaries and the [build specification](docs/build-spec.md) for repository structure, implementation order, test gates, and release artifacts.

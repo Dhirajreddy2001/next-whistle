@@ -188,6 +188,8 @@ Cross-match chronology uses `kickoff_date`. The catalog endpoint exposes `match_
 
 Event `type` values: `kickoff`, `pass`, `carry`, `shot`, `save`, `tackle`, `interception`, `recovery`, `clearance`, `pressure`, `foul`, `card_yellow`, `card_red`, `offside`, `substitution`, `goal`, `goal_disallowed`, `var_check`, `period_start`, `period_end`.
 
+Set pieces and incident detail use `qualifiers` rather than new event types: a corner is a `pass` with `corner`; a direct free kick is a `shot` with `free_kick` and `direct`; a shot off the woodwork has `outcome: post` and `hit_post`; a high miss has `over_bar`; a card carries its reason (for example `reckless`, `serious_foul_play`, `denying_goal_scoring_opportunity`, `second_yellow`). Shot `outcome` values are `goal`, `on_target`, `off_target`, `saved` and `post`. A `substitution` has the player leaving as `player_id` and the player arriving as `target_player_id`.
+
 A goal is represented by a `shot` with `outcome: goal` plus a `goal` event at the same `match_ms` that carries the scorer and `related_event_ids: [shot, assist]`. A reversal is a `goal_disallowed` event with `decision.reverses_event_id` and its own `available_ms`.
 
 ### Snapshot (`snapshots.json`)

@@ -1,0 +1,120 @@
+[
+  {
+    "clip_id": "clip_m_rvr_hrb_opening_goal",
+    "kind": "goal",
+    "from_ms": 1409000,
+    "to_ms": 1431000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_00451",
+      "e_m_rvr_hrb_00452",
+      "e_m_rvr_hrb_00453"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_opening_goal",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_early_flag",
+    "kind": "offside",
+    "from_ms": 1788000,
+    "to_ms": 1810000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_00573",
+      "e_m_rvr_hrb_00574"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_early_flag",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_home_tactical_yellow",
+    "kind": "tactical_foul_yellow",
+    "from_ms": 3408000,
+    "to_ms": 3430000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01085",
+      "e_m_rvr_hrb_01086"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_home_tactical_yellow",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_offside_review",
+    "kind": "goal_disallowed",
+    "from_ms": 3653000,
+    "to_ms": 3675000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01164",
+      "e_m_rvr_hrb_01165",
+      "e_m_rvr_hrb_01166",
+      "e_m_rvr_hrb_01167"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_offside_review",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_straight_red",
+    "kind": "red_card",
+    "from_ms": 4218000,
+    "to_ms": 4240000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01340",
+      "e_m_rvr_hrb_01341"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_straight_red",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_penalty_equalizer",
+    "kind": "penalty_goal",
+    "from_ms": 4448000,
+    "to_ms": 4470000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01407",
+      "e_m_rvr_hrb_01408",
+      "e_m_rvr_hrb_01409"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_penalty_equalizer",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_saved_penalty",
+    "kind": "penalty_saved",
+    "from_ms": 4848000,
+    "to_ms": 4870000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01529",
+      "e_m_rvr_hrb_01530",
+      "e_m_rvr_hrb_01531"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_saved_penalty",
+    "copyright": "original_synthetic"
+  },
+  {
+    "clip_id": "clip_m_rvr_hrb_free_kick_winner",
+    "kind": "free_kick_goal",
+    "from_ms": 5098000,
+    "to_ms": 5120000,
+    "focus_event_ids": [
+      "e_m_rvr_hrb_01612",
+      "e_m_rvr_hrb_01613",
+      "e_m_rvr_hrb_01614"
+    ],
+    "render_mode": "svg_replay",
+    "animation_file": "animation.json",
+    "animation_track_id": "anim_clip_m_rvr_hrb_free_kick_winner",
+    "copyright": "original_synthetic"
+  }
+]

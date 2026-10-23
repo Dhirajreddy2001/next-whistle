@@ -4,12 +4,27 @@
   "kickoff_date": "2026-08-23",
   "home": "t_hrb",
   "away": "t_ash",
-  "venue": "Breakwater Park",
+  "venue": "Saltgate Road",
   "period_lengths_ms": [2760000, 3000000],
   "moments": [
+    {"id": "kickoff", "at_ms": 0, "kind": "kickoff", "team": "home"},
+    {"id": "early_corner", "at_ms": 400000, "kind": "corner", "team": "home", "taker_shirt": 7, "target_shirt": 9, "side": "right", "clearer_shirt": 5},
+    {"id": "over_bar_miss", "at_ms": 700000, "kind": "shot_miss", "team": "home", "shooter_shirt": 10, "assist_shirt": 7, "placement": "over"},
+    {"id": "early_yellow", "at_ms": 1100000, "kind": "yellow_card", "team": "away", "offender_shirt": 8, "target_shirt": 7, "reason": "reckless"},
+    {"id": "home_save", "at_ms": 1500000, "kind": "shot_saved", "team": "away", "shooter_shirt": 9, "assist_shirt": 10},
     {"id": "first_goal", "at_ms": 1874000, "kind": "goal", "team": "away", "scorer_shirt": 11, "assist_shirt": 8},
     {"id": "borderline_offside", "at_ms": 2292000, "kind": "offside", "team": "home", "scorer_shirt": 9, "assist_shirt": 10, "review_delay_ms": 12000, "offside_margin_m": 0.08},
+    {"id": "wide_miss", "at_ms": 2550000, "kind": "shot_miss", "team": "away", "shooter_shirt": 7, "placement": "wide"},
+    {"id": "half_time", "at_ms": 2760000, "kind": "half_time", "team": "home"},
+    {"id": "away_sub", "at_ms": 3300000, "kind": "substitution", "team": "away", "off_shirt": 9, "on_shirt": 15},
+    {"id": "second_booking", "at_ms": 3600000, "kind": "second_yellow", "team": "home", "offender_shirt": 6, "target_shirt": 8, "first_yellow_ms": 3050000, "reason": "reckless"},
+    {"id": "away_corner", "at_ms": 3850000, "kind": "corner", "team": "away", "taker_shirt": 7, "target_shirt": 9, "side": "left", "clearer_shirt": 5},
     {"id": "tactical_foul", "at_ms": 4338000, "kind": "tactical_foul_yellow", "team": "away", "offender_shirt": 6, "target_shirt": 7},
-    {"id": "late_equalizer", "at_ms": 5216000, "kind": "goal", "team": "home", "scorer_shirt": 10, "assist_shirt": 7}
+    {"id": "home_save_late", "at_ms": 4600000, "kind": "shot_saved", "team": "home", "shooter_shirt": 11, "assist_shirt": 8},
+    {"id": "missed_penalty", "at_ms": 4880000, "kind": "penalty_miss", "team": "home", "taker_shirt": 10, "fouled_shirt": 9, "offender_shirt": 5, "placement": "post"},
+    {"id": "home_sub", "at_ms": 5000000, "kind": "substitution", "team": "home", "off_shirt": 8, "on_shirt": 16},
+    {"id": "late_equalizer", "at_ms": 5216000, "kind": "goal", "team": "home", "scorer_shirt": 10, "assist_shirt": 7},
+    {"id": "late_red", "at_ms": 5450000, "kind": "red_card", "team": "away", "offender_shirt": 4, "target_shirt": 11, "reason": "serious_foul_play"},
+    {"id": "full_time", "at_ms": 5760000, "kind": "full_time", "team": "home"}
   ]
 }
