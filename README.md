@@ -32,6 +32,8 @@ make build  # TypeScript check and production frontend build
 
 Optional backend settings: `CATALOG_PATH` overrides `data/catalog/matches.json`; `DATASET_PATH` overrides `data/datasets/v1.1.0`; `ALLOWED_ORIGINS` is a comma-separated list (defaults to `http://localhost:5173`). `LIVE_MATCH_ID`, `LIVE_INSTANCE_EPOCH_MS`, and `LIVE_MATCH_DURATION_MS` configure the shared, wall-clock-driven live instance.
 
+For a separately deployed frontend, set `VITE_API_BASE_URL` to the public Core Application Service origin, for example `https://next-whistle-core.example.com`. Leave it unset for local development, where Vite proxies relative `/api` requests.
+
 ## Architecture and next work
 
 `backend/app/` currently contains the initial API and local catalog loader; it will move into `backend/services/core_application_service/`. The target backend has two independent deployments: the FastAPI Core Application Service on Container Apps and a Microsoft Agent Framework Agent Service on Foundry Hosted Agents. Shared contracts and deterministic evidence code live under `backend/shared/`. `frontend/src/` contains the independently deployed React application, and `data/` contains fictional fixtures, generators, validators, and versioned datasets. Next: create the target service boundaries before real Foundry integration.
