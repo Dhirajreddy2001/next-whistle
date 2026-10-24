@@ -1,0 +1,1518 @@
+[
+  {
+    "rule_id": "r_law3_substitution",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "incident_tags": [
+      "substitution"
+    ],
+    "summary": "A team may replace players only while play is stopped, with the referee's permission. The player coming off leaves promptly at the nearest point, the replacement waits at the halfway line until the referee signals, and the change is complete once the replacement steps onto the field. How many changes a team gets depends on the competition.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players",
+    "section": "3.3",
+    "keywords": "sub replace bench"
+  },
+  {
+    "rule_id": "r_law3_sent_off_replacement",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "incident_tags": [
+      "red_card",
+      "second_yellow"
+    ],
+    "summary": "A player sent off after the match has started cannot be replaced, so the team plays on with one fewer player. A team that is reduced below seven players cannot continue the match.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players",
+    "section": "3.6",
+    "keywords": "sent off dismissed ejected straight red sent off red card replace replacement down a player"
+  },
+  {
+    "rule_id": "r_law5_advantage",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "incident_tags": [
+      "advantage"
+    ],
+    "summary": "When a foul happens, the referee may let play continue if the fouled team stands to gain. If the expected benefit does not appear within a few seconds, the referee comes back and punishes the original offence; any card is usually shown when play next stops.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee",
+    "section": "5.2",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law5_var",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "incident_tags": [
+      "var_review",
+      "goal_review"
+    ],
+    "summary": "Video review may only help the referee correct a clear and obvious mistake or a serious missed incident involving goals, penalties, direct red cards or mistaken identity. The referee always makes the final decision, either from the video information or after watching the footage personally.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee",
+    "section": "5.4",
+    "keywords": "video review var check"
+  },
+  {
+    "rule_id": "r_law7_added_time",
+    "edition": "2026/27",
+    "law_number": 7,
+    "law_title": "The Duration of the Match",
+    "incident_tags": [
+      "added_time",
+      "half_time",
+      "full_time"
+    ],
+    "summary": "A match has two equal halves of 45 minutes with a break of up to 15 minutes. At the end of each half the referee adds time for stoppages such as substitutions, injuries, time-wasting, discipline, drinks breaks, video reviews and goal celebrations, and a half is extended to finish a penalty kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-duration-of-the-match/",
+    "source_title": "IFAB Laws of the Game — Law 7: The Duration of the Match",
+    "section": "7.2",
+    "keywords": "added time injury time stoppage time why extra minutes"
+  },
+  {
+    "rule_id": "r_law8_kickoff",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "incident_tags": [
+      "kickoff"
+    ],
+    "summary": "Play starts, and restarts after a goal, with a kick-off from the centre mark. The ball must be still and every player except the kicker must be in their own half. The ball is in play once it is kicked and clearly moves, and a goal may be scored directly from it against the opponents.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play",
+    "section": "8.1",
+    "keywords": "start restart centre circle"
+  },
+  {
+    "rule_id": "r_law8_dropped_ball",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "incident_tags": [
+      "dropped_ball"
+    ],
+    "summary": "If the referee stops play when no free kick or other restart applies, the ball is dropped for one player of the team that was in control, or for the defending goalkeeper inside the penalty area. A goal cannot count from a dropped ball unless at least two players have touched it.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play",
+    "section": "8.2",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law9_ball_out_of_play",
+    "edition": "2026/27",
+    "law_number": 9,
+    "law_title": "The Ball In and Out of Play",
+    "incident_tags": [
+      "ball_out_of_play"
+    ],
+    "summary": "The ball is out of play once all of it has crossed the goal line or touchline, or when the referee stops play. It remains in play if it bounces back off a goalpost, crossbar or corner flag and stays on the field.",
+    "source_url": "https://www.theifab.com/laws/latest/the-ball-in-and-out-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 9: The Ball In and Out of Play",
+    "section": "9.1",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law10_goal",
+    "edition": "2026/27",
+    "law_number": 10,
+    "law_title": "Determining the Outcome of a Match",
+    "incident_tags": [
+      "goal"
+    ],
+    "summary": "A goal counts when the whole ball passes over the goal line between the posts and under the crossbar, as long as the scoring team has not committed an offence. The team with more goals wins; equal goals is a draw unless the competition requires a winner.",
+    "source_url": "https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/",
+    "source_title": "IFAB Laws of the Game — Law 10: Determining the Outcome of a Match",
+    "section": "10.1",
+    "keywords": "score scored net"
+  },
+  {
+    "rule_id": "r_law10_shootout",
+    "edition": "2026/27",
+    "law_number": 10,
+    "law_title": "Determining the Outcome of a Match",
+    "incident_tags": [
+      "penalty_shootout"
+    ],
+    "summary": "Where a winner is needed, competitions may use extra time and a shoot-out of alternating penalty kicks. Each team takes five kicks, then single kicks until one side leads after an equal number, and only players on the field at the final whistle may take part.",
+    "source_url": "https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/",
+    "source_title": "IFAB Laws of the Game — Law 10: Determining the Outcome of a Match",
+    "section": "10.3",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law11_offside",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "incident_tags": [
+      "offside",
+      "goal_review"
+    ],
+    "summary": "A player is considered in an offside position only in the opponents' half and when nearer the goal line than both the ball and the second-last opponent. A position alone is not an offence; the player must then become involved in active play.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside",
+    "section": "11.1",
+    "keywords": "offside flag linesman assistant second last defender"
+  },
+  {
+    "rule_id": "r_law11_offside_involvement",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "incident_tags": [
+      "offside",
+      "goal_review"
+    ],
+    "summary": "An attacker in an offside position is only penalised if they take part in play when a team-mate passes the ball. That means playing the ball, getting in an opponent's way or clearly affecting their ability to play it, or benefiting from a ball that rebounds off a post, an opponent or a deliberate save. The position is judged at the moment of the pass, and the restart is an indirect free kick.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside",
+    "section": "11.2",
+    "keywords": "offside flag linesman assistant second last defender"
+  },
+  {
+    "rule_id": "r_law11_offside_exceptions",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "incident_tags": [
+      "offside"
+    ],
+    "summary": "Body parts that can score count when judging offside, but arms and hands do not. A player level with the second-last opponent is not offside, and there is no offside offence when the ball comes directly from a goal kick, a throw-in or a corner kick.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside",
+    "section": "11.3",
+    "keywords": "offside flag linesman assistant second last defender"
+  },
+  {
+    "rule_id": "r_law12_foul_severity",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "foul",
+      "reckless_foul"
+    ],
+    "summary": "A tackle, charge, trip, push or similar challenge is a foul if the referee judges it careless, reckless or made with excessive force. Careless earns a free kick, reckless earns a free kick and a caution, and excessive force earns a free kick and a sending-off; a foul inside the defender's own penalty area gives a penalty kick.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.1",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law12_promising_attack",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "foul",
+      "tactical_foul_yellow",
+      "stopping_promising_attack"
+    ],
+    "summary": "A foul that stops or interferes with a promising attack can be punished as unsporting behaviour with a caution. The referee considers the attack's direction, distance from goal, likelihood of control and the positions of other players.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law12_yellow_card",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "yellow_card",
+      "tactical_foul_yellow",
+      "reckless_foul"
+    ],
+    "summary": "A yellow card caution is shown for offences such as unsporting behaviour, reckless challenges, dissent, delaying a restart, persistent fouling and stopping a promising attack. A caution marks a warning for the player and does not by itself remove them from the match.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": "booked caution booking"
+  },
+  {
+    "rule_id": "r_law12_red_card",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "red_card"
+    ],
+    "summary": "A red card sends a player off for offences such as serious foul play, violent conduct, spitting or biting, abusive language, denying an obvious goal-scoring opportunity, or a second caution in the same match. The player must leave the field and cannot be replaced.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": "sent off dismissed ejected straight red"
+  },
+  {
+    "rule_id": "r_law12_dogso",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "red_card",
+      "denying_goal_scoring_opportunity"
+    ],
+    "summary": "A defender who commits a foul that denies an opponent an obvious chance to score is normally sent off. The referee weighs the distance to goal, the direction of play, the chance of keeping or winning the ball and where the defenders are. If a penalty is given and the defender was genuinely trying to play the ball, a caution is enough.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": "sent off dismissed ejected straight red"
+  },
+  {
+    "rule_id": "r_law12_serious_foul_play",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "red_card",
+      "serious_foul_play"
+    ],
+    "summary": "Serious foul play is a challenge for the ball that endangers an opponent's safety or uses excessive force or brutality, for example lunging in with a leg. It is punished by a sending-off and a direct free kick, or a penalty kick if it happens in the offender's penalty area.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": "sent off dismissed ejected straight red"
+  },
+  {
+    "rule_id": "r_law12_second_caution",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "second_yellow"
+    ],
+    "summary": "A player who receives a second caution in the same match is shown a yellow card and then a red card and must leave the field. The team continues a player short.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.3",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law12_handball",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "incident_tags": [
+      "handball"
+    ],
+    "summary": "Handball is a free-kick offence when a player deliberately touches the ball with the hand or arm, or makes the body unnaturally larger so the arm blocks or touches it. Scoring with the hand or arm is an offence even if accidental. The arm's upper limit is the bottom of the armpit.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
+    "section": "12.1",
+    "keywords": "hand arm touch"
+  },
+  {
+    "rule_id": "r_law13_free_kick",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "incident_tags": [
+      "free_kick",
+      "free_kick_goal"
+    ],
+    "summary": "A free kick is taken from where the offence happened, with the ball still, and the kicker may not touch it again until another player has. A direct free kick may score straight into the opponents' goal, an indirect kick must touch another player first, and opponents must stand at least 9.15 metres away.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks",
+    "section": "13.1",
+    "keywords": "wall set piece"
+  },
+  {
+    "rule_id": "r_law14_penalty_kick",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "incident_tags": [
+      "penalty",
+      "penalty_kick"
+    ],
+    "summary": "A penalty kick is awarded for a direct-free-kick offence committed by a defender inside that team's penalty area while the ball is in play. The ball is placed on the penalty mark, the kicker is identified and the other players take the positions required by the procedure.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick",
+    "section": "14.1",
+    "keywords": "penalty spot spot kick area foul"
+  },
+  {
+    "rule_id": "r_law14_penalty_outcomes",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "incident_tags": [
+      "penalty_missed",
+      "penalty_saved"
+    ],
+    "summary": "At a penalty kick the goalkeeper must stay on the goal line until the ball is kicked. If the ball is saved, misses the goal or rebounds off the frame without any offence, play simply continues from that point, and a goal is scored only if the ball ends up in the net. A kick is retaken if the defence breaks the procedure and the kick is saved or missed.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick",
+    "section": "14.2",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law15_throw_in",
+    "edition": "2026/27",
+    "law_number": 15,
+    "law_title": "The Throw-in",
+    "incident_tags": [
+      "throw_in"
+    ],
+    "summary": "A throw-in goes to the opponents of the team that last touched the ball when all of it crossed the touchline. The thrower faces the field, keeps part of each foot on or behind the line and throws with both hands from behind and over the head. A goal cannot be scored directly from it, and there is no offside offence from a throw-in.",
+    "source_url": "https://www.theifab.com/laws/latest/the-throw-in/",
+    "source_title": "IFAB Laws of the Game — Law 15: The Throw-in",
+    "section": "15.1",
+    "keywords": ""
+  },
+  {
+    "rule_id": "r_law16_goal_kick",
+    "edition": "2026/27",
+    "law_number": 16,
+    "law_title": "The Goal Kick",
+    "incident_tags": [
+      "goal_kick",
+      "shot_miss"
+    ],
+    "summary": "A goal kick is awarded to the defending team when the whole ball crosses their goal line after last touching an attacker and no goal is scored. It is kicked from inside the goal area and is in play once it is kicked and clearly moves.",
+    "source_url": "https://www.theifab.com/laws/latest/the-goal-kick/",
+    "source_title": "IFAB Laws of the Game — Law 16: The Goal Kick",
+    "section": "16.1",
+    "keywords": "goal kick goal kick defender restart"
+  },
+  {
+    "rule_id": "r_law17_corner_kick",
+    "edition": "2026/27",
+    "law_number": 17,
+    "law_title": "The Corner Kick",
+    "incident_tags": [
+      "corner"
+    ],
+    "summary": "A corner kick goes to the attacking team when the whole ball crosses the goal line after last touching a defender, without a goal. It is taken from the corner arc nearest to where the ball left the field, with opponents at least 9.15 metres away, and a goal may be scored directly from it against the opponents.",
+    "source_url": "https://www.theifab.com/laws/latest/the-corner-kick/",
+    "source_title": "IFAB Laws of the Game — Law 17: The Corner Kick",
+    "section": "17.1",
+    "keywords": "corner flag"
+  },
+  {
+    "rule_id": "r_law1_surface",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.1",
+    "incident_tags": [],
+    "keywords": "pitch grass artificial turf hybrid",
+    "summary": "The pitch may be natural grass, or artificial or hybrid turf where the competition rules permit it, and any artificial surface must be green.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_markings",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.2",
+    "incident_tags": [],
+    "keywords": "lines touchline goal line halfway centre circle spot",
+    "summary": "The field is marked with continuous lines of equal width, none wider than 12 cm, and each line belongs to the area it encloses. That means a ball or foul on the line counts as inside the area. The marks include a halfway line, a centre spot and a centre circle of 9.15 metre radius.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_dimensions",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.3",
+    "incident_tags": [],
+    "keywords": "size length width pitch dimensions",
+    "summary": "The touchlines must be longer than the goal lines. In general the pitch is 90 to 120 metres long and 45 to 90 metres wide, while international matches use 100 to 110 metres by 64 to 75 metres.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_goal_area",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.5",
+    "incident_tags": [],
+    "keywords": "six yard box goal area",
+    "summary": "The goal area is the small box in front of each goal, reaching 5.5 metres out from each post and 5.5 metres into the field. Goal kicks are taken from inside it.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_penalty_area",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.6",
+    "incident_tags": [
+      "penalty"
+    ],
+    "keywords": "eighteen yard box penalty area penalty mark arc d",
+    "summary": "The penalty area extends 16.5 metres from each post and 16.5 metres into the field, with the penalty mark 11 metres from the goal. An arc of 9.15 metre radius is drawn outside the box from the penalty mark. A defender's foul inside this area is punished by a penalty kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_corner_area",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.7",
+    "incident_tags": [],
+    "keywords": "corner arc flagpost",
+    "summary": "Each corner has a flagpost and a quarter circle of one metre radius, which is where the ball is placed for a corner kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_goals",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.10",
+    "incident_tags": [
+      "goal"
+    ],
+    "keywords": "goalposts crossbar net width height how big size dimensions goal width height",
+    "summary": "Each goal stands in the centre of the goal line, with posts 7.32 metres apart and a crossbar 2.44 metres above the ground. If the crossbar or a post is knocked out of place, play stops until it is fixed.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_goal_line_technology",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.11",
+    "incident_tags": [
+      "goal"
+    ],
+    "keywords": "goal line technology gl sensor ball crossed line",
+    "summary": "Where goal-line technology is used, it tells the referee within a second whether the whole ball crossed the line. It is used only to decide whether a goal was scored.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law1_review_areas",
+    "edition": "2026/27",
+    "law_number": 1,
+    "law_title": "The Field of Play",
+    "section": "1.14",
+    "incident_tags": [
+      "var_review"
+    ],
+    "keywords": "video operation room referee review area monitor",
+    "summary": "Video-assisted matches have a video operation room and a marked referee review area beside the field. Entering the video room is a sending-off offence, and entering the review area is a caution.",
+    "source_url": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 1: The Field of Play"
+  },
+  {
+    "rule_id": "r_law2_ball",
+    "edition": "2026/27",
+    "law_number": 2,
+    "law_title": "The Ball",
+    "section": "2.1",
+    "incident_tags": [],
+    "keywords": "ball size weight pressure circumference",
+    "summary": "The ball must be round, made of suitable material, about 68 to 70 cm around and 410 to 450 grams at the start. Official competitions allow only the competition, organiser and manufacturer marks on it.",
+    "source_url": "https://www.theifab.com/laws/latest/the-ball/",
+    "source_title": "IFAB Laws of the Game — Law 2: The Ball"
+  },
+  {
+    "rule_id": "r_law2_defective_ball",
+    "edition": "2026/27",
+    "law_number": 2,
+    "law_title": "The Ball",
+    "section": "2.2",
+    "incident_tags": [],
+    "keywords": "burst ball defective replace",
+    "summary": "If the ball bursts or becomes defective, play stops and restarts with a dropped ball, unless it happened at a restart, in which case that restart is retaken. The ball can only be changed with the referee's permission.",
+    "source_url": "https://www.theifab.com/laws/latest/the-ball/",
+    "source_title": "IFAB Laws of the Game — Law 2: The Ball"
+  },
+  {
+    "rule_id": "r_law3_minimum_players",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "section": "3.1",
+    "incident_tags": [
+      "red_card"
+    ],
+    "keywords": "seven players minimum eleven team size abandon how many players number of players team size",
+    "summary": "A team has at most eleven players including its goalkeeper, and a match cannot begin or carry on if either team has fewer than seven. Players sent off count against the team, so a team down to six ends the match.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players"
+  },
+  {
+    "rule_id": "r_law3_goalkeeper_swap",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "section": "3.4",
+    "incident_tags": [],
+    "keywords": "change goalkeeper swap keeper outfield",
+    "summary": "Any outfield player can take over as goalkeeper, provided the referee is told first and the change happens while play is stopped.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players"
+  },
+  {
+    "rule_id": "r_law3_substitution_offences",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "section": "3.5",
+    "incident_tags": [
+      "substitution"
+    ],
+    "keywords": "unauthorised substitute enters caution",
+    "summary": "A substitution or goalkeeper swap that skips the required steps, such as informing the referee, can lead to a caution and an indirect free kick, and unreported changes are noted in the match report.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players"
+  },
+  {
+    "rule_id": "r_law3_extra_persons",
+    "edition": "2026/27",
+    "law_number": 3,
+    "law_title": "The Players",
+    "section": "3.7",
+    "incident_tags": [],
+    "keywords": "extra person coach substitute interfere outside agent",
+    "summary": "If someone not allowed on the field, such as a substitute or official, interferes with play, the referee stops play, removes them and takes disciplinary action. Interference by an outside agent leads to a dropped ball.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players/",
+    "source_title": "IFAB Laws of the Game — Law 3: The Players"
+  },
+  {
+    "rule_id": "r_law4_safety",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.1",
+    "incident_tags": [],
+    "keywords": "jewellery watch dangerous equipment",
+    "summary": "Players may not wear anything dangerous, and all jewellery is banned. Equipment is checked before kick-off, and substitutes are checked before they come on.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law4_compulsory",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.2",
+    "incident_tags": [],
+    "keywords": "shirt shorts socks shinguards boots captain armband",
+    "summary": "Every player must wear a sleeved shirt, shorts, socks, shinguards and suitable footwear. Shinguards must be covered by the socks, and the captain wears an armband.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law4_colours",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.3",
+    "incident_tags": [],
+    "keywords": "kit colours clash goalkeeper kit",
+    "summary": "The two teams must wear colours that clearly differ from each other and from the match officials, and goalkeepers must differ from everyone else on the field.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law4_other_equipment",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.4",
+    "incident_tags": [],
+    "keywords": "electronic devices headgear gloves padding",
+    "summary": "Light protective items such as gloves, headgear and padding are allowed. Players and substitutes may not use electronic communication devices, apart from approved performance-tracking equipment.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law4_slogans",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.5",
+    "incident_tags": [],
+    "keywords": "slogan political message shirt logo",
+    "summary": "Shirts and undergarments must not carry political, religious or personal slogans or offensive images. Names, numbers, crests and approved sponsors are normally fine.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law4_equipment_offences",
+    "edition": "2026/27",
+    "law_number": 4,
+    "law_title": "The Players' Equipment",
+    "section": "4.6",
+    "incident_tags": [
+      "yellow_card"
+    ],
+    "keywords": "incorrect equipment leave field fix re-enter",
+    "summary": "A player with improper equipment is told to leave and put it right, normally at the next stoppage, and may return only with the referee's permission. Coming back without that permission earns a caution.",
+    "source_url": "https://www.theifab.com/laws/latest/the-players-equipment/",
+    "source_title": "IFAB Laws of the Game — Law 4: The Players' Equipment"
+  },
+  {
+    "rule_id": "r_law5_authority",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "section": "5.1",
+    "incident_tags": [],
+    "keywords": "referee authority timekeeper match report",
+    "summary": "The referee has full authority to apply the Laws, acts as timekeeper, keeps the match record and reports misconduct. Injured players generally have to leave the field for treatment, and a bleeding player must stay off until the bleeding has stopped.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee"
+  },
+  {
+    "rule_id": "r_law5_final_decisions",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "section": "5.3",
+    "incident_tags": [
+      "goal",
+      "var_review"
+    ],
+    "keywords": "referee final decision overturn change",
+    "summary": "The referee's decisions on facts of play, including whether a goal was scored and the result, are final. A restart decision cannot be changed once play has restarted.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee"
+  },
+  {
+    "rule_id": "r_law5_multiple_offences",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "section": "5.5",
+    "incident_tags": [
+      "foul"
+    ],
+    "keywords": "two offences same time more serious",
+    "summary": "When two offences occur together, the referee punishes the more serious one, judged by the sanction, the restart and the severity of the offence.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee"
+  },
+  {
+    "rule_id": "r_law5_var_after_restart",
+    "edition": "2026/27",
+    "law_number": 5,
+    "law_title": "The Referee",
+    "section": "5.4",
+    "incident_tags": [
+      "var_review"
+    ],
+    "keywords": "video review after restart mistaken identity violent conduct",
+    "summary": "Once play has restarted, a video review is limited to cases of mistaken identity or serious misconduct such as violent conduct or spitting.",
+    "source_url": "https://www.theifab.com/laws/latest/the-referee/",
+    "source_title": "IFAB Laws of the Game — Law 5: The Referee"
+  },
+  {
+    "rule_id": "r_law6_assistant_referees",
+    "edition": "2026/27",
+    "law_number": 6,
+    "law_title": "The Other Match Officials",
+    "section": "6.1",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "assistant referee flag signal linesman",
+    "summary": "Assistant referees signal when the ball has left the field and who gets the restart, flag a player who may be penalised for offside, and help with substitutions and the 9.15 metre distance at restarts.",
+    "source_url": "https://www.theifab.com/laws/latest/the-other-match-officials/",
+    "source_title": "IFAB Laws of the Game — Law 6: The Other Match Officials"
+  },
+  {
+    "rule_id": "r_law6_fourth_official",
+    "edition": "2026/27",
+    "law_number": 6,
+    "law_title": "The Other Match Officials",
+    "section": "6.2",
+    "incident_tags": [
+      "added_time",
+      "substitution"
+    ],
+    "keywords": "fourth official board added time technical area",
+    "summary": "The fourth official supervises substitutions, checks equipment, handles replacement balls and shows the minimum added time at the end of each half.",
+    "source_url": "https://www.theifab.com/laws/latest/the-other-match-officials/",
+    "source_title": "IFAB Laws of the Game — Law 6: The Other Match Officials"
+  },
+  {
+    "rule_id": "r_law6_var",
+    "edition": "2026/27",
+    "law_number": 6,
+    "law_title": "The Other Match Officials",
+    "section": "6.4",
+    "incident_tags": [
+      "var_review"
+    ],
+    "keywords": "var avar video assistant referee clear obvious error",
+    "summary": "The video assistant referee watches live play and can intervene only for a clear and obvious error or serious missed incident involving goals, penalties, direct red cards or mistaken identity. An assistant records time lost for reviews.",
+    "source_url": "https://www.theifab.com/laws/latest/the-other-match-officials/",
+    "source_title": "IFAB Laws of the Game — Law 6: The Other Match Officials"
+  },
+  {
+    "rule_id": "r_law7_periods",
+    "edition": "2026/27",
+    "law_number": 7,
+    "law_title": "The Duration of the Match",
+    "section": "7.1",
+    "incident_tags": [
+      "half_time"
+    ],
+    "keywords": "halves forty five minutes equal",
+    "summary": "A normal match is two equal halves of 45 minutes, and they may be shortened only by agreement before the match when the competition rules allow.",
+    "source_url": "https://www.theifab.com/laws/latest/the-duration-of-the-match/",
+    "source_title": "IFAB Laws of the Game — Law 7: The Duration of the Match"
+  },
+  {
+    "rule_id": "r_law7_penalty_extension",
+    "edition": "2026/27",
+    "law_number": 7,
+    "law_title": "The Duration of the Match",
+    "section": "7.3",
+    "incident_tags": [
+      "penalty",
+      "added_time"
+    ],
+    "keywords": "penalty at end of half extend",
+    "summary": "If a penalty kick is being taken when time is up, the half is prolonged until the kick has been completed.",
+    "source_url": "https://www.theifab.com/laws/latest/the-duration-of-the-match/",
+    "source_title": "IFAB Laws of the Game — Law 7: The Duration of the Match"
+  },
+  {
+    "rule_id": "r_law7_abandoned",
+    "edition": "2026/27",
+    "law_number": 7,
+    "law_title": "The Duration of the Match",
+    "section": "7.4",
+    "incident_tags": [],
+    "keywords": "abandoned match suspended replay",
+    "summary": "An abandoned match is normally replayed unless the competition rules say otherwise.",
+    "source_url": "https://www.theifab.com/laws/latest/the-duration-of-the-match/",
+    "source_title": "IFAB Laws of the Game — Law 7: The Duration of the Match"
+  },
+  {
+    "rule_id": "r_law8_coin_toss",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "section": "8.1",
+    "incident_tags": [
+      "kickoff"
+    ],
+    "keywords": "coin toss choose ends",
+    "summary": "A coin toss decides which team picks a goal to attack and which kicks off, and the team that chose the goal kicks off the second half after the teams swap ends.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play"
+  },
+  {
+    "rule_id": "r_law8_kickoff_offences",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "section": "8.1",
+    "incident_tags": [
+      "kickoff"
+    ],
+    "keywords": "kick-off retake double touch",
+    "summary": "At kick-off the ball must be still on the centre spot and all players except the kicker must be in their own half. A kicker who touches the ball a second time before anyone else concedes an indirect free kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play"
+  },
+  {
+    "rule_id": "r_law8_kickoff_goal",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "section": "8.1",
+    "incident_tags": [
+      "kickoff",
+      "goal"
+    ],
+    "keywords": "goal from kickoff own goal",
+    "summary": "A goal can be scored directly from a kick-off against the opponents, but if the ball goes straight into the kicker's own goal the opponents get a corner kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play"
+  },
+  {
+    "rule_id": "r_law8_dropped_ball_procedure",
+    "edition": "2026/27",
+    "law_number": 8,
+    "law_title": "The Start and Restart of Play",
+    "section": "8.2",
+    "incident_tags": [
+      "dropped_ball"
+    ],
+    "keywords": "drop ball goalkeeper possession",
+    "summary": "At a dropped ball the referee drops the ball where play stopped and other players stay at least four metres away. It is in play when it touches the ground.",
+    "source_url": "https://www.theifab.com/laws/latest/the-start-and-restart-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 8: The Start and Restart of Play"
+  },
+  {
+    "rule_id": "r_law9_official_contact",
+    "edition": "2026/27",
+    "law_number": 9,
+    "law_title": "The Ball In and Out of Play",
+    "section": "9.1",
+    "incident_tags": [
+      "ball_out_of_play"
+    ],
+    "keywords": "ball hits referee deflect official",
+    "summary": "If the ball hits a match official and stays in play, play continues unless a team starts a promising attack, the ball goes into a goal or possession changes, in which case play restarts with a dropped ball.",
+    "source_url": "https://www.theifab.com/laws/latest/the-ball-in-and-out-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 9: The Ball In and Out of Play"
+  },
+  {
+    "rule_id": "r_law9_in_play",
+    "edition": "2026/27",
+    "law_number": 9,
+    "law_title": "The Ball In and Out of Play",
+    "section": "9.2",
+    "incident_tags": [
+      "ball_out_of_play"
+    ],
+    "keywords": "ball rebounds post crossbar remains in play",
+    "summary": "The ball is in play at all other times, including when it comes back off a goalpost, crossbar or corner flag and stays on the field.",
+    "source_url": "https://www.theifab.com/laws/latest/the-ball-in-and-out-of-play/",
+    "source_title": "IFAB Laws of the Game — Law 9: The Ball In and Out of Play"
+  },
+  {
+    "rule_id": "r_law10_goal_offence",
+    "edition": "2026/27",
+    "law_number": 10,
+    "law_title": "Determining the Outcome of a Match",
+    "section": "10.1",
+    "incident_tags": [
+      "goal"
+    ],
+    "keywords": "goal disallowed offence before scoring",
+    "summary": "A goal does not count if the scoring team committed an offence before the ball crossed the line, and play then restarts according to that offence.",
+    "source_url": "https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/",
+    "source_title": "IFAB Laws of the Game — Law 10: Determining the Outcome of a Match"
+  },
+  {
+    "rule_id": "r_law10_early_goal_signal",
+    "edition": "2026/27",
+    "law_number": 10,
+    "law_title": "Determining the Outcome of a Match",
+    "section": "10.1",
+    "incident_tags": [
+      "goal"
+    ],
+    "keywords": "referee mistake goal signal early dropped ball",
+    "summary": "If the referee mistakenly signals a goal before the ball has completely crossed the goal line, play restarts with a dropped ball.",
+    "source_url": "https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/",
+    "source_title": "IFAB Laws of the Game — Law 10: Determining the Outcome of a Match"
+  },
+  {
+    "rule_id": "r_law10_winning_team",
+    "edition": "2026/27",
+    "law_number": 10,
+    "law_title": "Determining the Outcome of a Match",
+    "section": "10.2",
+    "incident_tags": [
+      "goal",
+      "full_time"
+    ],
+    "keywords": "draw winner result extra time away goals",
+    "summary": "The team that scores more goals wins and equal scores make a draw. Where a winner is needed, competitions may use extra time, away goals or a penalty shoot-out.",
+    "source_url": "https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/",
+    "source_title": "IFAB Laws of the Game — Law 10: Determining the Outcome of a Match"
+  },
+  {
+    "rule_id": "r_law11_body_parts",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.1",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "hands arms head feet position second last",
+    "summary": "For offside only the parts of the body that can legally play the ball count, such as the head, body and feet. Hands and arms, including those of the goalkeeper, are ignored.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law11_level",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.1",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "level with defender onside equal",
+    "summary": "An attacker exactly level with the second-last opponent, or with the last two opponents, is considered onside.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law11_deliberate_play",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.2",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "deliberate play deflection save opponent pass",
+    "summary": "An attacker who receives the ball from an opponent who deliberately played it is not penalised for offside, except when the opponent made a deliberate save.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law11_interfering_opponent",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.2",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "blocking view challenge opponent obstructing goalkeeper",
+    "summary": "An attacker can be penalised for interfering with an opponent by blocking their line of sight, challenging for the ball or making a gesture that clearly affects their ability to play it.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law11_restart",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.4",
+    "incident_tags": [
+      "offside"
+    ],
+    "keywords": "indirect free kick offside restart",
+    "summary": "Offside is punished by an indirect free kick taken where the offending player was when the ball was played, even if that is in their own half.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law11_goalkeeper_in_goal",
+    "edition": "2026/27",
+    "law_number": 11,
+    "law_title": "Offside",
+    "section": "11.4",
+    "incident_tags": [
+      "offside",
+      "goal"
+    ],
+    "keywords": "attacker standing in goal",
+    "summary": "An attacker standing still between the posts inside the goal is not automatically offside, and the goal stands unless that attacker commits an offside or fouls offence.",
+    "source_url": "https://www.theifab.com/laws/latest/offside/",
+    "source_title": "IFAB Laws of the Game — Law 11: Offside"
+  },
+  {
+    "rule_id": "r_law12_direct_offences",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.1",
+    "incident_tags": [
+      "foul"
+    ],
+    "keywords": "tackle trip kick push charge strike jump direct free kick",
+    "summary": "A direct free kick is given when a player carelessly, recklessly or with excessive force charges, jumps at, kicks, pushes, strikes, tackles or trips an opponent. It is also given for holding or impeding an opponent with contact.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_holding_impeding",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.1",
+    "incident_tags": [
+      "foul"
+    ],
+    "keywords": "holding pulling shirt block impede",
+    "summary": "Holding an opponent, including pulling a shirt or arm, and blocking their path with contact are free-kick offences, which become a penalty if they occur in the defender's own penalty area.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_indirect_offences",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.2",
+    "incident_tags": [
+      "foul"
+    ],
+    "keywords": "dangerous play obstruction dissent indirect free kick",
+    "summary": "An indirect free kick is given for playing dangerously, impeding an opponent without contact, dissent, blocking the goalkeeper from releasing the ball, or other offences where play is halted to caution or dismiss a player.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_goalkeeper_handling",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.2",
+    "incident_tags": [
+      "handball",
+      "free_kick"
+    ],
+    "keywords": "goalkeeper back pass second touch handle throw",
+    "summary": "A goalkeeper cannot handle the ball again after releasing it until another player has touched it, and cannot pick up a ball deliberately kicked to them by a team-mate. Breaking this concedes an indirect free kick.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_goalkeeper_eight_seconds",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.2",
+    "incident_tags": [
+      "corner"
+    ],
+    "keywords": "goalkeeper holding ball eight seconds time wasting",
+    "summary": "A goalkeeper who holds the ball in their hands for more than eight seconds concedes a corner kick, and the referee counts the last five seconds with a raised hand.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_handball_goal",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.1",
+    "incident_tags": [
+      "handball",
+      "goal"
+    ],
+    "keywords": "handball scoring accidental arm goal disallowed",
+    "summary": "A goal scored with the hand or arm is disallowed even when it is accidental, and so is a goal scored directly after the ball touched an attacker's hand or arm.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_dissent_language",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "yellow_card",
+      "red_card"
+    ],
+    "keywords": "dissent abusive language referee argue",
+    "summary": "Dissent in word or action is a caution, while offensive, insulting or abusive language or gestures is a sending-off.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_simulation",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "yellow_card"
+    ],
+    "keywords": "simulation diving feign injury",
+    "summary": "Simulation, such as diving to deceive the referee, is unsporting behaviour and earns a caution.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_unsporting_behaviour",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "yellow_card"
+    ],
+    "keywords": "unsporting behaviour time wasting delay restart",
+    "summary": "Unsporting behaviour that earns a caution includes reckless fouls, fouls or handball that stop a promising attack, delaying a restart, simulation and showing a lack of respect for the game.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_goal_celebration",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "yellow_card",
+      "goal"
+    ],
+    "keywords": "celebration shirt removal mask fence",
+    "summary": "A scorer who takes off their shirt, covers their face with a mask or celebrates in a provocative or unsafe way is cautioned, even if the goal is disallowed.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_violent_conduct",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "red_card"
+    ],
+    "keywords": "violent conduct striking elbow head fight",
+    "summary": "Violent conduct is using excessive force or brutality on an opponent or anyone else when not challenging for the ball, and it results in a sending-off.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_biting_spitting",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "red_card"
+    ],
+    "keywords": "spitting biting",
+    "summary": "Spitting at or biting an opponent or any other person is a sending-off offence.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_dogso_penalty_area",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "red_card",
+      "denying_goal_scoring_opportunity",
+      "penalty"
+    ],
+    "keywords": "penalty area dogso caution attempt to play ball",
+    "summary": "When a defender denies an obvious goal-scoring chance inside their own penalty area and a penalty is given, the offence is a caution if the defender was trying to play the ball, but still a sending-off for holding, pulling, pushing or when the ball could not be played.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_advantage_cards",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "advantage",
+      "yellow_card"
+    ],
+    "keywords": "advantage caution shown later",
+    "summary": "If the referee plays advantage after a foul that deserves a card, the card is normally shown when the ball next goes out of play. A separate cautionable offence still gets its own card.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_reentering",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.3",
+    "incident_tags": [
+      "yellow_card"
+    ],
+    "keywords": "leaves field without permission re-enters",
+    "summary": "A player who comes onto, returns to or deliberately leaves the field without the referee's permission is cautioned.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_team_officials",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.5",
+    "incident_tags": [
+      "red_card"
+    ],
+    "keywords": "coach technical area bench dismissed",
+    "summary": "Team officials can be warned, cautioned or sent off for dissent, leaving the technical area, delaying a restart or aggressive conduct, and if the offender cannot be identified the senior coach present is sanctioned.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law12_lines_inside_area",
+    "edition": "2026/27",
+    "law_number": 12,
+    "law_title": "Fouls and Misconduct",
+    "section": "12.1",
+    "incident_tags": [
+      "penalty",
+      "foul"
+    ],
+    "keywords": "foul on the line penalty area boundary",
+    "summary": "Since lines belong to the area they enclose, a foul on the line of the penalty area is a foul inside the area and gives a penalty.",
+    "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
+    "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct"
+  },
+  {
+    "rule_id": "r_law13_types",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.1",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "direct indirect free kick goal",
+    "summary": "A free kick is direct, where it can be scored directly, or indirect, where it must touch another player before a goal can count. A direct free kick sent into the kicker's own goal gives the opponents a corner.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law13_indirect_signal",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.1",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "indirect signal raised arm referee",
+    "summary": "The referee signals an indirect free kick by raising an arm until the ball is touched by another player or is out of play.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law13_position",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.2",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "where taken ball position stationary",
+    "summary": "A free kick is normally taken from where the offence occurred, with the ball stationary, and it is in play when kicked and clearly moves.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law13_wall",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.3",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "defensive wall distance",
+    "summary": "Opponents must stay at least 9.15 metres from the ball, and when a defensive wall of three or more players forms, attackers must keep a metre away from it.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law13_quick_free_kick",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.2",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "quick free kick intercept",
+    "summary": "A free kick can be taken quickly before the opponents are in place, and an opponent who deliberately delays such a quick restart can be cautioned.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law13_kicker_offences",
+    "edition": "2026/27",
+    "law_number": 13,
+    "law_title": "Free Kicks",
+    "section": "13.4",
+    "incident_tags": [
+      "free_kick"
+    ],
+    "keywords": "double touch kicker handball",
+    "summary": "A kicker who touches the ball a second time before anyone else gives away an indirect free kick, or a direct free kick if the second touch is handball.",
+    "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
+    "source_title": "IFAB Laws of the Game — Law 13: Free Kicks"
+  },
+  {
+    "rule_id": "r_law14_goalkeeper",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.1",
+    "incident_tags": [
+      "penalty",
+      "penalty_saved"
+    ],
+    "keywords": "goalkeeper on the line movement save",
+    "summary": "At a penalty the goalkeeper must stay on the goal line facing the kicker, with at least a foot on or in line with it, until the ball is kicked.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law14_other_players",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.1",
+    "incident_tags": [
+      "penalty"
+    ],
+    "keywords": "other players outside area behind spot encroachment",
+    "summary": "Everyone except the kicker and goalkeeper must stay outside the penalty area, behind the penalty mark and at least 9.15 metres from it until the ball is in play.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law14_kicker",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.1",
+    "incident_tags": [
+      "penalty"
+    ],
+    "keywords": "kicker identity forward backheel",
+    "summary": "The kicker must be clearly identified and must kick the ball forward, and cannot touch it again until another player has.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law14_completion",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.1",
+    "incident_tags": [
+      "penalty",
+      "penalty_saved",
+      "penalty_missed"
+    ],
+    "keywords": "kick completed ball stops out of play rebound",
+    "summary": "A penalty kick is finished when the ball stops moving, leaves the field or the referee stops play for an offence, and a rebound from the goalkeeper or frame stays in play.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law14_retake",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.2",
+    "incident_tags": [
+      "penalty",
+      "penalty_missed",
+      "penalty_saved"
+    ],
+    "keywords": "retake encroachment goalkeeper early",
+    "summary": "A penalty is retaken if the defence breaks the rules and the kick is saved or missed, or if the goalkeeper's offence stopped the kicker. If the goalkeeper offends and the ball goes in, the goal stands.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law14_kicker_offence",
+    "edition": "2026/27",
+    "law_number": 14,
+    "law_title": "The Penalty Kick",
+    "section": "14.2",
+    "incident_tags": [
+      "penalty"
+    ],
+    "keywords": "feint illegal feint cautioned indirect free kick",
+    "summary": "A kicker who uses an illegal feint is cautioned and the defending team gets an indirect free kick. If the kicker touches the ball twice in a row, the defence gets an indirect free kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+    "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+  },
+  {
+    "rule_id": "r_law15_procedure",
+    "edition": "2026/27",
+    "law_number": 15,
+    "law_title": "The Throw-in",
+    "section": "15.2",
+    "incident_tags": [
+      "throw_in"
+    ],
+    "keywords": "throw in procedure both hands over head feet",
+    "summary": "The thrower faces the field, keeps part of each foot on or behind the touchline and delivers the ball with both hands from behind and over the head from where it left the field.",
+    "source_url": "https://www.theifab.com/laws/latest/the-throw-in/",
+    "source_title": "IFAB Laws of the Game — Law 15: The Throw-in"
+  },
+  {
+    "rule_id": "r_law15_infringements",
+    "edition": "2026/27",
+    "law_number": 15,
+    "law_title": "The Throw-in",
+    "section": "15.4",
+    "incident_tags": [
+      "throw_in"
+    ],
+    "keywords": "foul throw retake opponent distance",
+    "summary": "If the thrower makes a bad throw, the throw goes to the opponents, and opponents who stand within two metres or distract the thrower can be cautioned.",
+    "source_url": "https://www.theifab.com/laws/latest/the-throw-in/",
+    "source_title": "IFAB Laws of the Game — Law 15: The Throw-in"
+  },
+  {
+    "rule_id": "r_law16_procedure",
+    "edition": "2026/27",
+    "law_number": 16,
+    "law_title": "The Goal Kick",
+    "section": "16.2",
+    "incident_tags": [
+      "goal_kick"
+    ],
+    "keywords": "goal kick taken in goal area goal kick goal kick taken",
+    "summary": "The ball is kicked from anywhere in the goal area and is in play once it is kicked and clearly moves, with opponents outside the penalty area until it is live.",
+    "source_url": "https://www.theifab.com/laws/latest/the-goal-kick/",
+    "source_title": "IFAB Laws of the Game — Law 16: The Goal Kick"
+  },
+  {
+    "rule_id": "r_law16_infringements",
+    "edition": "2026/27",
+    "law_number": 16,
+    "law_title": "The Goal Kick",
+    "section": "16.4",
+    "incident_tags": [
+      "goal_kick"
+    ],
+    "keywords": "goal kick retake touch twice goal kick goal kick retake",
+    "summary": "A goal kick is retaken for most infringements, and a kicker who touches the ball a second time before another player gives away an indirect free kick.",
+    "source_url": "https://www.theifab.com/laws/latest/the-goal-kick/",
+    "source_title": "IFAB Laws of the Game — Law 16: The Goal Kick"
+  },
+  {
+    "rule_id": "r_law17_procedure",
+    "edition": "2026/27",
+    "law_number": 17,
+    "law_title": "The Corner Kick",
+    "section": "17.2",
+    "incident_tags": [
+      "corner"
+    ],
+    "keywords": "corner kick procedure corner arc",
+    "summary": "The ball is placed in the corner area on the side where it left the field and kicked by an attacker, with opponents at least 9.15 metres away until it is in play.",
+    "source_url": "https://www.theifab.com/laws/latest/the-corner-kick/",
+    "source_title": "IFAB Laws of the Game — Law 17: The Corner Kick"
+  },
+  {
+    "rule_id": "r_law17_infringements",
+    "edition": "2026/27",
+    "law_number": 17,
+    "law_title": "The Corner Kick",
+    "section": "17.4",
+    "incident_tags": [
+      "corner"
+    ],
+    "keywords": "corner retake offside not offence",
+    "summary": "A corner kick is retaken for most infringements. A kicker who touches the ball again before another player gives away an indirect free kick, and there is no offside offence from a corner.",
+    "source_url": "https://www.theifab.com/laws/latest/the-corner-kick/",
+    "source_title": "IFAB Laws of the Game — Law 17: The Corner Kick"
+  }
+]

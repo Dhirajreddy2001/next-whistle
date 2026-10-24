@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = Path(__file__).with_name("scenarios")
 VERSION = "1.2.0"
-RULES_VERSION = "1.1.0"
+RULES_VERSION = "1.2.0"
 TRACKING_SCHEMA_VERSION = 1
 SIMULATION_HZ = 20
 BASE_TRACKING_HZ = 2
