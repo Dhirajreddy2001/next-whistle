@@ -15,8 +15,8 @@ const SCOPE_NOTE: Record<string, string> = {
 
 const headline = (answer: string) => answer.split(/(?<=[.!?])\s/)[0].slice(0, 120);
 
-export function AskPanel({ matchId, language, clockMs, decision, suggestions, onShowDecision }: {
-  matchId: string; language: string; clockMs: number; decision: AskDecision | null; suggestions: Suggestion[];
+export function AskPanel({ matchId, language, level, clockMs, decision, suggestions, onShowDecision }: {
+  matchId: string; language: string; level: string; clockMs: number; decision: AskDecision | null; suggestions: Suggestion[];
   onShowDecision: (eventId: string) => void;
 }) {
   const [text, setText] = useState('');
@@ -35,7 +35,7 @@ export function AskPanel({ matchId, language, clockMs, decision, suggestions, on
     setTurns(current => [...current, { id, question: trimmed, result: null, error: '' }].slice(-6));
     try {
       const result = await requestRefereeAnswer(matchId, {
-        cutoffMs: Math.floor(clockMs), eventId: activeDecision?.eventId, language,
+        cutoffMs: Math.floor(clockMs), eventId: activeDecision?.eventId, language, level,
         ...(questionId && activeDecision ? { questionId } : { questionText: trimmed, history }),
       });
       setTurns(current => current.map(turn => turn.id === id ? { ...turn, result } : turn));

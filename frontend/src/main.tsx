@@ -264,7 +264,7 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
     try {
       const result = await requestExplanation(matchId, {
         cutoffMs: Math.floor(clock), eventId: event?.eventId,
-        intent: event ? 'explain' : 'recap', language: languageCode(language),
+        intent: event ? 'explain' : 'recap', language: languageCode(language), level,
       });
       setExplanation({ busy: false, result, error: '' });
     } catch (reason) {
@@ -276,7 +276,7 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
     try {
       const result = await requestRefereeAnswer(matchId, {
         cutoffMs: Math.floor(clock), eventId: event.eventId,
-        questionId, language: languageCode(language),
+        questionId, language: languageCode(language), level,
       });
       setRefereeAnswers(current => ({ ...current, [event.eventId]: { busy: false, result, error: '' } }));
     } catch (reason) {
@@ -294,7 +294,7 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
     {panel === 'stats' && <><div className="panel-heading"><h2>Match pulse</h2><span>Through {formatClock(clock)}</span></div><div className="stat-strip"><div><span>Possession</span><strong>{home?.possessionPct ?? '—'}<span>%</span></strong></div><div><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></div><div><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></div></div><div className="pressure"><div><span>Passes completed</span><strong>{home?.passesCompleted ?? 0} – {away?.passesCompleted ?? 0}</strong></div><p>Statistics are calculated from generated events available by {formatClock(clock)}.</p></div></>}
     {panel === 'players' && <><div className="panel-heading"><h2>Players in focus</h2><span>{data.players.length} starters</span></div><div className="player-list">{data.players.map(player => <article key={player.playerId}><TeamBadge team={player.teamId === data.match.home.teamId ? data.match.home : data.match.away} /><div><h3>{player.name}</h3><p>{player.position} · #{player.shirt}</p></div><strong>{events.filter(e => e.playerId === player.playerId).length}</strong></article>)}</div></>}
     {panel === 'decisions' && <><div className="panel-heading"><h2>Recorded decisions</h2><span>{formatClock(clock)}</span></div>{moments.filter(e => e.decision).length ? moments.filter(e => e.decision).map(e => <article className="decision" key={e.eventId}><span className="status">{e.decision?.recordedRuling.replaceAll('_', ' ')}</span><h3>{e.title}</h3><p>{e.detail}</p><small>{e.decision?.ruleIds?.join(', ')}</small><AskRef event={e} language={language} state={refereeAnswers[e.eventId] ?? emptyGenerationState} onAsk={questionId => void askReferee(e, questionId)} /></article>) : <div className="empty-panel"><span>Decisions</span><h2>No decision visible yet</h2><p>Recorded rulings appear when their evidence cutoff is reached.</p></div>}</>}
-    {panel === 'ask' && <AskPanel matchId={matchId} language={languageCode(language)} clockMs={clock}
+    {panel === 'ask' && <AskPanel matchId={matchId} language={languageCode(language)} level={level} clockMs={clock}
       decision={askDecision ? { eventId: askDecision.eventId, title: askDecision.title, minute: askDecision.minute } : null}
       suggestions={(REFEREE_QUESTIONS[askDecision?.decision?.decisionType ?? ''] ?? []).map(question => ({ id: question.id, text: languageCode(language) === 'es' ? question.es : question.en }))}
       onShowDecision={eventId => { const target = events.find(row => row.eventId === eventId); if (target) { seek(target.matchMs, target); go('decisions'); } }} />}

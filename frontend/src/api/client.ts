@@ -96,7 +96,7 @@ async function postGeneration(path: string, body: Record<string, unknown>): Prom
 
 export function requestExplanation(
   matchId: string,
-  body: { cutoffMs: number; eventId?: string; intent: 'explain' | 'recap'; language: string },
+  body: { cutoffMs: number; eventId?: string; intent: 'explain' | 'recap'; language: string; level?: string },
 ) {
   return postGeneration(`/api/matches/${encodeURIComponent(matchId)}/explanations`, body);
 }
@@ -105,7 +105,7 @@ export type QuestionTurn = { question: string; answerHeadline: string };
 
 export function requestRefereeAnswer(
   matchId: string,
-  body: { cutoffMs: number; eventId?: string; questionId?: string; questionText?: string; history?: QuestionTurn[]; language: string },
+  body: { cutoffMs: number; eventId?: string; questionId?: string; questionText?: string; history?: QuestionTurn[]; language: string; level?: string },
 ) {
   return postGeneration(`/api/matches/${encodeURIComponent(matchId)}/referee/questions`, body);
 }
