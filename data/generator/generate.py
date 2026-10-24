@@ -646,8 +646,21 @@ def generate_match(scenario: dict, out: Path) -> dict:
         if decision and decision["decision_type"] == "offside":
             attacker = next(p for p in positions if p["player_id"] == event["player_id"])
             ltr = (event["team_id"] == home["team_id"]) == (event["period"] == 1)
-            attacker["x"] = round((88 + decision["authored_margin_m"]) if ltr else (17 - decision["authored_margin_m"]), 2)
-        snapshot = {"snapshot_id": sid, "match_ms": event["match_ms"], "available_ms": event["match_ms"], "ball": event["start"], "players": positions, "source_event_ids": [event["event_id"]]}
+            # Show the moment of the pass: the ball is behind the attacker, the second-last defender
+            # holds the line, and the attacker stands exactly the authored margin beyond it.
+            line_x = 88.0 if ltr else 17.0
+            defending = away if event["team_id"] == home["team_id"] else home
+            by_id = {p["player_id"]: p for p in positions}
+            keeper, *outfield = [by_id[p["player_id"]] for p in defending["squad"][:11]]
+            keeper["x"] = 103.0 if ltr else 2.0
+            outfield[0]["x"] = line_x
+            for index, defender in enumerate(outfield[1:]):
+                defender["x"] = round(line_x - (4 + 2 * index) if ltr else line_x + (4 + 2 * index), 2)
+            attacker["x"] = round(line_x + decision["authored_margin_m"] if ltr else line_x - decision["authored_margin_m"], 2)
+            snapshot_ball = {"x": line_x - 22 if ltr else line_x + 22, "y": 34}
+        else:
+            snapshot_ball = event["start"]
+        snapshot = {"snapshot_id": sid, "match_ms": event["match_ms"], "available_ms": event["match_ms"], "ball": snapshot_ball, "players": positions, "source_event_ids": [event["event_id"]]}
         snapshots.append(snapshot)
         event["snapshot_ids"].append(sid)
         if decision:
