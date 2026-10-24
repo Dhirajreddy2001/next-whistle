@@ -21,6 +21,9 @@ Current Makefile targets:
 
 - `make setup`: install backend and frontend dependencies (requires registry access).
 - `make backend` / `make frontend`: run the API and Vite in separate terminals.
+- `make install`: create the Core and Agent Service environments and install the frontend.
+- `make run`: run Core (port 8000) and the Agent Service (port 8088) together; start the UI with `make frontend`.
+- `make eval`: run the golden Q&A set on the scripted agent roles (no model calls). `make eval-live` calls real models and spends money; see `eval/README.md`.
 - `make test`: run the backend API and startup tests.
 - `make build`: check TypeScript and build frontend assets.
 - `make data`: deterministically generate the versioned history, demo matches, clips, and chunked tracking data.

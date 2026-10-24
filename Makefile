@@ -1,4 +1,4 @@
-.PHONY: install install-backend install-agent run setup backend core agent frontend test test-core test-agent build data validate-data
+.PHONY: install install-backend install-agent run eval eval-live setup backend core agent frontend test test-core test-agent build data validate-data
 
 install: install-backend install-agent
 	cd frontend && npm install
@@ -21,6 +21,15 @@ run:
 	(cd backend && .venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8000) & \
 	(cd backend && PYTHONPATH=services/agent_service/src .venv-agent/bin/python -m next_whistle_agent.main) & \
 	wait
+
+# Golden Q&A set on the scripted roles: no model, no cost.
+eval:
+	cd backend && .venv-agent/bin/python ../eval/run_eval.py --mode fake
+
+# Golden Q&A set on real Foundry models. Spends money: needs FOUNDRY_PROJECT_ENDPOINT, MODEL_TOOLS, MODEL_SMALL,
+# PRICE_INPUT_PER_MTOK, PRICE_OUTPUT_PER_MTOK, and an explicit cap, e.g. make eval-live MAX_USD=2 LIMIT=12
+eval-live:
+	cd backend && AGENT_MODE=foundry .venv-agent/bin/python ../eval/run_eval.py --mode foundry --confirm-spend --max-usd $(MAX_USD) --limit $(LIMIT)
 
 setup:
 	uv sync --project backend/services/core_application_service --python 3.12

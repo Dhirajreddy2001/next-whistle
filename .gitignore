@@ -12,3 +12,4 @@ dist/
 .DS_Store
 *.egg-info/
 checkpoints/*.bundle
+eval/reports/
