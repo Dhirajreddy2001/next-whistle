@@ -1,5 +1,7 @@
 import { StrictMode, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { requestExplanation, requestRefereeAnswer, type GenerationResult } from './api/client';
+import { AskPanel } from './AskPanel';
 import './style.css';
 
 type Team = { teamId: string; name: string; shortName: string; colors: string[] };
@@ -159,7 +161,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
   return <Context.Provider value={data}><div className="app-shell">
     <header className="live-header"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><div className="compact-score"><div><TeamBadge team={match.home} /><span>{match.home.name}</span></div><strong aria-label={`${match.home.name} ${goals(match.home.teamId)}, ${match.away.name} ${goals(match.away.teamId)}`}>{goals(match.home.teamId)}<i>–</i>{goals(match.away.teamId)}</strong><div><span>{match.away.name}</span><TeamBadge team={match.away} /></div></div><div className="header-live"><span className="header-date">{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span><Personalize prefs={prefs} onChange={setPrefs} /><span className="header-clock"><strong>{formatClock(clock)}</strong><small>{clock < 45 * 60_000 ? 'First half' : 'Second half'}</small></span><button className={`live-state ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><span />{playing && Math.abs(clock - liveEdge) < 2500 ? 'Live' : 'Go live'}</button></div><section className="match-insights" aria-label="Generated match statistics"><div className="insight-grid">{metricCards ? <><Metric label="Possession" value={`${homeStats.possessionPct}% – ${awayStats.possessionPct}%`} detail={`${match.home.shortName} — ${match.away.shortName}`} /><Metric label="Shots" value={`${homeStats.shots} – ${awayStats.shots}`} detail={`Through ${formatClock(data.cutoffMs)}`} /><Metric label="On target" value={`${homeStats.shotsOnTarget} – ${awayStats.shotsOnTarget}`} detail="Attempts on target" /><Metric label="Pass completion" value={`${homeStats.passCompletionPct ?? '—'}% – ${awayStats.passCompletionPct ?? '—'}%`} detail="Completed passes / attempts" /></> : <div className="metric-card">Loading statistics for {formatClock(clock)}…</div>}</div></section></header>
     <main className="workspace"><h1 className="sr-only">{match.label} live match</h1>
-      <div className={`replay-grid ${panelOpen ? '' : 'panel-collapsed'}`} ref={gridRef} style={{ '--panel-width': `${panelOpen ? panelWidth : 0}px` } as React.CSSProperties}><section className="replay-stage" aria-label="Live match replay"><Pitch clock={clock} event={selectedEvent} tracking={trackingSample} tracked={tracked} activePlayer={activePlayer} setHovered={setHovered} toggleTracking={toggleTracking} events={events} /><div className="playback" role="group" aria-label="Playback controls"><button className="play-toggle" onClick={() => setPlaying(value => !value)} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}</button><span className="playback-time">{formatClock(clock)}</span><label className="scrubber"><span className="sr-only">Match time</span><input type="range" min="0" max={liveEdge} step="1000" value={clock} onChange={event => seek(Number(event.target.value))} /></label><button type="button" className={`playback-live ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><i />{playing ? 'Live' : 'Go live'}</button></div></section><div className="panel-divider"><div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize match details panel. Arrow keys adjust, Home resets, Enter collapses." aria-valuemin={220} aria-valuemax={560} aria-valuenow={panelOpen ? panelWidth : 0} tabIndex={0} onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (dragging.current) resizeTo(event.clientX); }} onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }} onDoubleClick={() => setPanelWidth(260)} onKeyDown={resizeKey}><span aria-hidden="true" /></div><button type="button" className="panel-collapse" aria-label={panelOpen ? 'Collapse match details panel' : 'Expand match details panel'} aria-expanded={panelOpen} onClick={() => setPanelOpen(value => !value)}>{panelOpen ? '›' : '‹'}</button></div><SidePanel level={prefs.level} panel={panel} setPanel={setPanel} clock={clock} events={events} selected={selected} seek={seek} stats={stats} /></div>
+      <div className={`replay-grid ${panelOpen ? '' : 'panel-collapsed'}`} ref={gridRef} style={{ '--panel-width': `${panelOpen ? panelWidth : 0}px` } as React.CSSProperties}><section className="replay-stage" aria-label="Live match replay"><Pitch clock={clock} event={selectedEvent} tracking={trackingSample} tracked={tracked} activePlayer={activePlayer} setHovered={setHovered} toggleTracking={toggleTracking} events={events} /><div className="playback" role="group" aria-label="Playback controls"><button className="play-toggle" onClick={() => setPlaying(value => !value)} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}</button><span className="playback-time">{formatClock(clock)}</span><label className="scrubber"><span className="sr-only">Match time</span><input type="range" min="0" max={liveEdge} step="1000" value={clock} onChange={event => seek(Number(event.target.value))} /></label><button type="button" className={`playback-live ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><i />{playing ? 'Live' : 'Go live'}</button></div></section><div className="panel-divider"><div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize match details panel. Arrow keys adjust, Home resets, Enter collapses." aria-valuemin={220} aria-valuemax={560} aria-valuenow={panelOpen ? panelWidth : 0} tabIndex={0} onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (dragging.current) resizeTo(event.clientX); }} onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }} onDoubleClick={() => setPanelWidth(260)} onKeyDown={resizeKey}><span aria-hidden="true" /></div><button type="button" className="panel-collapse" aria-label={panelOpen ? 'Collapse match details panel' : 'Expand match details panel'} aria-expanded={panelOpen} onClick={() => setPanelOpen(value => !value)}>{panelOpen ? '›' : '‹'}</button></div><SidePanel matchId={matchId} language={prefs.language} level={prefs.level} panel={panel} setPanel={setPanel} clock={clock} events={events} selected={selected} seek={seek} stats={stats} /></div>
     </main>
   </div></Context.Provider>;
 }
@@ -189,22 +191,113 @@ function Pitch({ clock, event, tracking, tracked, activePlayer, setHovered, togg
   const offsideX = defenderX.length > 1 ? defenderX[1] : null;
   return <figure className={`pitch-shell ${feedOpen ? '' : 'feed-collapsed'}`}><div className="tactical-toolbar" role="group" aria-label="Tactical overlays">{LAYERS.map(([id, label]) => <button key={id} type="button" aria-pressed={layer === id} onClick={() => setLayer(current => current === id ? 'none' : id)}>{label}</button>)}</div><svg className="pitch" viewBox="-2.5 -2.5 110 73" role="img" aria-label={`Match positions at ${formatClock(clock)}`}><rect className="pitch-ground" x="-2.5" y="-2.5" width="110" height="73" /><g className="pitch-lines"><rect width="105" height="68" /><path d="M52.5 0V68" /><circle cx="52.5" cy="34" r="9.15" /><circle className="pitch-dot" cx="52.5" cy="34" r=".5" /><path d="M0 13.84H16.5V54.16H0M105 13.84H88.5V54.16H105M0 24.84H5.5V43.16H0M105 24.84H99.5V43.16H105" /><circle className="pitch-dot" cx="11" cy="34" r=".5" /><circle className="pitch-dot" cx="94" cy="34" r=".5" /><path d="M16.5 26.7A9.15 9.15 0 0 1 16.5 41.3M88.5 26.7A9.15 9.15 0 0 0 88.5 41.3" /></g><g className="pitch-goals"><rect x="-2" y="30.34" width="2" height="7.32" /><rect x="105" y="30.34" width="2" height="7.32" /></g>{ball && layer === 'pressure' && <circle className="pressure-zone" cx={ball[0]} cy={ball[1]} r="11" />}{ball && layer === 'passing' && <g className="passing-lanes">{teammates.map(row => <line key={row.player.playerId} x1={ball[0]} y1={ball[1]} x2={row.xy[0]} y2={row.xy[1]} />)}</g>}{layer === 'offside' && offsideX !== null && <line className="offside-line" x1={offsideX} x2={offsideX} y1="0" y2="68" />}{highlighted && <circle className="evidence-zone" cx={highlighted.x} cy={highlighted.y} r="5" />}{data.players.map(player => { const xy = positions[player.playerId]; if (!xy) return null; const side = teamById.get(player.teamId); const isTracked = tracked.includes(player.playerId); return <g key={player.playerId} className={`player-marker ${side} ${isTracked ? 'tracked' : ''}`} transform={`translate(${xy[0]} ${xy[1]})`} role="button" tabIndex={0} aria-label={`${player.name}, ${player.position}. ${isTracked ? 'Untrack' : 'Track player'}`} onMouseEnter={() => setHovered(player.playerId)} onMouseLeave={() => setHovered(null)} onFocus={() => setHovered(player.playerId)} onBlur={() => setHovered(null)} onClick={() => toggleTracking(player.playerId)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleTracking(player.playerId); }}><circle className="hit-area" r="2.6" />{isTracked && <circle className="selection-ring" r="1.9" />}<circle r="1.25" /><text y=".4" textAnchor="middle">{player.shirt}</text></g>; })}{ball && <circle className="ball-marker" cx={ball[0]} cy={ball[1]} r=".6" />}</svg>{activePlayer && <aside className="player-persona"><div className="persona-top"><span className={`persona-number ${teamById.get(activePlayer.teamId)}`}>{activePlayer.shirt}</span><div><strong>{activePlayer.name}</strong><span>{activePlayer.position}</span></div><em>{tracked.includes(activePlayer.playerId) ? 'Tracking' : 'Player profile'}</em></div><p>Project generated player profile. Match events shown here are limited to the current replay time.</p><dl><div><dt>Events</dt><dd>{events.filter(row => row.playerId === activePlayer.playerId).length}</dd></div></dl></aside>}<aside className={`match-feed-overlay ${feedOpen ? 'open' : 'closed'}`} aria-label="Match feed"><div className="feed-inner" ref={feedRef}><div className="feed-head"><span>Match feed</span><button className="feed-toggle" onClick={() => setFeedOpen(v => !v)}>{feedOpen ? 'Hide' : 'Show'}</button></div>{feedOpen && <div className="feed-list">{visibleFeed.length ? visibleFeed.map((row, index) => <article key={row.eventId} className={index === visibleFeed.length - 1 ? 'latest' : ''}><time>{row.minute}</time><div><strong>{row.title}</strong><p>{row.detail}</p></div></article>) : <article><time>{formatClock(clock)}</time><div><strong>Waiting for play</strong><p>Match events appear here as they become available.</p></div></article>}</div>}</div></aside><figcaption><span>Hover a player · Select up to 3</span></figcaption></figure>;
 }
-type Panel = 'insights' | 'stats' | 'players' | 'decisions' | 'timeline';
-const PANEL_TABS: Panel[] = ['insights', 'stats', 'players', 'decisions', 'timeline'];
+type Panel = 'insights' | 'stats' | 'players' | 'decisions' | 'ask' | 'timeline';
+const PANEL_TABS: Panel[] = ['insights', 'stats', 'players', 'decisions', 'ask', 'timeline'];
 const typeLabel = (type: string) => type.replace(/^card_/, '').replaceAll('_', ' ');
-function SidePanel({ level, panel, setPanel, clock, events, selected, seek, stats }: { level: Level; panel: Panel; setPanel: (panel: Panel) => void; clock: number; events: UiEvent[]; selected: string | null; seek: (ms: number, event?: UiEvent) => void; stats: TeamStats[] }) {
+type GenerationUiState = { busy: boolean; result: GenerationResult | null; error: string };
+const emptyGenerationState: GenerationUiState = { busy: false, result: null, error: '' };
+const languageCode = (language: string) => language === 'Español' ? 'es' : language === 'Français' ? 'fr' : language === 'Deutsch' ? 'de' : 'en';
+const REFEREE_QUESTIONS: Record<string, { id: string; en: string; es: string }[]> = {
+  offside: [
+    { id: 'q_off_why', en: 'Why was the flag raised?', es: '¿Por qué se levantó la bandera?' },
+    { id: 'q_off_position', en: 'Was the attacker beyond the defender?', es: '¿Estaba el atacante más adelantado que el defensor?' },
+    { id: 'q_off_review', en: 'Why was the goal ruled out after review?', es: '¿Por qué se anuló el gol después de la revisión?' },
+  ],
+  tactical_foul_yellow: [
+    { id: 'q_yel_why', en: 'Why was this a yellow card?', es: '¿Por qué fue tarjeta amarilla?' },
+    { id: 'q_yel_advantage', en: 'Why did the referee stop play?', es: '¿Por qué detuvo el juego el árbitro?' },
+  ],
+  penalty: [
+    { id: 'q_pen_why', en: 'Why was a penalty awarded?', es: '¿Por qué se concedió un penalti?' },
+    { id: 'q_pen_position', en: 'Did the foul occur inside the penalty area?', es: '¿Ocurrió la falta dentro del área penal?' },
+  ],
+};
+
+function GenerationAnswer({ result, error }: { result: GenerationResult | null; error: string }) {
+  if (!result && !error) return null;
+  return <div aria-live="polite" aria-atomic="true">
+    {error && <p role="alert">{error}</p>}
+    {result && <div className="generation-answer">
+      <p className="status">{result.source === 'template' ? 'Facts only' : result.source === 'fake' ? 'Demo agent' : 'AI generated'} · {formatClock(result.cutoffMs)}</p>
+      <p>{result.answer}</p>
+      {!!result.ruleRefs?.length && <ul aria-label="Rule sources">{result.ruleRefs.map(rule => <li key={rule.ruleId}><a href={rule.sourceUrl} target="_blank" rel="noreferrer">IFAB Law {rule.lawNumber}: {rule.title}</a></li>)}</ul>}
+      <small>{result.evidenceIds.length} evidence records · {result.workflowVersion}</small>
+    </div>}
+  </div>;
+}
+
+function ExplainAction({ event, state, onGenerate }: { event?: UiEvent; state: GenerationUiState; onGenerate: () => void }) {
+  return <div>
+    <Button className="primary" type="button" disabled={state.busy} onClick={onGenerate}>
+      {state.busy ? 'Generating…' : state.error ? 'Try again' : event ? 'Explain latest moment' : 'Summarize match so far'}
+    </Button>
+    <GenerationAnswer result={state.result} error={state.error} />
+  </div>;
+}
+
+function AskRef({ event, language, state, onAsk }: { event: UiEvent; language: string; state: GenerationUiState; onAsk: (questionId: string) => void }) {
+  const questions = REFEREE_QUESTIONS[event.decision?.decisionType ?? ''] ?? [];
+  const [questionId, setQuestionId] = useState(questions[0]?.id ?? '');
+  const selectedLanguage = languageCode(language);
+  if (!questions.length) return <p>Questions are not available for this decision type yet.</p>;
+  return <details className="ask-ref">
+    <summary>Ask the Ref</summary>
+    <form onSubmit={formEvent => { formEvent.preventDefault(); onAsk(questionId); }}>
+      <label htmlFor={`question-${event.eventId}`}>Question</label>
+      <select id={`question-${event.eventId}`} value={questionId} onChange={e => setQuestionId(e.target.value)}>
+        {questions.map(question => <option key={question.id} value={question.id}>{selectedLanguage === 'es' ? question.es : question.en}</option>)}
+      </select>
+      <Button className="primary" type="submit" disabled={state.busy}>{state.busy ? 'Checking…' : state.error ? 'Try again' : 'Get answer'}</Button>
+    </form>
+    <GenerationAnswer result={state.result} error={state.error} />
+  </details>;
+}
+
+function SidePanel({ matchId, language, level, panel, setPanel, clock, events, selected, seek, stats }: { matchId: string; language: string; level: Level; panel: Panel; setPanel: (panel: Panel) => void; clock: number; events: UiEvent[]; selected: string | null; seek: (ms: number, event?: UiEvent) => void; stats: TeamStats[] }) {
   const data = useData(); const home = stats.find(s => s.teamId === data.match.home.teamId); const away = stats.find(s => s.teamId === data.match.away.teamId);
+  const [explanation, setExplanation] = useState<GenerationUiState>(emptyGenerationState);
+  const [refereeAnswers, setRefereeAnswers] = useState<Record<string, GenerationUiState>>({});
   const moments = events.filter(e => e.kind !== 'break' || e.type === 'period_end' || e.type === 'period_start').slice().reverse();
+  const explainLatest = async () => {
+    const event = moments.find(row => row.kind !== 'break');
+    setExplanation({ busy: true, result: null, error: '' });
+    try {
+      const result = await requestExplanation(matchId, {
+        cutoffMs: Math.floor(clock), eventId: event?.eventId,
+        intent: event ? 'explain' : 'recap', language: languageCode(language),
+      });
+      setExplanation({ busy: false, result, error: '' });
+    } catch (reason) {
+      setExplanation({ busy: false, result: null, error: reason instanceof Error ? reason.message : 'Could not generate an explanation.' });
+    }
+  };
+  const askReferee = async (event: UiEvent, questionId: string) => {
+    setRefereeAnswers(current => ({ ...current, [event.eventId]: { busy: true, result: null, error: '' } }));
+    try {
+      const result = await requestRefereeAnswer(matchId, {
+        cutoffMs: Math.floor(clock), eventId: event.eventId,
+        questionId, language: languageCode(language),
+      });
+      setRefereeAnswers(current => ({ ...current, [event.eventId]: { busy: false, result, error: '' } }));
+    } catch (reason) {
+      setRefereeAnswers(current => ({ ...current, [event.eventId]: { busy: false, result: null, error: reason instanceof Error ? reason.message : 'Could not answer this question.' } }));
+    }
+  };
   const [dir, setDir] = useState(1); const touchX = useRef<number | null>(null);
+  const askDecision = events.find(row => row.eventId === selected && row.decision) ?? moments.find(row => row.decision);
   const go = (next: Panel) => { setDir(PANEL_TABS.indexOf(next) >= PANEL_TABS.indexOf(panel) ? 1 : -1); setPanel(next); };
   const step = (delta: number) => { const next = PANEL_TABS[PANEL_TABS.indexOf(panel) + delta]; if (next) go(next); };
   const onTouchEnd = (event: React.TouchEvent) => { if (touchX.current === null) return; const dx = event.changedTouches[0].clientX - touchX.current; touchX.current = null; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); };
   const shots = (home?.shots ?? 0) + (away?.shots ?? 0); const homeShare = shots ? Math.round(((home?.shots ?? 0) / shots) * 100) : 50;
   return <section className="side-panel" aria-label="Match details"><nav className="panel-tabs">{PANEL_TABS.map(tab => <button key={tab} className={panel === tab ? 'active' : ''} onClick={() => go(tab)}>{tab[0].toUpperCase() + tab.slice(1)}</button>)}</nav><div key={panel} className="panel-content slide" style={{ '--dir': dir } as React.CSSProperties} onTouchStart={event => { touchX.current = event.touches[0].clientX; }} onTouchEnd={onTouchEnd}>
-    {panel === 'insights' && <><div className="panel-heading"><div><span className="panel-kicker">Current reading</span><h2>What is shaping the match</h2></div><span>{formatClock(clock)}</span></div><div className="explanation"><p className="finding">{moments[0]?.title ?? 'The match is underway.'}</p><p>{moments[0]?.detail ?? 'Match evidence will appear here as the replay progresses.'}</p><ul className="signal-list"><li><span>Possession</span><strong>{home?.possessionPct ?? '—'}% {data.match.home.name}</strong></li><li><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></li>{level !== 'beginner' && <li><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></li>}<li><span>Pass completion</span><strong>{home?.passCompletionPct ?? '—'}% – {away?.passCompletionPct ?? '—'}%</strong></li></ul>{level === 'pro' && <div className="momentum"><span className="estimate-label">Shot share {homeShare}% – {100 - homeShare}%</span><div className="momentum-track"><i className="midpoint" /><i className="momentum-value" style={{ left: `${homeShare}%` }} /></div></div>}{level === 'beginner' && <p className="insight-detail">Tip: shots on target force the goalkeeper to act; most goals come from them.</p>}</div></>}
+    {panel === 'insights' && <><div className="panel-heading"><div><span className="panel-kicker">Current reading</span><h2>What is shaping the match</h2></div><span>{formatClock(clock)}</span></div><div className="explanation"><p className="finding">{moments[0]?.title ?? 'The match is underway.'}</p><p>{moments[0]?.detail ?? 'Match evidence will appear here as the replay progresses.'}</p><ul className="signal-list"><li><span>Possession</span><strong>{home?.possessionPct ?? '—'}% {data.match.home.name}</strong></li><li><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></li>{level !== 'beginner' && <li><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></li>}<li><span>Pass completion</span><strong>{home?.passCompletionPct ?? '—'}% – {away?.passCompletionPct ?? '—'}%</strong></li></ul>{level === 'pro' && <div className="momentum"><span className="estimate-label">Shot share {homeShare}% – {100 - homeShare}%</span><div className="momentum-track"><i className="midpoint" /><i className="momentum-value" style={{ left: `${homeShare}%` }} /></div></div>}{level === 'beginner' && <p className="insight-detail">Tip: shots on target force the goalkeeper to act; most goals come from them.</p>}<ExplainAction event={moments.find(event => event.kind !== 'break')} state={explanation} onGenerate={() => void explainLatest()} /></div></>}
     {panel === 'stats' && <><div className="panel-heading"><h2>Match pulse</h2><span>Through {formatClock(clock)}</span></div><div className="stat-strip"><div><span>Possession</span><strong>{home?.possessionPct ?? '—'}<span>%</span></strong></div><div><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></div><div><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></div></div><div className="pressure"><div><span>Passes completed</span><strong>{home?.passesCompleted ?? 0} – {away?.passesCompleted ?? 0}</strong></div><p>Statistics are calculated from generated events available by {formatClock(clock)}.</p></div></>}
     {panel === 'players' && <><div className="panel-heading"><h2>Players in focus</h2><span>{data.players.length} starters</span></div><div className="player-list">{data.players.map(player => <article key={player.playerId}><TeamBadge team={player.teamId === data.match.home.teamId ? data.match.home : data.match.away} /><div><h3>{player.name}</h3><p>{player.position} · #{player.shirt}</p></div><strong>{events.filter(e => e.playerId === player.playerId).length}</strong></article>)}</div></>}
-    {panel === 'decisions' && <><div className="panel-heading"><h2>Recorded decisions</h2><span>{formatClock(clock)}</span></div>{moments.filter(e => e.decision).length ? moments.filter(e => e.decision).map(e => <article className="decision" key={e.eventId}><span className="status">{e.decision?.recordedRuling.replaceAll('_', ' ')}</span><h3>{e.title}</h3><p>{e.detail}</p><small>{e.decision?.ruleIds?.join(', ')}</small></article>) : <div className="empty-panel"><span>Decisions</span><h2>No decision visible yet</h2><p>Recorded rulings appear when their evidence cutoff is reached.</p></div>}</>}
+    {panel === 'decisions' && <><div className="panel-heading"><h2>Recorded decisions</h2><span>{formatClock(clock)}</span></div>{moments.filter(e => e.decision).length ? moments.filter(e => e.decision).map(e => <article className="decision" key={e.eventId}><span className="status">{e.decision?.recordedRuling.replaceAll('_', ' ')}</span><h3>{e.title}</h3><p>{e.detail}</p><small>{e.decision?.ruleIds?.join(', ')}</small><AskRef event={e} language={language} state={refereeAnswers[e.eventId] ?? emptyGenerationState} onAsk={questionId => void askReferee(e, questionId)} /></article>) : <div className="empty-panel"><span>Decisions</span><h2>No decision visible yet</h2><p>Recorded rulings appear when their evidence cutoff is reached.</p></div>}</>}
+    {panel === 'ask' && <AskPanel matchId={matchId} language={languageCode(language)} clockMs={clock}
+      decision={askDecision ? { eventId: askDecision.eventId, title: askDecision.title, minute: askDecision.minute } : null}
+      suggestions={(REFEREE_QUESTIONS[askDecision?.decision?.decisionType ?? ''] ?? []).map(question => ({ id: question.id, text: languageCode(language) === 'es' ? question.es : question.en }))}
+      onShowDecision={eventId => { const target = events.find(row => row.eventId === eventId); if (target) { seek(target.matchMs, target); go('decisions'); } }} />}
     {panel === 'timeline' && <section className="timeline-panel"><div className="panel-heading"><h2>Match timeline</h2><span>{moments.length} moments</span></div><ol className="v-timeline"><li className="v-now"><span className="v-dot" /><span>Now · {formatClock(clock)}</span></li>{moments.map(e => <li key={e.eventId} className={`v-item ${e.kind}`}><span className="v-dot" /><button className={`v-card ${selected === e.eventId ? 'selected' : ''}`} onClick={() => seek(e.matchMs, e)}><span className="v-meta"><time>{e.minute}</time><em>{typeLabel(e.type)}</em></span><strong>{e.title}</strong><span className="v-detail">{e.detail}</span><span className="clip-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none" /></svg>Video clip · coming soon</span></button></li>)}</ol></section>}
   </div></section>;
 }
