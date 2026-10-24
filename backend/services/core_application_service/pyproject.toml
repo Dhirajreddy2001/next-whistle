@@ -1,0 +1,22 @@
+[project]
+name = "next-whistle-core"
+version = "0.1.0"
+description = "Public FastAPI Core Application Service"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
+  "pydantic>=2.10,<3",
+  "httpx>=0.28,<1",
+  "next-whistle-shared",
+]
+
+[tool.uv.sources]
+next-whistle-shared = { path = "../../shared", editable = true }
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../../shared/src", "../../../backend"]
+testpaths = ["../../../tests"]

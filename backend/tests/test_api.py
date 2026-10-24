@@ -11,7 +11,11 @@ from app.main import create_app
 @pytest.fixture
 def client(tmp_path: Path):
     settings = replace(Settings.from_env(), session_db_path=tmp_path / "sessions.sqlite3", session_signing_key="test-signing-key-that-is-long-enough")
-    with TestClient(create_app(settings)) as client:
+    class OfflineAgent:
+        async def generate(self, _payload):
+            raise ConnectionError("Agent Service intentionally offline in API tests")
+
+    with TestClient(create_app(settings, agent_client=OfflineAgent())) as client:
         yield client
 
 
@@ -117,6 +121,61 @@ def test_player_stats_are_cutoff_bound(client):
     assert response.status_code == 200
     assert response.json()["playerId"] == "p_rvr_09"
     assert response.json()["cutoffMs"] == 1_000_000
+
+
+def _session_headers(client):
+    session = client.post("/api/sessions")
+    assert session.status_code == 201
+    return {"Authorization": f"Bearer {session.json()['accessToken']}"}
+
+
+def test_referee_question_is_cutoff_bound_and_returns_rule_citation(client):
+    headers = _session_headers(client)
+    path = "/api/matches/m_rvr_hrb/referee/questions"
+    hidden = client.post(path, headers=headers, json={
+        "cutoffMs": 3_759_999, "eventId": "e_m_rvr_hrb_01167", "questionId": "q_off_why",
+    })
+    visible = client.post(path, headers=headers, json={
+        "cutoffMs": 3_760_000, "eventId": "e_m_rvr_hrb_01167", "questionId": "q_off_why",
+    })
+    assert hidden.status_code == 404
+    assert visible.status_code == 200
+    body = visible.json()
+    assert body["status"] == "fallback"
+    assert body["source"] == "template"
+    assert body["ruleRefs"][0]["lawNumber"] == 11
+    assert "e_m_rvr_hrb_01167" in body["evidenceIds"]
+
+
+def test_referee_rejects_question_for_another_decision_type(client):
+    response = client.post(
+        "/api/matches/m_rvr_hrb/referee/questions",
+        headers=_session_headers(client),
+        json={"cutoffMs": 1_806_000, "eventId": "e_m_rvr_hrb_00574", "questionId": "q_pen_why"},
+    )
+    assert response.status_code == 422
+
+
+def test_explanation_uses_cutoff_window_and_returns_factual_fallback(client):
+    response = client.post(
+        "/api/matches/m_rvr_hrb/explanations",
+        headers=_session_headers(client),
+        json={"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00574", "intent": "explain"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "fallback"
+    assert body["source"] == "template"
+    assert body["cutoffMs"] == 2_000_000
+    assert body["evidenceIds"]
+
+
+def test_generation_limits_are_enforced_per_anonymous_session(client):
+    headers = _session_headers(client)
+    path = "/api/matches/m_rvr_hrb/explanations"
+    body = {"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00574", "intent": "explain"}
+    statuses = [client.post(path, headers=headers, json=body).status_code for _ in range(9)]
+    assert statuses == [200] * 8 + [429]
 
 
 def test_anonymous_session_refresh_rotates_and_revocation_works(client):

@@ -1,0 +1,64 @@
+from datetime import date
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic.alias_generators import to_camel
+
+
+class ApiModel(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="forbid")
+
+
+class TeamSummary(ApiModel):
+    team_id: str = Field(pattern=r"^t_[a-z0-9_]+$")
+    name: str
+    short_name: str = Field(min_length=3, max_length=3)
+    colors: list[str] = Field(min_length=2, max_length=2)
+
+
+class MatchSummary(ApiModel):
+    match_id: str = Field(pattern=r"^m_[a-z0-9_]+$")
+    label: str
+    kickoff_date: date
+    home: TeamSummary
+    away: TeamSummary
+
+
+class MatchCatalog(ApiModel):
+    dataset_version: str
+    matches: list[MatchSummary]
+
+
+class LiveMatchState(ApiModel):
+    instance_id: str = Field(pattern=r"^li_[a-z0-9_]+$")
+    match_id: str = Field(pattern=r"^m_[a-z0-9_]+$")
+    status: str = "live"
+    server_time_ms: int
+    instance_start_ms: int
+    match_ms: int
+    duration_ms: int
+    cycle_number: int
+
+
+class RefreshSessionRequest(ApiModel):
+    refresh_token: str = Field(min_length=32, max_length=256)
+
+
+class GenerationRequest(ApiModel):
+    cutoff_ms: int = Field(ge=0, alias="cutoffMs")
+    event_id: str | None = Field(default=None, pattern=r"^e_[a-z0-9_]+$")
+    intent: str = "explain"
+    language: str = Field(default="en", min_length=2, max_length=12)
+
+
+class RefereeQuestionRequest(ApiModel):
+    cutoff_ms: int = Field(ge=0, alias="cutoffMs")
+    event_id: str = Field(pattern=r"^e_[a-z0-9_]+$")
+    question_id: str | None = Field(default=None, pattern=r"^q_[a-z0-9_]+$")
+    question_text: str | None = Field(default=None, min_length=1, max_length=300)
+    language: str = Field(default="en", min_length=2, max_length=12)
+
+    @model_validator(mode="after")
+    def require_one_question(self):
+        if bool(self.question_id) == bool(self.question_text):
+            raise ValueError("Provide exactly one of questionId or questionText")
+        return self

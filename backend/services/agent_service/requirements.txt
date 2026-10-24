@@ -1,0 +1,8 @@
+# Agent Service (Python 3.13). Install from the backend/ folder: pip install --pre -r services/agent_service/requirements.txt
+# --pre is needed because agent-framework-foundry-hosting is currently published only as pre-releases.
+agent-framework>=1,<2
+agent-framework-foundry>=1,<2
+agent-framework-foundry-hosting>=1.0.0b0,<2
+azure-identity>=1.19,<2
+pydantic>=2.10,<3
+-e ./shared

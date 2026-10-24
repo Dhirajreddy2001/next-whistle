@@ -1,0 +1,6 @@
+# Core API (FastAPI). Install from this folder: pip install -r requirements.txt
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+pydantic>=2.10,<3
+httpx>=0.28,<1
+-e ./shared

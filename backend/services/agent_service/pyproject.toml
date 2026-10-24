@@ -1,0 +1,26 @@
+[project]
+name = "next-whistle-agent"
+version = "0.1.0"
+description = "Microsoft Agent Framework workflow hosted through Foundry Responses"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "agent-framework>=1,<2",
+  "agent-framework-foundry>=1,<2",
+  "agent-framework-foundry-hosting>=1.0.0b0,<2",
+  "azure-identity>=1.19,<2",
+  "pydantic>=2.10,<3",
+  "next-whistle-shared",
+]
+
+[tool.uv.sources]
+next-whistle-shared = { path = "../../shared", editable = true }
+
+[tool.uv]
+prerelease = "allow"
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
