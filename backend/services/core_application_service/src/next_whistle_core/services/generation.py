@@ -6,10 +6,10 @@ from pathlib import Path
 from fastapi import HTTPException
 
 from next_whistle_core.store.datasets import MatchData
-from next_whistle_shared.contracts.agent import AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer
+from next_whistle_shared.contracts.agent import AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer, QuestionTurn
 
 
-def _project_root() -> Path:
+def project_root() -> Path:
     return Path(__file__).resolve().parents[6]
 
 
@@ -17,7 +17,7 @@ def build_agent_request(
     *, request_id: str, intent: str, match_id: str, dataset_version: str,
     data: MatchData, cutoff_ms: int, event_id: str | None = None,
     question_id: str | None = None, question_text: str | None = None,
-    language: str = "en",
+    language: str = "en", history: list[dict] | None = None,
 ) -> AgentRequest:
     visible = [event for event in data.events if event["available_ms"] <= cutoff_ms]
     if event_id:
@@ -68,6 +68,7 @@ def build_agent_request(
         dataset_version=dataset_version, cutoff_ms=cutoff_ms,
         evidence_cutoff_ms=cutoff_ms, event_id=event_id,
         question_id=question_id, question_text=question_text,
+        history=[QuestionTurn(question=turn["question"], answer_headline=turn.get("answer_headline", "")) for turn in (history or [])],
         viewer=AgentViewer(language=language),
         evidence_brief=AgentEvidenceBrief(
             headline=f"{focus['type'].replace('_', ' ').title()} at {focus['match_ms'] // 60_000}'",
@@ -88,7 +89,7 @@ def supported_question(data: MatchData, event_id: str, question_id: str, languag
     event = next((row for row in data.events if row["event_id"] == event_id), None)
     if event is None or not event.get("decision"):
         raise HTTPException(422, "Ask the Ref is available for recorded decisions")
-    questions_path = _project_root() / "data/rules/questions.yaml"
+    questions_path = project_root() / "data/rules/questions.yaml"
     rows = json.loads(questions_path.read_text(encoding="utf-8"))
     question = next((row for row in rows if row["question_id"] == question_id), None)
     if question is None or question["decision_type"] != event["decision"]["decision_type"]:
@@ -98,7 +99,7 @@ def supported_question(data: MatchData, event_id: str, question_id: str, languag
 
 def referee_fallback(data: MatchData, event: dict, language: str) -> tuple[str, list[dict]]:
     decision = event["decision"]
-    root = _project_root()
+    root = project_root()
     rules = json.loads((root / "data/rules/v1.2.0/rules.json").read_text(encoding="utf-8"))
     tags = {decision["decision_type"], *event.get("qualifiers", [])}
     rule = next((row for row in rules if tags.intersection(row.get("incident_tags", []))), None)

@@ -21,8 +21,10 @@ from next_whistle_core.config import Settings
 from next_whistle_core.security import hash_refresh_token, issue_access_token, read_access_token
 from next_whistle_core.services.replay import player_summary, state_at, team_stats, visible_events
 from next_whistle_core.services.agent_client import AgentServiceClient
+from next_whistle_core.services.ask import answer_without_model, load_rule_index
+from next_whistle_shared.ask import sanitize_question
 from next_whistle_core.services.generation import (
-    build_agent_request, fallback_response, referee_fallback, supported_question,
+    build_agent_request, fallback_response, project_root, referee_fallback, supported_question,
 )
 from next_whistle_core.store.datasets import Dataset, MatchData, load_dataset
 from next_whistle_core.store.sessions import SQLiteSessionStore
@@ -318,29 +320,49 @@ def create_app(
         session_id = authenticated_session(request)
         data = match_data(request, match_id)
         cutoff_ms = checked_cutoff(data, body.cutoff_ms)
-        event = next((row for row in data.events if row["event_id"] == body.event_id), None)
-        if event is None or event["available_ms"] > cutoff_ms:
-            raise HTTPException(404, "Decision evidence not visible at cutoff")
-        if not event.get("decision"):
+        event = None
+        if body.event_id:
+            event = next((row for row in data.events if row["event_id"] == body.event_id), None)
+            if event is None or event["available_ms"] > cutoff_ms:
+                raise HTTPException(404, "Decision evidence not visible at cutoff")
+        question_text = sanitize_question(body.question_text) if body.question_text else None
+        if body.question_text and not question_text:
+            raise HTTPException(422, "Question is empty")
+        if not request.app.state.sessions.reserve_generation(session_id, int(time.time())):
+            raise HTTPException(429, "Generation limit reached for this session")
+        base = {
+            "request_id": request.state.request_id, "match_id": match_id,
+            "dataset_version": request.app.state.dataset.version,
+            "cutoff_ms": cutoff_ms, "event_id": body.event_id,
+        }
+        if question_text:
+            outcome = answer_without_model(
+                question=question_text, language=body.language, selected_event=event,
+                visible_decisions=[row for row in visible_events(data, cutoff_ms) if row.get("decision")],
+                index=load_rule_index(str(project_root()), request.app.state.dataset.rules_version),
+            )
+            if outcome is not None:
+                return camelize({
+                    **base, "status": "ok", "source": "template", "workflow_version": "ask-template-v1",
+                    "scope": outcome.scope, "answer": outcome.answer, "evidence_ids": [],
+                    "rule_refs": outcome.rule_refs, "redirect_event_id": outcome.redirect_event_id,
+                })
+        if event is None or not event.get("decision"):
             raise HTTPException(422, "Ask the Ref is available for recorded decisions")
-        question_text = body.question_text or supported_question(data, body.event_id, body.question_id, body.language)
+        question_text = question_text or supported_question(data, body.event_id, body.question_id, body.language)
         payload = build_agent_request(
             request_id=request.state.request_id, intent="referee_question",
             match_id=match_id, dataset_version=request.app.state.dataset.version,
             data=data, cutoff_ms=cutoff_ms, event_id=body.event_id,
             question_id=body.question_id, question_text=question_text,
             language=body.language,
+            history=[{"question": turn.question, "answer_headline": turn.answer_headline} for turn in body.history],
         )
-        if not request.app.state.sessions.reserve_generation(session_id, int(time.time())):
-            raise HTTPException(429, "Generation limit reached for this session")
         answer, rule_refs = referee_fallback(data, event, body.language)
         result = await run_agent_or_fallback(request, payload, answer)
         return camelize({
-            "request_id": result.request_id, "match_id": match_id,
-            "dataset_version": request.app.state.dataset.version,
-            "cutoff_ms": cutoff_ms, "event_id": body.event_id,
-            "status": result.status, "source": result.source,
-            "workflow_version": result.workflow_version,
+            **base, "status": result.status, "source": result.source,
+            "workflow_version": result.workflow_version, "scope": "in_scope",
             "answer": result.answer, "evidence_ids": result.evidence_ids,
             "rule_refs": rule_refs,
         })

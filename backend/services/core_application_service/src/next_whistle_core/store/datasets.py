@@ -27,6 +27,7 @@ class Dataset:
     version: str
     catalog: dict
     matches: dict[str, MatchData]
+    rules_version: str = "1.2.0"
 
 
 def _read_json(path: Path) -> dict | list:
@@ -99,4 +100,4 @@ def load_dataset(root: Path) -> Dataset:
 
     if {entry["match_id"] for entry in catalog["matches"]} != set(loaded):
         raise ValueError("Catalog and dataset match IDs differ")
-    return Dataset(manifest["dataset_version"], catalog, loaded)
+    return Dataset(manifest["dataset_version"], catalog, loaded, manifest.get("rules_version", "1.2.0"))

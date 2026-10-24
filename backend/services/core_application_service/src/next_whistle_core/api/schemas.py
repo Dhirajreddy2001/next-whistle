@@ -50,15 +50,23 @@ class GenerationRequest(ApiModel):
     language: str = Field(default="en", min_length=2, max_length=12)
 
 
+class QuestionTurnIn(ApiModel):
+    question: str = Field(min_length=1, max_length=300)
+    answer_headline: str = Field(default="", max_length=120, alias="answerHeadline")
+
+
 class RefereeQuestionRequest(ApiModel):
     cutoff_ms: int = Field(ge=0, alias="cutoffMs")
-    event_id: str = Field(pattern=r"^e_[a-z0-9_]+$")
-    question_id: str | None = Field(default=None, pattern=r"^q_[a-z0-9_]+$")
-    question_text: str | None = Field(default=None, min_length=1, max_length=300)
+    event_id: str | None = Field(default=None, pattern=r"^e_[a-z0-9_]+$", alias="eventId")
+    question_id: str | None = Field(default=None, pattern=r"^q_[a-z0-9_]+$", alias="questionId")
+    question_text: str | None = Field(default=None, min_length=1, max_length=300, alias="questionText")
+    history: list[QuestionTurnIn] = Field(default_factory=list, max_length=2)
     language: str = Field(default="en", min_length=2, max_length=12)
 
     @model_validator(mode="after")
     def require_one_question(self):
         if bool(self.question_id) == bool(self.question_text):
             raise ValueError("Provide exactly one of questionId or questionText")
+        if self.question_id and not self.event_id:
+            raise ValueError("A suggested question needs an eventId")
         return self

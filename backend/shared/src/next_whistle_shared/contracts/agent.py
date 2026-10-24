@@ -244,6 +244,13 @@ class AgentEvidenceBrief(ContractModel):
     evidence_ids: list[str] = Field(min_length=1, max_length=12)
 
 
+class QuestionTurn(ContractModel):
+    """One earlier Ask the Ref exchange, passed back as data for follow-up questions."""
+
+    question: str = Field(min_length=1, max_length=300)
+    answer_headline: str = Field(default="", max_length=120)
+
+
 class AgentRequest(ContractModel):
     schema_version: Literal[1] = 1
     request_id: str = Field(pattern=r"^req_[a-zA-Z0-9_-]{1,80}$")
@@ -255,6 +262,7 @@ class AgentRequest(ContractModel):
     event_id: str | None = None
     question_id: str | None = None
     question_text: str | None = Field(default=None, max_length=300)
+    history: list[QuestionTurn] = Field(default_factory=list, max_length=2)
     viewer: AgentViewer = Field(default_factory=AgentViewer)
     context: BoundContext | None = None
     evidence_brief: AgentEvidenceBrief | None = None
