@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
@@ -48,6 +49,7 @@ class GenerationRequest(ApiModel):
     event_id: str | None = Field(default=None, pattern=r"^e_[a-z0-9_]+$")
     intent: str = "explain"
     language: str = Field(default="en", min_length=2, max_length=12)
+    level: Literal["beginner", "intermediate", "pro"] = "beginner"
 
 
 class QuestionTurnIn(ApiModel):
@@ -62,6 +64,7 @@ class RefereeQuestionRequest(ApiModel):
     question_text: str | None = Field(default=None, min_length=1, max_length=300, alias="questionText")
     history: list[QuestionTurnIn] = Field(default_factory=list, max_length=2)
     language: str = Field(default="en", min_length=2, max_length=12)
+    level: Literal["beginner", "intermediate", "pro"] = "beginner"
 
     @model_validator(mode="after")
     def require_one_question(self):

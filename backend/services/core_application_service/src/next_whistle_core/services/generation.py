@@ -17,7 +17,7 @@ def build_agent_request(
     *, request_id: str, intent: str, match_id: str, dataset_version: str,
     data: MatchData, cutoff_ms: int, event_id: str | None = None,
     question_id: str | None = None, question_text: str | None = None,
-    language: str = "en", history: list[dict] | None = None,
+    language: str = "en", level: str = "beginner", history: list[dict] | None = None,
 ) -> AgentRequest:
     visible = [event for event in data.events if event["available_ms"] <= cutoff_ms]
     if event_id:
@@ -69,7 +69,7 @@ def build_agent_request(
         evidence_cutoff_ms=cutoff_ms, event_id=event_id,
         question_id=question_id, question_text=question_text,
         history=[QuestionTurn(question=turn["question"], answer_headline=turn.get("answer_headline", "")) for turn in (history or [])],
-        viewer=AgentViewer(language=language),
+        viewer=AgentViewer(language=language, level=level),
         evidence_brief=AgentEvidenceBrief(
             headline=f"{focus['type'].replace('_', ' ').title()} at {focus['match_ms'] // 60_000}'",
             summary=summary, facts=facts, evidence_ids=evidence_ids,

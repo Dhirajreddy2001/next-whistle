@@ -283,8 +283,9 @@ def create_app(
 
     async def run_agent_or_fallback(request: Request, payload, fallback_answer: str):
         try:
-            result = await request.app.state.agent_client.generate(payload)
-            return result
+            data = match_data(request, payload.match_id)
+            visible = {row["event_id"] for row in visible_events(data, payload.cutoff_ms)}
+            return await request.app.state.agent_client.generate(payload, visible)
         except Exception:
             # Replay and deterministic facts remain available when generation is offline.
             return fallback_response(payload, answer=fallback_answer)
@@ -300,7 +301,7 @@ def create_app(
             request_id=request.state.request_id, intent=body.intent,
             match_id=match_id, dataset_version=request.app.state.dataset.version,
             data=data, cutoff_ms=cutoff_ms, event_id=body.event_id,
-            language=body.language,
+            language=body.language, level=body.level,
         )
         if not request.app.state.sessions.reserve_generation(session_id, int(time.time())):
             raise HTTPException(429, "Generation limit reached for this session")
@@ -355,7 +356,7 @@ def create_app(
             match_id=match_id, dataset_version=request.app.state.dataset.version,
             data=data, cutoff_ms=cutoff_ms, event_id=body.event_id,
             question_id=body.question_id, question_text=question_text,
-            language=body.language,
+            language=body.language, level=body.level,
             history=[{"question": turn.question, "answer_headline": turn.answer_headline} for turn in body.history],
         )
         answer, rule_refs = referee_fallback(data, event, body.language)

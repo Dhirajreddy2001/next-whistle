@@ -76,7 +76,8 @@ class EvidenceValidator:
         prose = _prose(raw)
         numbers = [c for c in raw.get("claims", []) if c.get("kind") == "number"]
         claimed = {str(c.get("value")) for c in numbers}
-        for token in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", prose):
+        scoreless = re.sub(r"\b\d+\s*[–-]\s*\d+\b", " ", prose)  # scores are checked separately by V7
+        for token in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", scoreless):
             if token not in claimed and not re.search(rf"\b{re.escape(token)}\s*[-–']", prose) and not re.search(rf"\b{re.escape(token)}\s*[-–]\s*\d+", prose):
                 issues.append(_issue("V5", f"Unreferenced number {token} appears in prose.")); break
         if self.context.cutoff_ms < (self.ledger.visible_events and max(e.get("match_ms", 0) for e in self.ledger.visible_events.values()) or 0):
@@ -84,7 +85,7 @@ class EvidenceValidator:
         if any(e.get("available_ms", e.get("availableMs", 0)) > self.context.cutoff_ms for e in self.ledger.visible_events.values()):
             issues.append(_issue("V6", "The evidence ledger contains an item beyond the bound availability cutoff."))
         for minute in re.findall(r"\b(\d{1,3})(?:\+\d+)?\s*['’]", prose):
-            if int(minute) * 60_000 > self.context.cutoff_ms:
+            if (int(minute) - 1) * 60_000 > self.context.cutoff_ms:  # the Nth minute is the one in progress
                 issues.append(_issue("V6", f"Minute {minute} is later than the bound match clock."))
         score = re.search(r"\b(\d+)\s*[–-]\s*(\d+)\b", prose)
         if score:
@@ -103,6 +104,8 @@ class EvidenceValidator:
         if self.context.language != "en": issues.append(_issue("V12", "Language detection requires a configured language detector.", "warning"))
         limit = {"beginner": 120, "intermediate": 180, "pro": 250}[self.context.level]
         if len(prose.split()) > limit: issues.append(_issue("V13", f"Output exceeds the {limit}-word level limit.", "warning"))
+        max_numbers = {"beginner": 2, "intermediate": 4, "pro": 6}[self.context.level]
+        if not is_brief and len(numbers) > max_numbers: issues.append(_issue("V18", f"{len(numbers)} number claims exceed the {max_numbers}-number limit for a {self.context.level} viewer."))
         if re.search(r"\b(bet|betting|odds|gambling)\b|https?://|<[^>]+>", prose, re.I): issues.append(_issue("V14", "Forbidden betting, URL, or HTML content."))
         if is_brief:
             significance = raw.get("significance", {})

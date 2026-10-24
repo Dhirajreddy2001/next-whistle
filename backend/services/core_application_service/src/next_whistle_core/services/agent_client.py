@@ -12,7 +12,7 @@ class AgentServiceClient:
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
 
-    async def generate(self, payload: AgentRequest) -> AgentResponse:
+    async def generate(self, payload: AgentRequest, visible_evidence: set[str] | None = None) -> AgentResponse:
         async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
             response = await client.post(
                 f"{self.base_url}/responses",
@@ -31,7 +31,8 @@ class AgentServiceClient:
         result = AgentResponse.model_validate_json(text)
         if result.request_id != payload.request_id:
             raise ValueError("Agent response requestId mismatch")
-        allowed = set(payload.evidence_brief.evidence_ids)
+        # The agent retrieves its own evidence, so check each ID against what is visible at the bound cutoff.
+        allowed = visible_evidence if visible_evidence is not None else set(payload.evidence_brief.evidence_ids if payload.evidence_brief else [])
         if not set(result.evidence_ids).issubset(allowed):
             raise ValueError("Agent response referenced unknown evidence")
         return result
