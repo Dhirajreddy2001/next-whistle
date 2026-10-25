@@ -113,11 +113,13 @@ async def main_async(args) -> int:
         nonlocal spent
         for case in cases:
             runner = make_runner()
+            before = (runner.usage.input_tokens, runner.usage.output_tokens, runner.usage.calls)  # a live runner is shared, so measure the change
             t0 = time.perf_counter()
             result = await run_workflow(make_request(case), dataset, runner, critic_enabled=args.critic)
             row = score(case, result, dataset, int((time.perf_counter() - t0) * 1000))
-            row["tokens"] = {"input": runner.usage.input_tokens, "output": runner.usage.output_tokens, "calls": runner.usage.calls}
-            spent += (runner.usage.input_tokens * price_in + runner.usage.output_tokens * price_out) / 1e6
+            used = (runner.usage.input_tokens - before[0], runner.usage.output_tokens - before[1], runner.usage.calls - before[2])
+            row["tokens"] = {"input": used[0], "output": used[1], "calls": used[2]}
+            spent += (used[0] * price_in + used[1] * price_out) / 1e6
             rows.append(row)
             if live and spent >= args.max_usd:
                 print(f"Spend cap reached (${spent:.2f}); stopping after {len(rows)} cases.")
@@ -125,7 +127,7 @@ async def main_async(args) -> int:
 
     if live:
         async with runner_cm as shared:
-            await run_all(lambda: shared)  # usage accumulates on the shared runner; per-case figures are cumulative
+            await run_all(lambda: shared)
     else:
         await run_all(ScriptedRunner)
 

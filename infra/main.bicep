@@ -46,11 +46,8 @@ param budgetUsd int = 20
 @description('First day of the month the budget starts, YYYY-MM-01.')
 param budgetStartDate string
 
-@description('Model deployed for the Analyst and Referee (needs tool calling). Confirm availability with: az cognitiveservices model list')
-param toolsModel object = { name: 'gpt-4.1', version: '2025-04-14', sku: 'Standard', capacity: 30 }
-
-@description('Smaller model for the Storyteller and Critic.')
-param smallModel object = { name: 'gpt-4.1-mini', version: '2025-04-14', sku: 'Standard', capacity: 50 }
+@description('The one model every agent role uses. Capacity is thousands of tokens per minute and must fit your subscription quota.')
+param model object = { name: 'DeepSeek-V4-Flash', version: '2026-04-23', sku: 'GlobalStandard', capacity: 20 }
 
 param tags object = {
   Project: 'NextWhistle'
@@ -67,8 +64,6 @@ var foundryName = take('ai-${namePrefix}-${suffix}', 64)
 
 // Built-in role definitions.
 var roleBlobContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-var roleAzureAiUser = '53ca6127-db72-4b80-b1b0-d745d6d5456d' // "Foundry User" (formerly "Azure AI User")
-var roleOpenAiUser = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
 var cosmosDataContributor = '00000000-0000-0000-0000-000000000002'
 
 // ---- the workload identity ("service account"): every service below is granted access to this one identity ----
@@ -196,83 +191,20 @@ resource developerCosmosRole 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssig
   }
 }
 
-// ---- Foundry: account, project, model deployments -------------------------------------------------------------
-resource foundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
-  name: foundryName
-  location: location
-  tags: tags
-  kind: 'AIServices'
-  sku: { name: 'S0' }
-  properties: {
-    customSubDomainName: foundryName
-    allowProjectManagement: true
-    disableLocalAuth: true
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
-  parent: foundry
-  name: 'nextwhistle'
-  location: location
-  tags: tags
-  identity: { type: 'SystemAssigned' }
-  properties: { displayName: 'Next Whistle', description: 'Contest project' }
-}
-
-resource toolsDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
-  parent: foundry
-  name: 'tools'
-  sku: { name: toolsModel.sku, capacity: toolsModel.capacity }
-  properties: { model: { format: 'OpenAI', name: toolsModel.name, version: toolsModel.version } }
-}
-
-resource smallDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
-  parent: foundry
-  name: 'small'
-  sku: { name: smallModel.sku, capacity: smallModel.capacity }
-  properties: { model: { format: 'OpenAI', name: smallModel.name, version: smallModel.version } }
-  dependsOn: [ toolsDeployment ]  // deployments on one account are created one at a time
-}
-
-resource foundryIdentityAiUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: foundry
-  name: guid(foundry.id, identity.id, roleAzureAiUser)
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleAzureAiUser)
-  }
-}
-
-resource foundryIdentityOpenAi 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: foundry
-  name: guid(foundry.id, identity.id, roleOpenAiUser)
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleOpenAiUser)
-  }
-}
-
-// Optional: your own login may call Foundry from a laptop (evaluations), without any key or secret.
-resource developerAiUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(developerPrincipalId)) {
-  scope: foundry
-  name: guid(foundry.id, developerPrincipalId, roleAzureAiUser)
-  properties: {
-    principalId: developerPrincipalId
-    principalType: 'User'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleAzureAiUser)
-  }
-}
-
-resource developerOpenAi 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(developerPrincipalId)) {
-  scope: foundry
-  name: guid(foundry.id, developerPrincipalId, roleOpenAiUser)
-  properties: {
-    principalId: developerPrincipalId
-    principalType: 'User'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleOpenAiUser)
+// ---- Foundry: account, project, model deployments (shared module, also used by foundry.bicep) --------------------
+module foundry 'modules/foundry.bicep' = {
+  name: 'foundry'
+  params: {
+    location: location
+    name: foundryName
+    tags: tags
+    deployments: [
+      { name: 'deepseek', format: 'DeepSeek', model: model.name, version: model.version, sku: model.sku, capacity: model.capacity }
+    ]
+    principals: concat(
+      [ { key: 'workload', id: identity.properties.principalId, type: 'ServicePrincipal' } ],
+      empty(developerPrincipalId) ? [] : [ { key: 'developer', id: developerPrincipalId, type: 'User' } ]
+    )
   }
 }
 
@@ -371,8 +303,8 @@ output identityClientId string = identity.properties.clientId
 output coreUrl string = deployApp ? 'https://${core.?properties.configuration.ingress.fqdn}' : ''
 output staticSiteHost string = deployApp ? '${site.?properties.defaultHostname}' : ''
 output cosmosEndpoint string = cosmos.properties.documentEndpoint
-output foundryProjectEndpoint string = 'https://${foundryName}.services.ai.azure.com/api/projects/${project.name}'
-output modelToolsDeployment string = toolsDeployment.name
-output modelSmallDeployment string = smallDeployment.name
-output foundryAccountName string = foundry.name
+output foundryProjectEndpoint string = foundry.outputs.projectEndpoint
+output modelToolsDeployment string = 'deepseek'
+output modelSmallDeployment string = 'deepseek'
+output foundryAccountName string = foundry.outputs.accountName
 output storageAccountName string = storage.name

@@ -67,9 +67,8 @@ class FoundryRunner:
         if model not in self._clients:
             from agent_framework.foundry import FoundryChatClient
 
-            self._clients[model] = await self._stack.enter_async_context(
-                FoundryChatClient(project_endpoint=self.endpoint, model=model, credential=self._credential)
-            )
+            # The client wraps the credential and has nothing of its own to close; the credential is closed on exit.
+            self._clients[model] = FoundryChatClient(project_endpoint=self.endpoint, model=model, credential=self._credential)
         return self._clients[model]
 
     async def _run(self, role: str, model: str, instructions: str, user_input: str, output_type: type[T], tools: list[Any] | None, temperature: float) -> T:
