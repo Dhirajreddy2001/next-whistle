@@ -52,6 +52,11 @@ def make_request(case: dict) -> AgentRequest:
     )
 
 
+def _issues(result) -> list[str]:
+    """The validator findings that made the workflow fall back, so a failed case says why."""
+    return [issue for step in result.trace.steps for issue in step.get("issues", [])][-4:]
+
+
 def score(case: dict, result, dataset, elapsed_ms: int) -> dict:
     response = result.response
     if case.get("rule_id"):  # a general Laws question: the answer must cite only the rule it was given and respect the level
@@ -62,11 +67,11 @@ def score(case: dict, result, dataset, elapsed_ms: int) -> dict:
         if case["language"].startswith("es") and law:
             checks["language"] = any(marker in f" {response.answer.lower()} " for marker in ES_MARKERS)
         return {"case_id": case["case_id"], "level": case["level"], "intent": "law", "passed": all(checks.values()), "checks": checks,
-                "details": {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries, "words": len(response.answer.split())},
+                "details": {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries, "words": len(response.answer.split()), "issues": _issues(result)},
                 "latency_ms": elapsed_ms, "answer": response.answer[:400]}
     answer = response.explanation or response.referee_answer
     checks: dict[str, bool] = {"completed": response.status == "ok"}
-    details: dict = {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries}
+    details: dict = {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries, "issues": _issues(result)}
     if answer is not None:
         profile = profile_for(case["level"])
         numbers = [c for c in answer.claims if c.kind == "number"]

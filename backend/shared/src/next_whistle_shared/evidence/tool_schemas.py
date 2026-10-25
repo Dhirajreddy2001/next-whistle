@@ -26,7 +26,9 @@ class ToolArgs(BaseModel):
 
 
 class EmptyArgs(ToolArgs):
-    pass
+    """A tool with no arguments ignores stray input: some models send a malformed empty object, and there is nothing to widen."""
+
+    model_config = ConfigDict(extra="ignore", strict=True)
 
 
 class GetEventEvidenceArgs(ToolArgs):
@@ -36,7 +38,7 @@ class GetEventEvidenceArgs(ToolArgs):
 
 
 class GetMatchStatisticsArgs(ToolArgs):
-    metrics: list[METRICS] = Field(min_length=1, max_length=6)
+    metrics: list[METRICS] = Field(min_length=1, max_length=13)  # every supported metric; a recap asks for most of them
     scope: Literal["team", "window"] = "team"
     team_id: str | None = Field(default=None, pattern=r"^t_[a-z0-9_]+$")
 
