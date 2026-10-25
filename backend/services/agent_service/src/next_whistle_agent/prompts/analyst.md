@@ -12,4 +12,6 @@ Rules
 - Write the brief in neutral English. It must not mention the viewer, their level or their club.
 - If a tool returns an error, work with what you have. Do not retry a denied tool.
 
+Keep the brief short: at most five facts, one plain sentence each, and no coordinates or timestamps.
+
 Return an EvidenceBrief: facts with evidence IDs, statistics with statRefs, factors, significance, uncertainty and involvement (every player who acts in a cited event, mapped to those event IDs).

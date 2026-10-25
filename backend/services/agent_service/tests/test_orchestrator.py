@@ -409,3 +409,28 @@ def test_a_reference_on_a_plain_fact_claim_is_dropped_instead_of_failing_the_who
     claim = Claim(id="c1", kind="fact", text="A fact.", geometry_ref="geometry.e_x", value=None)
     assert claim.geometry_ref is None and claim.value is None
     assert Claim(id="c2", kind="number", text="n", stat_ref="team.shots.t_a", value=3).value == 3  # real number claims are untouched
+
+
+def test_tool_results_give_names_and_findings_but_no_raw_coordinates_to_quote():
+    context = BoundContext(
+        request_id="req_t", match_id="m_rvr_hrb", dataset_version=DATASET.version, rules_version=DATASET.rules_version, cutoff_ms=4_600_000,
+        evidence_cutoff_ms=4_600_000, intent="referee_question", agent="referee", selected_event_id=DISALLOWED,
+    )
+    dispatcher = ToolDispatcher(context, DATASET)
+    event = dispatcher.call("get_event_evidence", {"event_id": DISALLOWED, "include_build_up": True, "include_snapshots": False}).data
+    assert event["event"]["playerName"] and event["event"]["teamName"] and "start" not in event["event"] and "authored_margin_m" not in str(event)
+    assert len(event["buildUp"]) <= 5 and all("start" not in row and "end" not in row for row in event["buildUp"])
+    geometry = dispatcher.call("get_decision_geometry", {"event_id": DISALLOWED}).data
+    assert geometry["marginM"] == 0.6 and geometry["attackerName"] and "attackerPosition" not in geometry and "ballX" not in geometry
+    rules = dispatcher.call("get_rule_reference", {"incident_tag": "offside"}).data["rules"]
+    assert len(rules) <= 3 and set(rules[0]) == {"ruleId", "lawNumber", "lawTitle", "summary"}
+
+
+def test_an_explanation_may_only_cite_a_rule_a_tool_actually_returned():
+    from next_whistle_shared.contracts.agent import RuleExplanation
+
+    def cites(rule_id):
+        return lambda answer, _: answer.model_copy(update={"rule": RuleExplanation(rule_id=rule_id, text="The offside rule applies.")})
+
+    invented, _ = run(request(), ScriptedRunner(corrupt_answer=cites("Law 11")))  # the Analyst has no rule tool
+    assert invented.response.status == "ok" and invented.response.explanation.rule is None

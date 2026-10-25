@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { requestRefereeAnswer, type GenerationResult, type QuestionTurn } from './api/client';
+import { useProgress } from './useProgress';
 
 export type AskDecision = { eventId: string; title: string; minute: string };
 type Suggestion = { id: string; text: string };
@@ -24,6 +25,7 @@ export function AskPanel({ matchId, language, level, clockMs, decision, suggesti
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   const nextId = useRef(1);
+  const progress = useProgress(busy);
   const activeDecision = aboutDecision ? decision : null;
 
   const ask = async (question: string, questionId?: string) => {
@@ -58,12 +60,12 @@ export function AskPanel({ matchId, language, level, clockMs, decision, suggesti
     <form className="ask-form" onSubmit={event => { event.preventDefault(); void ask(text); }}>
       <label className="sr-only" htmlFor="ask-text">Your question</label>
       <textarea id="ask-text" value={text} maxLength={MAX_LENGTH} rows={3} placeholder={activeDecision ? 'Ask about this decision…' : 'e.g. How long can a goalkeeper hold the ball?'} onChange={event => setText(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(text); } }} />
-      <div className="ask-foot"><span aria-live="polite">{text.length}/{MAX_LENGTH}</span><button type="submit" className="button primary" disabled={busy || !text.trim()}>{busy ? 'Checking…' : 'Ask'}</button></div>
+      <div className="ask-foot"><span aria-live="polite">{text.length}/{MAX_LENGTH}</span><button type="submit" className="button primary" disabled={busy || !text.trim()}>{busy ? 'Working…' : 'Ask'}</button></div>
     </form>
     <ol className="ask-thread" aria-live="polite">
       {turns.map(turn => <li key={turn.id}>
         <p className="ask-question">{turn.question}</p>
-        {!turn.result && !turn.error && <p className="ask-wait">Checking the evidence…</p>}
+        {!turn.result && !turn.error && <p className="ask-wait" role="status">{progress}</p>}
         {turn.error && <p role="alert" className="ask-error">{turn.error}</p>}
         {turn.result && <div className="ask-answer">
           <p className="status">{turn.result.generationEnabled === false ? 'AI answers paused' : SCOPE_NOTE[turn.result.scope ?? ''] ?? (turn.result.source === 'template' ? 'Facts only' : turn.result.source === 'fake' ? 'Demo agent' : 'AI generated')}</p>

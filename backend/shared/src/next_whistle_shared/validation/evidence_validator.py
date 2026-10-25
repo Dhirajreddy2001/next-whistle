@@ -103,11 +103,14 @@ class EvidenceValidator:
             player = focus.get("player_id")
             if not any(player in (e.get("player_id"), e.get("target_player_id")) for e in self.ledger.visible_events.values()): issues.append(_issue("V9", "Focus player is not involved in cited visible evidence."))
         allowed_names = {p.get("name") for p in self.squads.values()}
-        body_prose = _prose({k: v for k, v in raw.items() if k != "headline"}) if isinstance(raw, dict) else prose  # title-case headlines are not names
-        for name in re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b", body_prose):
-            # A capitalised phrase is fine when it contains a real player or club name ("Why Nia Cole" starts a headline).
-            if allowed_names and not any(known and known in name for known in allowed_names):
-                issues.append(_issue("V10", f"Unrecognized name '{name}'. Refer to players and clubs only by the exact names in the brief.")); break
+        body_prose = _prose({k: v for k, v in raw.items() if k != "headline"}, sep=".\n") if isinstance(raw, dict) else prose  # each field starts a new sentence  # title-case headlines are not names
+        unknown = _unknown_names(body_prose, allowed_names)
+        if unknown:
+            issues.append(_issue("V10", f"Unrecognized name '{unknown}'. Refer to players and clubs only by the exact names in the brief."))
+        if not is_brief:
+            leaked = _internal_identifier(prose)
+            if leaked:
+                issues.append(_issue("V19", f"'{leaked}' is an internal identifier or field name. Describe it in plain words instead."))
         if isinstance(value, Explanation) and not value.why_it_matters and (value.significance_established or not value.uncertainty): issues.append(_issue("V11", "Significance needs an explanation or explicit uncertainty."))
         if self.context.language != "en": issues.append(_issue("V12", "Language detection requires a configured language detector.", "warning"))
         limit = {"beginner": 120, "intermediate": 180, "pro": 250}[self.context.level]
@@ -144,6 +147,32 @@ class EvidenceValidator:
         return ValidationReport(tuple(issues))
 
 
+# Capitalised words that are not names: the Laws, the governing body and common football terms.
+_NOT_NAMES = {"Law", "Laws", "Game", "IFAB", "VAR", "FC", "AFC", "Football", "Referee", "English", "Spanish", "French", "German"}
+_CAPITALISED = re.compile(r"(?<![\w'’])([A-Z][a-z]+)(?![\w])")
+_INTERNAL = re.compile(r"\b[a-z]+[A-Z][A-Za-z]*\b|\b[epstr]_[a-z0-9_]{2,}\b|\b(?:geometryRef|statRef)\b")
+
+
+def _unknown_names(prose: str, allowed_names: set) -> str | None:
+    """A capitalised word in the middle of a sentence that is part of no known name. Sentence-initial words are skipped:
+    they are capitalised only because they start a sentence ("Under Law 11", "Why Nia Cole")."""
+    parts = {part for name in allowed_names if name for part in name.split()}
+    if not parts:
+        return None
+    for match in _CAPITALISED.finditer(prose):
+        word = match.group(1)
+        before = prose[: match.start()].rstrip()
+        if not before or before[-1] in ".!?:;\n\"“(" or word in parts or word in _NOT_NAMES:
+            continue
+        return word
+    return None
+
+
+def _internal_identifier(prose: str) -> str | None:
+    match = _INTERNAL.search(prose)
+    return match.group(0) if match else None
+
+
 def _issue(check, message, severity="error"): return ValidationIssue(check, severity, message)
 def _close(a, b, tolerance): return isinstance(a, (int, float)) and isinstance(b, (int, float)) and abs(a-b) <= tolerance
 def _walk(x):
@@ -155,4 +184,4 @@ def _walk(x):
 def _evidence_ids(x): return {e for item in _walk(x) for k in ("evidence_ids", "event_ids") for e in item.get(k, []) if isinstance(e, str) and e.startswith("e_")}
 def _stat_refs(x): return {item["stat_ref"] for item in _walk(x) if item.get("stat_ref")}
 def _rule_ids(x): return {r for item in _walk(x) for r in item.get("law_ids", []) if isinstance(r, str)} | {item["rule"]["rule_id"] for item in _walk(x) if isinstance(item.get("rule"), dict) and item["rule"].get("rule_id")}
-def _prose(x): return " ".join(str(v) for item in _walk(x) for k, v in item.items() if isinstance(v, str) and k not in {"id", "player_id", "event_id", "stat_ref", "geometry_ref", "rule_id", "brief_id"})
+def _prose(x, sep=" "): return sep.join(str(v) for item in _walk(x) for k, v in item.items() if isinstance(v, str) and k not in {"id", "player_id", "event_id", "stat_ref", "geometry_ref", "rule_id", "brief_id"})

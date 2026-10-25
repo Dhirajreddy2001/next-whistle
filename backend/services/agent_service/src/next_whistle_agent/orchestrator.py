@@ -63,8 +63,10 @@ def _normalise(brief: EvidenceBrief, ledger: EvidenceLedger) -> EvidenceBrief:
     return brief.model_copy(update=update)
 
 
-def _normalise_answer(answer, brief: EvidenceBrief):
+def _normalise_answer(answer, brief: EvidenceBrief, ledger: EvidenceLedger):
     """The recorded ruling and the cited Laws are data, so a referee answer carries them exactly as recorded."""
+    if isinstance(answer, Explanation) and answer.rule is not None and answer.rule.rule_id not in ledger.rules:
+        return answer.model_copy(update={"rule": None})  # only a rule a tool actually returned may be cited
     if isinstance(answer, RefereeAnswer) and brief.ruling is not None:
         allowed = [law for law in answer.law.law_ids if law in brief.ruling.law_ids] or list(brief.ruling.law_ids)
         return answer.model_copy(update={"decision": brief.ruling.recorded_ruling, "law": answer.law.model_copy(update={"law_ids": allowed[:4]})})
@@ -193,7 +195,7 @@ async def run_workflow(
         except InvalidOutput as error:
             trace.add("answer.validate", passed=False, issues=[f"V1: {error}"])
             return None, [f"V1: the answer did not match the required format ({error})"]
-        candidate = _normalise_answer(candidate, brief)
+        candidate = _normalise_answer(candidate, brief, ledger)
         problems = _failures(validator.validate(candidate))
         trace.add("answer.validate", passed=not problems, issues=problems)
         return candidate, problems

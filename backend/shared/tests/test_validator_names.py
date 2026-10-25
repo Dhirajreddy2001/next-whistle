@@ -44,3 +44,24 @@ def test_ordinal_and_spoken_minutes_are_not_stray_numbers_but_other_digits_still
 def test_a_law_number_is_a_reference_not_a_stray_number():
     assert issues_for("The referee applied Law 11 here.") == []
     assert issues_for("It was 11 metres out.") == ["V5"]
+
+
+def issues_all(text: str, field: str = "what_happened") -> list[str]:
+    from next_whistle_shared.contracts.agent import Explanation
+
+    fields = {"headline": "Plain headline", "what_happened": "Plain words.", "why_it_matters": "It matters.", "uncertainty": ""}
+    fields[field] = text
+    return [i.check_id for i in validator().validate(Explanation(**fields)).issues if i.check_id in {"V10", "V19"}]
+
+
+def test_sentence_starting_words_are_not_names_but_a_surname_in_a_sentence_is_checked():
+    assert issues_all("Under Law eleven, Nia Cole was offside.") == []
+    assert issues_all("The referee applied the Laws of the Game.") == []
+    assert issues_all("She passed to Brooks.") == ["V10"]
+
+
+def test_internal_field_names_and_ids_never_reach_the_viewer():
+    assert issues_all("The withinUncertainty flag is false.") == ["V19"]
+    assert issues_all("See e_m_rvr_hrb_01167 for the details.") == ["V19"]
+    assert issues_all("Checked marginM and geometryRef.") == ["V19"]
+    assert issues_all("The margin was too close to call.") == []

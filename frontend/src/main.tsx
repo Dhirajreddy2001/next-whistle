@@ -2,6 +2,7 @@ import { StrictMode, createContext, useContext, useEffect, useMemo, useRef, useS
 import { createRoot } from 'react-dom/client';
 import { requestExplanation, requestRefereeAnswer, type GenerationResult } from './api/client';
 import { AskPanel } from './AskPanel';
+import { useProgress } from './useProgress';
 import './style.css';
 
 type Team = { teamId: string; name: string; shortName: string; colors: string[] };
@@ -227,9 +228,10 @@ function GenerationAnswer({ result, error }: { result: GenerationResult | null; 
 }
 
 function ExplainAction({ event, state, onGenerate }: { event?: UiEvent; state: GenerationUiState; onGenerate: () => void }) {
+  const progress = useProgress(state.busy);
   return <div>
     <Button className="primary" type="button" disabled={state.busy} onClick={onGenerate}>
-      {state.busy ? 'Generating…' : state.error ? 'Try again' : event ? 'Explain latest moment' : 'Summarize match so far'}
+      {state.busy ? progress : state.error ? 'Try again' : event ? 'Explain latest moment' : 'Summarize match so far'}
     </Button>
     <GenerationAnswer result={state.result} error={state.error} />
   </div>;
@@ -247,7 +249,7 @@ function AskRef({ event, language, state, onAsk }: { event: UiEvent; language: s
       <select id={`question-${event.eventId}`} value={questionId} onChange={e => setQuestionId(e.target.value)}>
         {questions.map(question => <option key={question.id} value={question.id}>{selectedLanguage === 'es' ? question.es : question.en}</option>)}
       </select>
-      <Button className="primary" type="submit" disabled={state.busy}>{state.busy ? 'Checking…' : state.error ? 'Try again' : 'Get answer'}</Button>
+      <Button className="primary" type="submit" disabled={state.busy}>{state.busy ? 'Working…' : state.error ? 'Try again' : 'Get answer'}</Button>
     </form>
     <GenerationAnswer result={state.result} error={state.error} />
   </details>;

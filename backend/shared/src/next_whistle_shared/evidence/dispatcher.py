@@ -17,7 +17,7 @@ from .tool_schemas import TOOL_ARGUMENT_MODELS
 
 MAX_RESULT_CHARS = 6000
 _ID_PATTERN = re.compile(r"\b(?:e|s|r)_[a-z0-9_]{3,}\b")
-MAX_TAG_RULES = 4  # the corpus is ordered with the curated incident rules first
+MAX_TAG_RULES = 3  # the corpus is ordered with the curated incident rules first
 
 
 @dataclass
@@ -126,7 +126,7 @@ class ToolDispatcher:
             self.ledger.visible_events[visible["event_id"]] = {
                 **visible, "eventId": visible["event_id"], "availableMs": visible["available_ms"],
             }
-        return {"event": _public_event(event, self._names), "buildUp": [_public_event(e, self._names) for e in build_up], "snapshots": snapshots}
+        return {"event": _public_event(event, self._names), "buildUp": [_public_event(e, self._names, compact=True) for e in build_up[-5:]], "snapshots": snapshots}
 
     def _get_match_statistics(self, metrics: list[str], scope: str, team_id: str | None) -> dict[str, Any]:
         match = self.match.match
@@ -206,7 +206,7 @@ class ToolDispatcher:
     def _get_rule_reference(self, incident_tag: str) -> dict[str, Any]:
         rows = [r for r in self.dataset.rules if incident_tag in r.get("incident_tags", [])]
         if not rows: raise NotImplementedError("No pinned rule reference supports this incident.")
-        return {"rules": [{"ruleId": r["rule_id"], "edition": r["edition"], "lawNumber": r["law_number"], "lawTitle": r["law_title"], "summary": r["summary"], "sourceUrl": r["source_url"]} for r in rows[:MAX_TAG_RULES]]}
+        return {"rules": [{"ruleId": r["rule_id"], "lawNumber": r["law_number"], "lawTitle": r["law_title"], "summary": r["summary"]} for r in rows[:MAX_TAG_RULES]]}
 
     def _search_rules(self, query: str, max_results: int) -> dict[str, Any]:
         if self._rule_index is None:
@@ -247,9 +247,9 @@ class ToolDispatcher:
             )
             return {
                 "eventId": event_id, "geometryRef": f"geometry.{event_id}", "snapshotId": snapshot["snapshot_id"],
-                "decisionType": kind, "attackerId": attacker_id, "attackerPosition": attacker,
-                "secondLastDefenderId": second_last["player_id"], "secondLastDefenderX": round(float(second_last["x"]), 2),
-                "ballX": round(ball_x, 2), "marginM": margin, "withinUncertainty": abs(margin) < .10,
+                "decisionType": kind, "attackerId": attacker_id, "attackerName": self._names.get(attacker_id),
+                "secondLastDefenderId": second_last["player_id"], "secondLastDefenderName": self._names.get(second_last["player_id"]),
+                "marginM": margin, "withinUncertainty": abs(margin) < .10,
                 "ownHalf": norm(attacker["x"]) <= 52.5, "involvedInPlay": involved,
                 "recordedRuling": decision.get("recorded_ruling", event.get("outcome")),
                 "snapshot": {"snapshot_id": snapshot["snapshot_id"], "match_ms": snapshot["match_ms"], "ball": snapshot["ball"]},  # not all 22 positions: they cost tokens the model does not need
@@ -314,19 +314,25 @@ def _metric(metric: str, rows: list[dict], all_rows: list[dict], team_id: str | 
     return None
 
 
-def _public_event(event: dict, names: dict[str, str] | None = None) -> dict:
+def _public_event(event: dict, names: dict[str, str] | None = None, compact: bool = False) -> dict:
     """The event as the agents see it. Names are included so a model never has to repeat raw IDs, and generator-internal
     fields (the authored margin) are left out: measurements come from get_decision_geometry only."""
     names = names or {}
     decision = event.get("decision")
     if decision:
         decision = {key: value for key, value in decision.items() if key != "authored_margin_m"}
+    if compact:  # context events: enough to tell the story, nothing the model would be tempted to quote as a number
+        return {
+            "eventId": event["event_id"], "type": event["type"], "matchMs": event["match_ms"], "teamName": names.get(event.get("team_id") or ""),
+            "playerName": names.get(event.get("player_id") or ""), "targetPlayerName": names.get(event.get("target_player_id") or ""),
+            "outcome": event.get("outcome"), "decisionType": (decision or {}).get("decision_type"),
+        }
     return {
         "eventId": event["event_id"], "type": event["type"], "matchMs": event["match_ms"], "availableMs": event["available_ms"],
         "teamId": event.get("team_id"), "teamName": names.get(event.get("team_id") or ""),
         "playerId": event.get("player_id"), "playerName": names.get(event.get("player_id") or ""),
         "targetPlayerId": event.get("target_player_id"), "targetPlayerName": names.get(event.get("target_player_id") or ""),
-        "start": event.get("start"), "end": event.get("end"), "outcome": event.get("outcome"), "qualifiers": event.get("qualifiers", []),
+        "outcome": event.get("outcome"), "qualifiers": event.get("qualifiers", []),
         "relatedEventIds": event.get("related_event_ids", []), "decision": decision,
     }
 
