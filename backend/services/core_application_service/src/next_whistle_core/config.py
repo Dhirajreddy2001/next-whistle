@@ -15,6 +15,22 @@ class Settings:
     session_signing_key: str | None = None
     agent_service_url: str = "http://127.0.0.1:8088"
     agent_timeout_seconds: float = 8.0
+    environment: str = "local"
+    generation_enabled: bool = True
+    limit_session_hour: int = 8
+    limit_session_day: int = 20
+    limit_ip_hour: int = 20
+    limit_ip_sessions_hour: int = 10
+    limit_read_minute: int = 600
+    gen_concurrency: int = 2
+    gen_queue: int = 4
+    allowance_budget_units: int = 2_000_000
+    allowance_reserve_units: int = 40_000
+    output_weight: int = 4
+    ip_hash_key: str | None = None
+    trust_proxy: bool = False
+    max_body_bytes: int = 32_768
+    workflow_version: str = "agents-v1-p1.1.0"  # part of every cache key; bump when prompts change
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -36,4 +52,20 @@ class Settings:
             session_signing_key=os.getenv("SESSION_SIGNING_KEY"),
             agent_service_url=os.getenv("AGENT_SERVICE_URL", "http://127.0.0.1:8088").rstrip("/"),
             agent_timeout_seconds=float(os.getenv("AGENT_TIMEOUT_SECONDS", "8")),
+            environment=os.getenv("APP_ENV", "local").lower(),
+            generation_enabled=os.getenv("GENERATION_ENABLED", "true").lower() != "false",
+            limit_session_hour=int(os.getenv("LIMIT_SESSION_HOUR", "8")),
+            limit_session_day=int(os.getenv("LIMIT_SESSION_DAY", "20")),
+            limit_ip_hour=int(os.getenv("LIMIT_IP_HOUR", "20")),
+            limit_ip_sessions_hour=int(os.getenv("LIMIT_IP_SESSIONS_HOUR", "10")),
+            limit_read_minute=int(os.getenv("LIMIT_READ_MINUTE", "600")),
+            gen_concurrency=int(os.getenv("GEN_CONCURRENCY", "2")),
+            gen_queue=int(os.getenv("GEN_QUEUE", "4")),
+            allowance_budget_units=int(os.getenv("ALLOWANCE_BUDGET_UNITS", "2000000")),
+            allowance_reserve_units=int(os.getenv("ALLOWANCE_RESERVE_UNITS", "40000")),
+            output_weight=int(os.getenv("OUTPUT_WEIGHT", "4")),
+            ip_hash_key=os.getenv("IP_HASH_KEY"),
+            trust_proxy=os.getenv("TRUST_PROXY", "false").lower() == "true",
+            max_body_bytes=int(os.getenv("MAX_BODY_BYTES", "32768")),
+            workflow_version=os.getenv("WORKFLOW_VERSION", "agents-v1-p1.1.0"),
         )

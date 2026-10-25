@@ -1,5 +1,9 @@
 from contextlib import asynccontextmanager
+import asyncio
+import hashlib
 import json
+import os
+import re
 import secrets
 import time
 from collections.abc import Callable
@@ -27,10 +31,53 @@ from next_whistle_core.services.generation import (
     build_agent_request, fallback_response, project_root, referee_fallback, supported_question,
 )
 from next_whistle_core.store.datasets import Dataset, MatchData, load_dataset
+from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter, client_ip, hash_ip
+from next_whistle_core.store.ops import OpsStore
 from next_whistle_core.store.sessions import SQLiteSessionStore
 
 ACCESS_TOKEN_SECONDS = 15 * 60
 REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60
+
+
+def load_signing_key(settings: Settings) -> bytes:
+    """A configured key is required in production. Locally a key is created once and reused, so restarts keep sessions."""
+    if settings.session_signing_key:
+        if settings.environment == "production" and len(settings.session_signing_key) < 32:
+            raise RuntimeError("SESSION_SIGNING_KEY must be at least 32 characters in production")
+        return settings.session_signing_key.encode()
+    if settings.environment == "production":
+        raise RuntimeError("SESSION_SIGNING_KEY is required in production")
+    path = settings.session_db_path.with_name("session.key")
+    if path.is_file():
+        return path.read_bytes()
+    key = secrets.token_bytes(32)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(key)
+    return key
+
+
+IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Cross-Origin-Resource-Policy": "same-site",
+}
+
+
+class ApiError(HTTPException):
+    """An HTTP error that also carries a stable machine-readable code (LLD section 13)."""
+
+    def __init__(self, status: int, title: str, code: str, headers: dict[str, str] | None = None):
+        super().__init__(status, title, headers=headers)
+        self.code = code
+
+
+def retry_after(seconds: int) -> dict[str, str]:
+    return {"Retry-After": str(max(1, int(seconds)))}
 
 
 def camelize(value):
@@ -54,7 +101,11 @@ def create_app(
         app.state.dataset = load_dataset(settings.dataset_path)
         app.state.catalog = MatchCatalog.model_validate(app.state.dataset.catalog)
         app.state.sessions = SQLiteSessionStore(settings.session_db_path)
-        app.state.session_signing_key = (settings.session_signing_key.encode() if settings.session_signing_key else secrets.token_bytes(32))
+        app.state.session_signing_key = load_signing_key(settings)
+        app.state.ip_hash_key = (settings.ip_hash_key or hashlib.sha256(app.state.session_signing_key + b"|ip").hexdigest()).encode()
+        app.state.ops = OpsStore(settings.session_db_path, settings.allowance_budget_units)
+        app.state.gate = GenerationGate(settings.gen_concurrency, settings.gen_queue)
+        app.state.read_limiter = SlidingWindowLimiter()
         app.state.agent_client = agent_client or AgentServiceClient(settings.agent_service_url, settings.agent_timeout_seconds)
         yield
         app.state.catalog = None
@@ -68,27 +119,47 @@ def create_app(
     app.state.dataset = None
     app.add_middleware(
         CORSMiddleware, allow_origins=list(settings.allowed_origins),
-        allow_methods=["GET", "POST", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"], expose_headers=["X-Request-Id"],
+        allow_methods=["GET", "POST", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"], expose_headers=["X-Request-Id", "Retry-After", "Idempotent-Replay"],
     )
 
-    @app.middleware("http")
-    async def request_id(request: Request, call_next):
-        request.state.request_id = f"req_{uuid4().hex}"
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = request.state.request_id
-        return response
+    def problem(request: Request, status: int, title: str, code: str | None = None, headers: dict[str, str] | None = None) -> JSONResponse:
+        content = {"type": "about:blank", "title": title, "status": status, "instance": request.url.path,
+                   "requestId": getattr(request.state, "request_id", None)}
+        if code:
+            content["code"] = code
+        return JSONResponse(status_code=status, media_type="application/problem+json", content=content, headers=headers)
 
-    def problem(request: Request, status: int, title: str) -> JSONResponse:
-        return JSONResponse(
-            status_code=status, media_type="application/problem+json",
-            content={"type": "about:blank", "title": title, "status": status,
-                     "instance": request.url.path,
-                     "requestId": request.state.request_id},
-        )
+    def ip_key(request: Request) -> str:
+        return hash_ip(client_ip(request, settings.trust_proxy), request.app.state.ip_hash_key)
+
+    @app.middleware("http")
+    async def guard_and_harden(request: Request, call_next):
+        request.state.request_id = f"req_{uuid4().hex}"
+        response = None
+        if request.method in {"POST", "PUT", "PATCH"}:
+            length = request.headers.get("content-length")
+            if length is None and request.headers.get("transfer-encoding"):
+                response = problem(request, 411, "A Content-Length header is required", "length_required")
+            elif length is not None and (not length.isdigit() or int(length) > settings.max_body_bytes):
+                response = problem(request, 413, "Request body is too large", "payload_too_large")
+        elif request.method == "GET" and request.url.path.startswith("/api/") and getattr(request.app.state, "read_limiter", None):
+            allowed, wait = request.app.state.read_limiter.allow(ip_key(request), settings.limit_read_minute, 60, time.monotonic())
+            if not allowed:
+                response = problem(request, 429, "Too many requests. Slow down and retry shortly.", "rate_limited", retry_after(wait))
+        if response is None:
+            response = await call_next(request)
+        response.headers["X-Request-Id"] = request.state.request_id
+        for name, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
+        if not request.url.path.startswith("/api/docs") and request.url.path != "/api/openapi.json":
+            response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+        if settings.environment == "production":
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):
-        return problem(request, exc.status_code, str(exc.detail))
+        return problem(request, exc.status_code, str(exc.detail), getattr(exc, "code", None), getattr(exc, "headers", None))
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):
@@ -146,11 +217,14 @@ def create_app(
     @app.post("/api/sessions", status_code=201)
     async def create_session(request: Request):
         now = int(time.time())
+        allowed, wait = request.app.state.ops.consume("session_issue", ip_key(request), settings.limit_ip_sessions_hour, 3600, now)
+        if not allowed:
+            raise ApiError(429, "Too many sessions from this network. Try again later.", "rate_limited", retry_after(wait))
         session_id = f"s_{uuid4().hex}"
         refresh_token = secrets.token_urlsafe(48)
         request.app.state.sessions.create(session_id, hash_refresh_token(refresh_token), now, now + REFRESH_TOKEN_SECONDS)
         result = session_tokens(session_id, refresh_token, now, request)
-        result["limits"] = {"per_hour": 8, "per_day": 20}
+        result["limits"] = {"per_hour": settings.limit_session_hour, "per_day": settings.limit_session_day}
         return camelize(result)
 
     @app.post("/api/sessions/refresh")
@@ -285,10 +359,87 @@ def create_app(
         try:
             data = match_data(request, payload.match_id)
             visible = {row["event_id"] for row in visible_events(data, payload.cutoff_ms)}
-            return await request.app.state.agent_client.generate(payload, visible)
+            return await asyncio.wait_for(
+                request.app.state.agent_client.generate(payload, visible), timeout=settings.agent_timeout_seconds + 2,
+            )
         except Exception:
             # Replay and deterministic facts remain available when generation is offline.
             return fallback_response(payload, answer=fallback_answer)
+
+    def spent_units(result) -> int:
+        usage = getattr(result, "usage", None)
+        return (usage.input_tokens + usage.output_tokens * settings.output_weight) if usage else 0
+
+    def check_generation_limits(request: Request, session_id: str, weight: int) -> None:
+        """Per-IP then per-session limits; a refusal carries Retry-After so clients can back off."""
+        now = int(time.time())
+        allowed, wait = request.app.state.ops.consume("generation_ip", ip_key(request), settings.limit_ip_hour, 3600, now, weight)
+        if not allowed:
+            raise ApiError(429, "Too many generations from this network. Try again later.", "rate_limited", retry_after(wait))
+        allowed, wait = request.app.state.sessions.reserve_generation(session_id, now, settings.limit_session_hour, settings.limit_session_day, weight)
+        if not allowed:
+            raise ApiError(429, "Generation limit reached for this session", "rate_limited", retry_after(wait))
+
+    async def generation_flow(request: Request, session_id: str, cutoff_ms: int, *, body: dict, weight: int, produce,
+                              uses_model: bool, cache_key: str | None) -> JSONResponse:
+        """Idempotency -> cache -> kill switch -> limits -> spend allowance -> concurrency gate -> settle -> cache."""
+        ops = request.app.state.ops
+        now = int(time.time())
+        idempotency_key = request.headers.get("idempotency-key")
+        if idempotency_key is not None:
+            if not IDEMPOTENCY_KEY.match(idempotency_key):
+                raise ApiError(400, "Idempotency-Key must be 8-64 letters, digits, dashes or underscores", "invalid_idempotency_key")
+            request_hash = hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
+            state, stored = ops.idempotency_begin(idempotency_key, session_id, request_hash, now)
+            if state == "conflict":
+                raise ApiError(422, "This Idempotency-Key was already used for a different request", "idempotency_conflict")
+            if state == "in_progress":
+                raise ApiError(409, "This request is already being processed", "idempotency_in_progress", retry_after(1))
+            if state == "done":
+                return JSONResponse(stored, headers={"Idempotent-Replay": "true", "Cache-Control": "no-store"})
+        try:
+            payload = await generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now)
+        except BaseException:
+            if idempotency_key is not None:
+                ops.idempotency_fail(idempotency_key)
+            raise
+        if idempotency_key is not None:
+            ops.idempotency_done(idempotency_key, payload)
+        return JSONResponse(payload, headers={"Cache-Control": "no-store"})
+
+    async def generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now) -> dict:
+        ops = request.app.state.ops
+        if cache_key is not None:
+            hit = ops.cache_get(cache_key, cutoff_ms, now)
+            if hit is not None:
+                return {**hit, "requestId": request.state.request_id, "cached": True}  # cache hits cost nothing
+        if not settings.generation_enabled:
+            answer, _ = await produce(False)
+            return {**answer, "generationEnabled": False}
+        check_generation_limits(request, session_id, weight)
+        if not uses_model:
+            answer, _ = await produce(False)
+            return answer
+        request_id = request.state.request_id
+        if not ops.reserve(request_id, settings.allowance_reserve_units, now):
+            raise ApiError(429, "The shared AI allowance is used up for now. Recorded facts are still available.", "allowance_exhausted", retry_after(3600))
+        try:
+            async with request.app.state.gate.slot():
+                answer, units = await produce(True)
+        except Busy:
+            ops.release(request_id)
+            raise ApiError(503, "The assistant is busy. Please try again in a moment.", "busy", retry_after(5)) from None
+        except BaseException:
+            ops.release(request_id)
+            raise
+        ops.settle(request_id, units)
+        if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template":
+            ops.cache_put(cache_key, cutoff_ms, answer, now)
+        return answer
+
+    def cache_key(kind: str, request: Request, match_id: str, event_id: str | None, level: str, language: str, extra: str = "") -> str:
+        dataset = request.app.state.dataset
+        return "|".join([kind, match_id, event_id or "-", level, language, extra, dataset.version, dataset.rules_version, settings.workflow_version])
 
     @app.post("/api/matches/{match_id}/explanations")
     async def explanation(body: GenerationRequest, request: Request, match_id: str):
@@ -303,18 +454,22 @@ def create_app(
             data=data, cutoff_ms=cutoff_ms, event_id=body.event_id,
             language=body.language, level=body.level,
         )
-        if not request.app.state.sessions.reserve_generation(session_id, int(time.time())):
-            raise HTTPException(429, "Generation limit reached for this session")
-        answer = f"{payload.evidence_brief.headline}: {payload.evidence_brief.summary}"
-        result = await run_agent_or_fallback(request, payload, answer)
-        return camelize({
-            "request_id": result.request_id, "match_id": match_id,
-            "dataset_version": request.app.state.dataset.version,
-            "cutoff_ms": cutoff_ms, "status": result.status,
-            "source": result.source, "workflow_version": result.workflow_version,
-            "answer": result.answer,
-            "evidence_ids": result.evidence_ids,
-        })
+        fallback_answer = f"{payload.evidence_brief.headline}: {payload.evidence_brief.summary}"
+
+        async def produce(use_agent: bool):
+            result = await run_agent_or_fallback(request, payload, fallback_answer) if use_agent else fallback_response(payload, answer=fallback_answer)
+            return camelize({
+                "request_id": result.request_id, "match_id": match_id,
+                "dataset_version": request.app.state.dataset.version,
+                "cutoff_ms": cutoff_ms, "status": result.status,
+                "source": result.source, "workflow_version": result.workflow_version,
+                "answer": result.answer, "evidence_ids": result.evidence_ids,
+            }), spent_units(result)
+
+        return await generation_flow(
+            request, session_id, cutoff_ms, body=body.model_dump(mode="json"), weight=1, produce=produce, uses_model=True,
+            cache_key=cache_key(f"explain.{body.intent}", request, match_id, body.event_id, body.level, body.language),
+        )
 
     @app.post("/api/matches/{match_id}/referee/questions")
     async def referee_question(body: RefereeQuestionRequest, request: Request, match_id: str):
@@ -329,13 +484,14 @@ def create_app(
         question_text = sanitize_question(body.question_text) if body.question_text else None
         if body.question_text and not question_text:
             raise HTTPException(422, "Question is empty")
-        if not request.app.state.sessions.reserve_generation(session_id, int(time.time())):
-            raise HTTPException(429, "Generation limit reached for this session")
         base = {
             "request_id": request.state.request_id, "match_id": match_id,
             "dataset_version": request.app.state.dataset.version,
             "cutoff_ms": cutoff_ms, "event_id": body.event_id,
         }
+        # Free-text questions are never cached, so they weigh double against the session limit.
+        weight = 2 if question_text else 1
+        request_body = body.model_dump(mode="json")
         if question_text:
             outcome = answer_without_model(
                 question=question_text, language=body.language, selected_event=event,
@@ -343,11 +499,15 @@ def create_app(
                 index=load_rule_index(str(project_root()), request.app.state.dataset.rules_version),
             )
             if outcome is not None:
-                return camelize({
-                    **base, "status": "ok", "source": "template", "workflow_version": "ask-template-v1",
-                    "scope": outcome.scope, "answer": outcome.answer, "evidence_ids": [],
-                    "rule_refs": outcome.rule_refs, "redirect_event_id": outcome.redirect_event_id,
-                })
+                async def produce_template(_use_agent: bool):
+                    return camelize({
+                        **base, "status": "ok", "source": "template", "workflow_version": "ask-template-v1",
+                        "scope": outcome.scope, "answer": outcome.answer, "evidence_ids": [],
+                        "rule_refs": outcome.rule_refs, "redirect_event_id": outcome.redirect_event_id,
+                    }), 0
+
+                return await generation_flow(request, session_id, cutoff_ms, body=request_body, weight=weight,
+                                             produce=produce_template, uses_model=False, cache_key=None)
         if event is None or not event.get("decision"):
             raise HTTPException(422, "Ask the Ref is available for recorded decisions")
         question_text = question_text or supported_question(data, body.event_id, body.question_id, body.language)
@@ -359,14 +519,21 @@ def create_app(
             language=body.language, level=body.level,
             history=[{"question": turn.question, "answer_headline": turn.answer_headline} for turn in body.history],
         )
-        answer, rule_refs = referee_fallback(data, event, body.language)
-        result = await run_agent_or_fallback(request, payload, answer)
-        return camelize({
-            **base, "status": result.status, "source": result.source,
-            "workflow_version": result.workflow_version, "scope": "in_scope",
-            "answer": result.answer, "evidence_ids": result.evidence_ids,
-            "rule_refs": rule_refs,
-        })
+        fallback_text, rule_refs = referee_fallback(data, event, body.language)
+
+        async def produce(use_agent: bool):
+            result = await run_agent_or_fallback(request, payload, fallback_text) if use_agent else fallback_response(payload, answer=fallback_text)
+            return camelize({
+                **base, "status": result.status, "source": result.source,
+                "workflow_version": result.workflow_version, "scope": "in_scope",
+                "answer": result.answer, "evidence_ids": result.evidence_ids,
+                "rule_refs": rule_refs,
+            }), spent_units(result)
+
+        return await generation_flow(
+            request, session_id, cutoff_ms, body=request_body, weight=weight, produce=produce, uses_model=True,
+            cache_key=None if body.question_text else cache_key("referee", request, match_id, body.event_id, body.level, body.language, body.question_id or ""),
+        )
 
     def tracking_manifest(match_id: str) -> tuple[dict, Path]:
         dataset: Dataset | None = app.state.dataset

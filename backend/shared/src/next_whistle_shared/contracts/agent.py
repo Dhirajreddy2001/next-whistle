@@ -309,6 +309,13 @@ class AgentRequest(ContractModel):
         return self
 
 
+class TokenUsage(ContractModel):
+    """Measured model usage for one request, used by the Core to settle the spend allowance."""
+
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+
+
 class AgentResponse(ContractModel):
     schema_version: Literal[1] = 1
     request_id: str = Field(pattern=r"^req_[a-zA-Z0-9_-]{1,80}$")
@@ -320,6 +327,7 @@ class AgentResponse(ContractModel):
     evidence_brief: EvidenceBrief | None = None
     explanation: Explanation | None = None
     referee_answer: RefereeAnswer | None = None
+    usage: TokenUsage | None = None
 
     @model_validator(mode="after")
     def output_matches_intent_shape(self) -> "AgentResponse":

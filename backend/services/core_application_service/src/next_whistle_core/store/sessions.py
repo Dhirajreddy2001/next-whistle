@@ -8,10 +8,34 @@ from pathlib import Path
 from collections.abc import Iterator
 
 
-class SQLiteSessionStore:
+class SQLiteBase:
+    """Connection handling shared by the session store and the abuse-control store."""
+
     def __init__(self, path: Path):
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _connect(self) -> sqlite3.Connection:
+        connection = sqlite3.connect(self.path, timeout=5, isolation_level="IMMEDIATE")
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        connection = self._connect()
+        try:
+            yield connection
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+
+class SQLiteSessionStore(SQLiteBase):
+    def __init__(self, path: Path):
+        super().__init__(path)
         with self._connection() as connection:
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -31,23 +55,6 @@ class SQLiteSessionStore:
                     FOREIGN KEY(session_id) REFERENCES sessions(session_id)
                 )
             """)
-
-    def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path, timeout=5, isolation_level="IMMEDIATE")
-        connection.row_factory = sqlite3.Row
-        return connection
-
-    @contextmanager
-    def _connection(self) -> Iterator[sqlite3.Connection]:
-        connection = self._connect()
-        try:
-            yield connection
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            raise
-        finally:
-            connection.close()
 
     def create(self, session_id: str, refresh_hash: str, now: int, expires_at: int) -> None:
         with self._connection() as connection:
@@ -83,22 +90,15 @@ class SQLiteSessionStore:
         with self._connect() as connection:
             connection.execute("UPDATE sessions SET revoked = 1 WHERE session_id = ?", (session_id,))
 
-    def reserve_generation(self, session_id: str, now: int, per_hour: int = 8, per_day: int = 20) -> bool:
-        """Atomically enforce the public per-session generation limits."""
+    def reserve_generation(self, session_id: str, now: int, per_hour: int = 8, per_day: int = 20, weight: int = 1) -> tuple[bool, int]:
+        """Atomically enforce the per-session limits. Returns (allowed, seconds until a slot frees up)."""
         with self._connection() as connection:
             connection.execute("DELETE FROM generation_usage WHERE used_at <= ?", (now - 24 * 60 * 60,))
-            hourly = connection.execute(
-                "SELECT COUNT(*) FROM generation_usage WHERE session_id = ? AND used_at > ?",
-                (session_id, now - 60 * 60),
-            ).fetchone()[0]
-            daily = connection.execute(
-                "SELECT COUNT(*) FROM generation_usage WHERE session_id = ? AND used_at > ?",
-                (session_id, now - 24 * 60 * 60),
-            ).fetchone()[0]
-            if hourly >= per_hour or daily >= per_day:
-                return False
-            connection.execute(
-                "INSERT INTO generation_usage(session_id, used_at) VALUES (?, ?)",
-                (session_id, now),
-            )
-            return True
+            hourly = connection.execute("SELECT COUNT(*) FROM generation_usage WHERE session_id = ? AND used_at > ?", (session_id, now - 3600)).fetchone()[0]
+            daily = connection.execute("SELECT COUNT(*) FROM generation_usage WHERE session_id = ? AND used_at > ?", (session_id, now - 86400)).fetchone()[0]
+            if hourly + weight > per_hour or daily + weight > per_day:
+                window, since = (3600, now - 3600) if hourly + weight > per_hour else (86400, now - 86400)
+                oldest = connection.execute("SELECT MIN(used_at) FROM generation_usage WHERE session_id = ? AND used_at > ?", (session_id, since)).fetchone()[0] or now
+                return False, max(1, oldest + window - now)
+            connection.executemany("INSERT INTO generation_usage(session_id, used_at) VALUES (?, ?)", [(session_id, now)] * weight)
+            return True, 0

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 
-from next_whistle_shared.contracts.agent import AgentRequest, AgentResponse
+from next_whistle_shared.contracts.agent import AgentRequest, AgentResponse, TokenUsage
 from next_whistle_shared.evidence.dataset import EvidenceDataset
 
 from .orchestrator import WORKFLOW_VERSION, WorkflowResult, run_workflow
@@ -28,8 +28,13 @@ async def run_request(payload: AgentRequest) -> WorkflowResult:
         from .foundry import FoundryRunner
 
         async with FoundryRunner.from_env() as runner:
-            return await run_workflow(payload, dataset(), runner, critic_enabled=critic_enabled())
-    return await run_workflow(payload, dataset(), ScriptedRunner(), critic_enabled=critic_enabled())
+            result = await run_workflow(payload, dataset(), runner, critic_enabled=critic_enabled())
+    else:
+        runner = ScriptedRunner()
+        result = await run_workflow(payload, dataset(), runner, critic_enabled=critic_enabled())
+    usage = TokenUsage(input_tokens=runner.usage.input_tokens, output_tokens=runner.usage.output_tokens)
+    result.response = result.response.model_copy(update={"usage": usage})
+    return result
 
 
 async def answer(payload: AgentRequest) -> AgentResponse:
