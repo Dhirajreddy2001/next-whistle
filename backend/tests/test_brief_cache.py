@@ -125,3 +125,20 @@ def test_the_brief_key_has_no_level_or_language(tmp_path):
         keys = [row[0] for row in __import__("sqlite3").connect(tmp_path / "s.sqlite3").execute("select cache_key from answer_cache")]
     brief_keys = [k for k in keys if k.startswith("brief|")]
     assert len(brief_keys) == 1 and "pro" not in brief_keys[0].split("|") and "es" not in brief_keys[0].split("|")
+
+
+def test_answers_and_briefs_without_evidence_are_never_cached(tmp_path):
+    class Hollow(RecordingAgent):
+        async def generate(self, payload, visible=None):
+            response = await super().generate(payload, visible)
+            empty_brief = response.evidence_brief.model_copy(update={"facts": []})
+            return response.model_copy(update={"evidence_ids": [], "evidence_brief": empty_brief})
+
+    agent = Hollow()
+    with build(tmp_path, agent) as client:
+        headers = session(client)
+        first = explain(client, headers, level="beginner")
+        second = explain(client, headers, level="beginner")
+        third = explain(client, headers, level="pro")
+    assert first.status_code == second.status_code == 200 and second.json().get("cached") is None
+    assert [p.cached_brief is not None for p in agent.payloads] == [False, False, False]  # nothing was stored, so nothing was reused

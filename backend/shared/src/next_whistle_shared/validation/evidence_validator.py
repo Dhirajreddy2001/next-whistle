@@ -77,9 +77,14 @@ class EvidenceValidator:
         numbers = [c for c in raw.get("claims", []) if c.get("kind") == "number"]
         claimed = {str(c.get("value")) for c in numbers}
         scoreless = re.sub(r"\b\d+\s*[–-]\s*\d+\b", " ", prose)  # scores are checked separately by V7
-        for token in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", scoreless):
+        # V5 protects the viewer-facing answer. A brief's facts carry numbers straight from tool results, so it is exempt.
+        for token in ([] if is_brief else re.findall(r"(?<![\w.])\d+(?:\.\d+)?", scoreless)):
+            if re.search(rf"\bLaws?\s+{re.escape(token)}\b", prose):
+                continue  # a Law number such as "Law 11" is a reference, not a statistic
+            if re.search(rf"\b{re.escape(token)}(?:st|nd|rd|th)\b|\b{re.escape(token)}\s*(?:minutes?|mins?)\b|\bminutes?\s*{re.escape(token)}\b", prose, re.I):
+                continue  # a minute like "the 61st minute"; minutes are checked against the match clock by V6
             if token not in claimed and not re.search(rf"\b{re.escape(token)}\s*[-–']", prose) and not re.search(rf"\b{re.escape(token)}\s*[-–]\s*\d+", prose):
-                issues.append(_issue("V5", f"Unreferenced number {token} appears in prose.")); break
+                issues.append(_issue("V5", f"The number {token} appears in the text without a number claim. Delete it, or describe it in words without digits.")); break
         if self.context.cutoff_ms < (self.ledger.visible_events and max(e.get("match_ms", 0) for e in self.ledger.visible_events.values()) or 0):
             issues.append(_issue("V6", "Visible evidence exceeds the bound cutoff."))
         if any(e.get("available_ms", e.get("availableMs", 0)) > self.context.cutoff_ms for e in self.ledger.visible_events.values()):
@@ -98,8 +103,11 @@ class EvidenceValidator:
             player = focus.get("player_id")
             if not any(player in (e.get("player_id"), e.get("target_player_id")) for e in self.ledger.visible_events.values()): issues.append(_issue("V9", "Focus player is not involved in cited visible evidence."))
         allowed_names = {p.get("name") for p in self.squads.values()}
-        for name in re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b", prose):
-            if allowed_names and name not in allowed_names: issues.append(_issue("V10", f"Unrecognized entity name {name}.")); break
+        body_prose = _prose({k: v for k, v in raw.items() if k != "headline"}) if isinstance(raw, dict) else prose  # title-case headlines are not names
+        for name in re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b", body_prose):
+            # A capitalised phrase is fine when it contains a real player or club name ("Why Nia Cole" starts a headline).
+            if allowed_names and not any(known and known in name for known in allowed_names):
+                issues.append(_issue("V10", f"Unrecognized name '{name}'. Refer to players and clubs only by the exact names in the brief.")); break
         if isinstance(value, Explanation) and not value.why_it_matters and (value.significance_established or not value.uncertainty): issues.append(_issue("V11", "Significance needs an explanation or explicit uncertainty."))
         if self.context.language != "en": issues.append(_issue("V12", "Language detection requires a configured language detector.", "warning"))
         limit = {"beginner": 120, "intermediate": 180, "pro": 250}[self.context.level]
@@ -112,7 +120,10 @@ class EvidenceValidator:
             if not significance.get("text") and (significance.get("established") or not raw.get("uncertainty")):
                 issues.append(_issue("V11", "Brief significance needs support or explicit uncertainty."))
             for fact in facts:
-                if not fact.get("evidence_ids") or any(e not in self.ledger.evidence_ids for e in fact["evidence_ids"]): issues.append(_issue("V15", f"Brief fact {fact.get('id')} lacks ledger evidence."))
+                returned = self.ledger.evidence_ids | self.ledger.known_ids | self.ledger.rules
+                unseen = [e for e in fact.get("evidence_ids", []) if e not in returned]
+                if not fact.get("evidence_ids") or unseen:
+                    issues.append(_issue("V15", f"Brief fact {fact.get('id')} cites evidence that no tool returned ({', '.join(unseen) or 'none given'}). Cite only event IDs that appear in tool results, or call get_event_evidence for them first."))
             for stat in stats:
                 if stat.get("stat_ref") not in self.ledger.stat_values: issues.append(_issue("V15", f"Brief stat {stat.get('stat_ref')} is not in ledger."))
             for player_id, event_ids in raw.get("involvement", {}).items():

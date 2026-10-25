@@ -360,9 +360,13 @@ def create_app(
         try:
             data = match_data(request, payload.match_id)
             visible = {row["event_id"] for row in visible_events(data, payload.cutoff_ms)}
-            return await asyncio.wait_for(
+            result = await asyncio.wait_for(
                 request.app.state.agent_client.generate(payload, visible), timeout=settings.agent_timeout_seconds + 2,
             )
+            if result.status == "fallback":
+                # The agent could not produce a verified answer; show the Core's deterministic text, never unverified model text.
+                return fallback_response(payload, answer=fallback_answer).model_copy(update={"usage": result.usage})
+            return result
         except Exception:
             # Replay and deterministic facts remain available when generation is offline.
             return fallback_response(payload, answer=fallback_answer)
@@ -439,7 +443,8 @@ def create_app(
             await ops.release(request_id)
             raise
         await ops.settle(request_id, units)
-        if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template":
+        # Never cache an answer that cites no evidence: whatever it says, it cannot be checked, and a repeat would serve it for free.
+        if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template" and answer.get("evidenceIds"):
             await ops.cache_put(cache_key, cutoff_ms, answer, now)
         return answer
 
@@ -461,7 +466,7 @@ def create_app(
             return payload
 
     async def remember_brief(request: Request, key: str | None, result) -> None:
-        if key is not None and result.status == "ok" and result.evidence_brief is not None and not result.brief_cached and result.brief_cutoff_ms is not None:
+        if key is not None and result.status == "ok" and result.evidence_brief is not None and result.evidence_brief.facts and not result.brief_cached and result.brief_cutoff_ms is not None:
             brief = result.evidence_brief.model_dump(mode="json", by_alias=True)
             await request.app.state.ops.cache_put(key, result.brief_cutoff_ms, {"brief": brief, "cutoff_ms": result.brief_cutoff_ms}, int(time.time()))
 

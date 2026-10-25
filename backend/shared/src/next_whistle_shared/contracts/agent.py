@@ -149,8 +149,11 @@ class Claim(ContractModel):
         if self.kind == "number":
             if self.value is None or bool(self.stat_ref) == bool(self.geometry_ref):
                 raise ValueError("Number claims need a value and exactly one statRef or geometryRef")
-        elif self.stat_ref or self.geometry_ref or self.value is not None:
-            raise ValueError("Only number claims may carry numeric references")
+        else:
+            # A model sometimes attaches a reference to a plain fact. It has no meaning there, so drop it rather than fail.
+            object.__setattr__(self, "stat_ref", None)
+            object.__setattr__(self, "geometry_ref", None)
+            object.__setattr__(self, "value", None)
         return self
 
 

@@ -10,7 +10,7 @@ from next_whistle_agent.orchestrator import run_workflow
 from next_whistle_agent.prompts import role_prompt, storyteller_instructions
 from next_whistle_agent.scripted import ScriptedRunner
 from next_whistle_agent.workflow import _load_dataset
-from next_whistle_shared.contracts.agent import AgentRequest, AgentViewer, BoundContext, Claim, EvidenceFact
+from next_whistle_shared.contracts.agent import AgentRequest, AgentViewer, BoundContext, Claim, EvidenceBrief, EvidenceFact
 from next_whistle_shared.evidence.dispatcher import ToolDispatcher
 
 DATASET = _load_dataset()
@@ -229,3 +229,183 @@ def test_cached_brief_contract_rejects_unsafe_combinations(change, message):
     data["context"] = None
     with pytest.raises(ValueError, match=message):
         AgentRequest.model_validate(data)
+
+
+def test_model_slips_on_scope_and_significance_are_tidied_without_touching_facts():
+    def sloppy(brief, _):
+        return brief.model_copy(update={"scope": "general_law", "uncertainty": [], "significance": brief.significance.model_copy(update={"established": False, "text": "", "fact_ids": []})})
+
+    result, runner = run(request(), ScriptedRunner(corrupt_brief=sloppy))
+    brief = result.response.evidence_brief
+    assert result.response.status == "ok" and runner.calls == ["analyst", "storyteller"]  # no wasted retry
+    assert brief.scope == "in_scope" and brief.uncertainty and brief.significance.established is False
+    assert [f.text for f in brief.facts]  # facts are exactly what the model produced
+
+
+# ---- real-model failure modes: malformed output, empty briefs, skipped tools -----------------------------------------
+
+class FlakyRunner(ScriptedRunner):
+    """A scripted runner that replies in the wrong shape a set number of times, like a real model sometimes does."""
+
+    def __init__(self, bad_briefs=0, bad_answers=0):
+        super().__init__()
+        self.bad_briefs, self.bad_answers = bad_briefs, bad_answers
+
+    async def run_tool_agent(self, **kwargs):
+        if self.bad_briefs > 0:
+            self.bad_briefs -= 1
+            self.calls.append(kwargs["role"])
+            from next_whistle_agent.scripted import InvalidOutput
+            raise InvalidOutput("EvidenceBrief: significance field required")
+        return await super().run_tool_agent(**kwargs)
+
+    async def run_writer(self, **kwargs):
+        if kwargs["role"] == "storyteller" and self.bad_answers > 0:
+            self.bad_answers -= 1
+            self.calls.append("storyteller")
+            from next_whistle_agent.scripted import InvalidOutput
+            raise InvalidOutput("Explanation: claims.0 Number claims need a value")
+        return await super().run_writer(**kwargs)
+
+
+def test_malformed_model_output_is_retried_once_instead_of_crashing():
+    result, runner = run(request(), FlakyRunner(bad_answers=1))
+    assert result.response.status == "ok" and result.trace.retries == 1 and runner.calls == ["analyst", "storyteller", "storyteller"]
+    result, runner = run(request(), FlakyRunner(bad_briefs=1))
+    assert result.response.status == "ok" and runner.calls == ["analyst", "analyst", "storyteller"]
+
+
+def test_two_malformed_replies_fall_back_with_a_reason():
+    result, _ = run(request(), FlakyRunner(bad_answers=2))
+    assert result.response.status == "fallback" and result.trace.fallback_reason == "answer_validation_failed"
+    issues = [issue for step in result.trace.steps for issue in step.get("issues", [])]
+    assert any(issue.startswith("V1:") and "claims.0" in issue for issue in issues)  # the reason is recorded, not lost
+    result, _ = run(request(), FlakyRunner(bad_briefs=2))
+    assert result.response.status == "fallback" and result.trace.fallback_reason == "brief_validation_failed"
+
+
+def test_a_brief_without_facts_is_rejected_even_though_every_cited_item_is_valid():
+    def empty(brief, _):
+        return brief.model_copy(update={"facts": [], "involvement": {}, "factors": []})
+
+    result, runner = run(request(), ScriptedRunner(corrupt_brief=first_call_only(empty)))
+    assert result.response.status == "ok" and result.trace.retries == 1 and runner.calls == ["analyst", "analyst", "storyteller"]
+    result, _ = run(request(), ScriptedRunner(corrupt_brief=empty))
+    assert result.response.status == "fallback" and result.trace.fallback_reason == "brief_validation_failed"
+
+
+def test_foundry_runner_needs_tool_calls_and_maps_bad_replies_to_retryable_failures():
+    from next_whistle_agent.foundry import FoundryRunner
+    from next_whistle_agent.scripted import InvalidOutput
+    from next_whistle_shared.contracts.agent import Explanation
+
+    class Reply:
+        text = '{"headline": "x"}'
+
+        @property
+        def value(self):
+            return Explanation.model_validate_json(self.text)  # raises: required fields are missing
+
+    class Fake(FoundryRunner):
+        def __init__(self):
+            super().__init__(None, "m", "m", "http://unused")
+            self.phases = []
+
+        async def _call(self, role, model, instructions, user_input, tools, temperature, response_format):
+            self.phases.append("tools" if tools else "structured")
+            return Reply()
+
+    runner = Fake()
+    context = BoundContext(
+        request_id="req_f", match_id="m_rvr_hrb", dataset_version=DATASET.version, rules_version=DATASET.rules_version,
+        cutoff_ms=4_600_000, evidence_cutoff_ms=4_600_000, intent="explain", agent="analyst", selected_event_id=DISALLOWED,
+    )
+    dispatcher = ToolDispatcher(context, DATASET)
+    with pytest.raises(InvalidOutput, match="did not call any evidence tool"):
+        asyncio.run(runner.run_tool_agent(role="analyst", instructions="i", user_input="u", dispatcher=dispatcher, output_type=EvidenceBrief, run=None))
+    assert runner.phases == ["tools"]  # it never moved on to writing a brief without evidence
+    with pytest.raises(InvalidOutput, match="Explanation"):
+        asyncio.run(runner.run_writer(role="storyteller", instructions="i", user_input="u", output_type=Explanation, run=None))
+
+
+def test_a_brief_may_carry_raw_numbers_from_tool_results_but_the_answer_may_not_invent_them():
+    def numeric_facts(brief, _):
+        extra = EvidenceFact(id="f9", text="The attacker was 0.6 metres beyond the line at 3666000 ms.", evidence_ids=[DISALLOWED])
+        return brief.model_copy(update={"facts": [*brief.facts, extra]})
+
+    result, runner = run(request(), ScriptedRunner(corrupt_brief=numeric_facts))
+    assert result.response.status == "ok" and runner.calls == ["analyst", "storyteller"]  # no retry for numbers in the brief
+    result, _ = run(request(), ScriptedRunner(corrupt_answer=unbacked_number))
+    assert result.response.status == "fallback"  # the answer is still held to the number rule
+
+
+def test_the_storyteller_is_told_exactly_which_numbers_it_may_state():
+    from next_whistle_agent.prompts import allowed_numbers
+
+    explain_brief, _, _ = fresh_brief("pro")
+    assert "statRef team.shots" in allowed_numbers(explain_brief) and "NONE" not in allowed_numbers(explain_brief)
+    bare = explain_brief.model_copy(update={"stats": []})
+    assert "NONE" in allowed_numbers(bare) and "no digits" in allowed_numbers(bare)
+    referee_brief = run(request("referee_question", question="Why?", level="pro"))[0].response.evidence_brief
+    assert f"geometryRef geometry.{DISALLOWED}" in allowed_numbers(referee_brief) and "0.6" in allowed_numbers(referee_brief)
+
+
+def test_a_brief_may_cite_rule_and_snapshot_ids_that_tools_returned_but_not_ones_it_invented():
+    def cite(extra):
+        def corrupt(brief, _):
+            fact = brief.facts[0].model_copy(update={"evidence_ids": [*brief.facts[0].evidence_ids, *extra]})
+            return brief.model_copy(update={"facts": [fact, *brief.facts[1:]]})
+        return corrupt
+
+    referee = request("referee_question", question="Why?")
+    ok, runner = run(referee, ScriptedRunner(corrupt_brief=cite(["r_law11_offside"])))
+    assert ok.response.status == "ok" and runner.calls == ["referee", "storyteller"]  # a rule the Referee retrieved
+    assert all(e.startswith("e_") for e in ok.response.evidence_ids)  # only event ids go back to the Core
+    bad, _ = run(referee, ScriptedRunner(corrupt_brief=cite(["r_law99_invented"])))
+    assert bad.response.status == "fallback" and bad.trace.fallback_reason == "brief_validation_failed"
+
+
+def test_involvement_is_computed_from_the_cited_events_not_trusted_from_the_model():
+    def garbled(brief, _):
+        return brief.model_copy(update={"involvement": {"playerId": ["x"], "role": ["y"]}})
+
+    result, _ = run(request(), ScriptedRunner(corrupt_brief=garbled))
+    involvement = result.response.evidence_brief.involvement
+    assert result.response.status == "ok" and "playerId" not in involvement and all(key.startswith("p_") for key in involvement)
+
+
+def test_a_retry_gets_a_fresh_tool_budget_instead_of_inheriting_the_spent_one():
+    class Greedy(ScriptedRunner):
+        """Uses the whole tool budget on the first attempt, then proves the second attempt can still call tools."""
+
+        def __init__(self):
+            super().__init__()
+            self.budgets = []
+
+        async def run_tool_agent(self, **kwargs):
+            dispatcher = kwargs["dispatcher"]
+            self.budgets.append(dispatcher.calls)
+            for _ in range(dispatcher.context.max_tool_calls):
+                dispatcher.call("get_match_state", {})
+            if len(self.budgets) == 1:
+                raise __import__("next_whistle_agent.scripted", fromlist=["InvalidOutput"]).InvalidOutput("first attempt malformed")
+            dispatcher.calls = 0  # the scripted brief below needs its own few calls
+            return await super().run_tool_agent(**kwargs)
+
+    result, runner = run(request(), Greedy())
+    assert runner.budgets == [0, 0] and result.response.status == "ok"
+
+
+def test_referee_answers_carry_the_recorded_ruling_and_only_the_cited_laws_whatever_the_model_wrote():
+    def wordy(answer, _):
+        return answer.model_copy(update={"decision": "The flag was raised because the attacker was ahead of the line.", "law": answer.law.model_copy(update={"law_ids": ["r_law11_offside", "r_law99_made_up"]})})
+
+    result, _ = run(request("referee_question", question="Why?"), ScriptedRunner(corrupt_answer=wordy))
+    answer = result.response.referee_answer
+    assert result.response.status == "ok" and answer.decision == "offside" and "r_law99_made_up" not in answer.law.law_ids
+
+
+def test_a_reference_on_a_plain_fact_claim_is_dropped_instead_of_failing_the_whole_answer():
+    claim = Claim(id="c1", kind="fact", text="A fact.", geometry_ref="geometry.e_x", value=None)
+    assert claim.geometry_ref is None and claim.value is None
+    assert Claim(id="c2", kind="number", text="n", stat_ref="team.shots.t_a", value=3).value == 3  # real number claims are untouched

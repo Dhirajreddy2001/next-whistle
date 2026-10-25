@@ -39,10 +39,11 @@ async def run_request(payload: AgentRequest) -> WorkflowResult:
     usage = TokenUsage(input_tokens=runner.usage.input_tokens, output_tokens=runner.usage.output_tokens)
     result.response = result.response.model_copy(update={"usage": usage})
     # One line per request, so a "facts only" answer always has a visible reason (throttled, invalid output, ...).
+    issues = [issue for step in result.trace.steps for issue in step.get("issues", [])] if result.response.status == "fallback" else []
     log.info(
-        "workflow intent=%s level=%s status=%s source=%s fallback=%s retries=%d model_calls=%d tokens_in=%d tokens_out=%d brief_cached=%s",
+        "workflow intent=%s level=%s status=%s source=%s fallback=%s retries=%d model_calls=%d tokens_in=%d tokens_out=%d brief_cached=%s issues=%s",
         payload.intent, payload.viewer.level, result.response.status, result.response.source, result.trace.fallback_reason or "-",
-        result.trace.retries, runner.usage.calls, usage.input_tokens, usage.output_tokens, result.response.brief_cached,
+        result.trace.retries, runner.usage.calls, usage.input_tokens, usage.output_tokens, result.response.brief_cached, issues[-4:] or "-",
     )
     return result
 

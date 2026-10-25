@@ -12,7 +12,7 @@ from .dispatcher import EvidenceLedger
 
 
 def cited_event_ids(brief: EvidenceBrief) -> set[str]:
-    ids = {event_id for fact in brief.facts for event_id in fact.evidence_ids}
+    ids = {event_id for fact in brief.facts for event_id in fact.evidence_ids if event_id.startswith("e_")}
     ids.update(event_id for events in brief.involvement.values() for event_id in events)
     if brief.event_id:
         ids.add(brief.event_id)
@@ -28,6 +28,16 @@ def ledger_from_brief(brief: EvidenceBrief, dataset: EvidenceDataset, match_id: 
         return None
     by_id = {event["event_id"]: event for event in match.events}
     ledger = EvidenceLedger()
+    rule_ids = {rule["rule_id"] for rule in dataset.rules}
+    snapshot_ids = {snapshot["snapshot_id"] for snapshot in match.snapshots if snapshot["available_ms"] <= cutoff_ms}
+    for fact in brief.facts:
+        for other in fact.evidence_ids:
+            if other.startswith("r_") and other in rule_ids:
+                ledger.known_ids.add(other)
+            elif other.startswith("s_") and other in snapshot_ids:
+                ledger.known_ids.add(other)
+            elif not other.startswith("e_"):
+                return None  # cites something that is neither an event, a rule nor a visible snapshot
     for event_id in cited_event_ids(brief):
         event = by_id.get(event_id)
         if event is None or event["available_ms"] > cutoff_ms:

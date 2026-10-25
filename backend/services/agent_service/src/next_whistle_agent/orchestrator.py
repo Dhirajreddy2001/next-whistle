@@ -18,7 +18,7 @@ from next_whistle_shared.validation.evidence_validator import EvidenceValidator,
 
 from .prompts import PROMPT_VERSION, critic_input, role_prompt, storyteller_input, storyteller_instructions, tool_agent_input
 from .runner import AgentRunner, RunContext
-from .scripted import RunnerError
+from .scripted import InvalidOutput, RunnerError
 
 WORKFLOW_VERSION = f"agents-v1-p{PROMPT_VERSION}"
 EVIDENCE_FAILURES = {"V2", "V3", "V8", "V9", "V15"}  # the evidence itself is missing: the tool-capable agent must retry
@@ -41,6 +41,36 @@ class WorkflowResult:
     ledger: EvidenceLedger | None = None
 
 
+def _involvement(brief: EvidenceBrief, ledger: EvidenceLedger) -> dict[str, list[str]]:
+    """Who acted in the cited events, worked out from the data: a model's own mapping is often malformed."""
+    involved: dict[str, list[str]] = {}
+    for event_id in sorted({e for fact in brief.facts for e in fact.evidence_ids if e.startswith("e_")}):
+        event = ledger.visible_events.get(event_id)
+        for player_id in {event.get("player_id"), event.get("target_player_id")} - {None} if event else set():
+            involved.setdefault(player_id, []).append(event_id)
+    return involved
+
+
+def _normalise(brief: EvidenceBrief, ledger: EvidenceLedger) -> EvidenceBrief:
+    """Deterministic tidy-up of fields a model gets wrong without it changing any fact.
+
+    The Core has already decided a request reaching the agent is in scope, so the label is forced rather than guessed;
+    and a moment whose wider impact is not established must say so, which the model sometimes forgets.
+    """
+    update: dict = {"scope": "in_scope", "redirect_event_id": None, "involvement": _involvement(brief, ledger)}
+    if not brief.significance.established and not brief.significance.text and not brief.uncertainty:
+        update["uncertainty"] = ["The record does not show how much this moment changed the match."]
+    return brief.model_copy(update=update)
+
+
+def _normalise_answer(answer, brief: EvidenceBrief):
+    """The recorded ruling and the cited Laws are data, so a referee answer carries them exactly as recorded."""
+    if isinstance(answer, RefereeAnswer) and brief.ruling is not None:
+        allowed = [law for law in answer.law.law_ids if law in brief.ruling.law_ids] or list(brief.ruling.law_ids)
+        return answer.model_copy(update={"decision": brief.ruling.recorded_ruling, "law": answer.law.model_copy(update={"law_ids": allowed[:4]})})
+    return answer
+
+
 def _failures(report: ValidationReport) -> list[str]:
     return [f"{issue.check_id}: {issue.message}" for issue in report.issues if issue.severity == "error"]
 
@@ -53,9 +83,10 @@ def _squads_with_teams(dispatcher: ToolDispatcher) -> dict[str, dict]:
 
 
 def _answer_text(answer: Explanation | RefereeAnswer) -> str:
+    headline = answer.headline.rstrip(" .")
     if isinstance(answer, RefereeAnswer):
-        return f"{answer.headline}. {answer.law.text} {answer.data_shows.text}".strip()
-    return f"{answer.headline}. {answer.what_happened} {answer.why_it_matters}".strip()
+        return f"{headline}. {answer.law.text} {answer.data_shows.text}".strip()
+    return f"{headline}. {answer.what_happened} {answer.why_it_matters}".strip()
 
 
 def _fallback(payload: AgentRequest, trace: WorkflowTrace, reason: str, brief: EvidenceBrief | None = None) -> WorkflowResult:
@@ -111,22 +142,34 @@ async def run_workflow(
     async def produce_brief(failures: list[str] | None) -> EvidenceBrief:
         run.failures = failures or []
         trace.add(f"agent.{tool_role}", retry=bool(failures))
-        return await runner.run_tool_agent(
+        # Every attempt gets its own tool-call budget (a retry must not start with the first attempt's calls already spent)
+        # but all attempts share one evidence ledger.
+        attempt_dispatcher = ToolDispatcher(context.for_agent(tool_role), dataset, ledger)
+        return _normalise(await runner.run_tool_agent(
             role=tool_role, instructions=role_prompt(tool_role), user_input=tool_agent_input(context, payload, failures),
-            dispatcher=agent_dispatcher, output_type=EvidenceBrief, run=run,
-        )
+            dispatcher=attempt_dispatcher, output_type=EvidenceBrief, run=run,
+        ), ledger)
+
+    async def checked_brief(failures: list[str] | None) -> tuple[EvidenceBrief | None, list[str]]:
+        """One brief attempt: (brief, problems). A reply in the wrong shape counts as a problem, not a crash."""
+        try:
+            candidate = await produce_brief(failures)
+        except InvalidOutput as error:
+            trace.add("brief.validate", passed=False, issues=[f"V1: {error}"])
+            return None, [f"V1: the brief did not match the required format ({error})"]
+        problems = _failures(validator.validate(candidate))
+        if not candidate.facts:
+            problems.append("V15: the brief has no facts. Call the evidence tools first and cite what they return.")
+        trace.add("brief.validate", passed=not problems, issues=problems)
+        return candidate, problems
 
     try:
         if not from_cache:
-            brief = await produce_brief(None)
-            report = validator.validate(brief)
-            trace.add("brief.validate", passed=report.passed, issues=_failures(report))
-            if not report.passed:
+            brief, problems = await checked_brief(None)
+            if problems:
                 trace.retries += 1
-                brief = await produce_brief(_failures(report))
-                report = validator.validate(brief)
-                trace.add("brief.validate", passed=report.passed, issues=_failures(report))
-                if not report.passed:
+                brief, problems = await checked_brief(problems)
+                if problems:
                     return _fallback(payload, trace, "brief_validation_failed")
     except RunnerError as error:
         return _fallback(payload, trace, f"{tool_role}_failed: {error}")
@@ -144,28 +187,32 @@ async def run_workflow(
             output_type=writer_type, run=run,
         )
 
+    async def checked_answer(failures: list[str] | None):
+        try:
+            candidate = await write(failures)
+        except InvalidOutput as error:
+            trace.add("answer.validate", passed=False, issues=[f"V1: {error}"])
+            return None, [f"V1: the answer did not match the required format ({error})"]
+        candidate = _normalise_answer(candidate, brief)
+        problems = _failures(validator.validate(candidate))
+        trace.add("answer.validate", passed=not problems, issues=problems)
+        return candidate, problems
+
     try:
-        answer = await write(None)
-        report = validator.validate(answer)
-        trace.add("answer.validate", passed=report.passed, issues=_failures(report))
-        if not report.passed:
-            failures = _failures(report)
+        answer, problems = await checked_answer(None)
+        if problems:
             trace.retries += 1
-            if from_cache and any(item.split(":")[0] in EVIDENCE_FAILURES for item in failures):
-                # The cached brief is missing something the answer needs: drop it and run the full workflow once.
-                return await run_workflow(payload.model_copy(update={"cached_brief": None, "brief_cutoff_ms": None}), dataset, runner, critic_enabled=critic_enabled)
-            if any(item.split(":")[0] in EVIDENCE_FAILURES for item in failures):
+            if any(item.split(":")[0] in EVIDENCE_FAILURES for item in problems):
+                if from_cache:
+                    # The cached brief is missing something the answer needs: drop it and run the full workflow once.
+                    return await run_workflow(payload.model_copy(update={"cached_brief": None, "brief_cutoff_ms": None}), dataset, runner, critic_enabled=critic_enabled)
                 # The answer needs a fact the brief lacks: one tool-capable re-run, then the Storyteller again.
-                brief = await produce_brief(failures)
-                brief_report = validator.validate(brief)
-                trace.add("brief.validate", passed=brief_report.passed, issues=_failures(brief_report))
-                if not brief_report.passed:
+                brief, brief_problems = await checked_brief(problems)
+                if brief_problems:
                     return _fallback(payload, trace, "brief_validation_failed")
                 run.brief = brief
-            answer = await write(failures)
-            report = validator.validate(answer)
-            trace.add("answer.validate", passed=report.passed, issues=_failures(report))
-            if not report.passed:
+            answer, problems = await checked_answer(problems)
+            if problems:
                 return _fallback(payload, trace, "answer_validation_failed", brief)
 
         if critic_enabled:
@@ -182,15 +229,13 @@ async def run_workflow(
                 else:
                     trace.retries += 1
                     note = [f"critic: {issue.kind} in sentence {issue.sentence}: {issue.note}" for issue in verdict.issues] or ["critic: revise the wording"]
-                    answer = await write(note)
-                    report = validator.validate(answer)
-                    trace.add("answer.validate", passed=report.passed, issues=_failures(report))
-                    if not report.passed:
+                    answer, problems = await checked_answer(note)
+                    if problems:
                         return _fallback(payload, trace, "answer_validation_failed", brief)
     except RunnerError as error:
         return _fallback(payload, trace, f"storyteller_failed: {error}", brief)
 
-    evidence_ids = sorted({e for fact in brief.facts for e in fact.evidence_ids})
+    evidence_ids = sorted({e for fact in brief.facts for e in fact.evidence_ids if e.startswith("e_")})
     response = AgentResponse(
         request_id=payload.request_id, status="ok", source=runner.source, workflow_version=WORKFLOW_VERSION,
         answer=_answer_text(answer)[:2400], evidence_ids=evidence_ids[:24], evidence_brief=brief,

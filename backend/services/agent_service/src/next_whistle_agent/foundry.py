@@ -6,6 +6,7 @@ The dispatcher stays the only way to retrieve evidence: each allowed tool is a t
 
 from __future__ import annotations
 
+import json
 import os
 from contextlib import AsyncExitStack
 from typing import Any
@@ -16,19 +17,33 @@ from next_whistle_shared.evidence.dispatcher import ToolDispatcher
 from next_whistle_shared.evidence.tool_schemas import TOOL_ARGUMENT_MODELS, tool_json_schemas
 
 from .runner import RunContext, T, Usage
-from .scripted import RunnerError
+from .scripted import InvalidOutput, RunnerError
 
 TOOL_TEMPERATURE, WRITER_TEMPERATURE = 0.2, 0.5
 TOKEN_CAPS = {"analyst": 14_000, "referee": 12_000, "storyteller": 3_000, "critic": 2_500}
 
 
-def build_tools(dispatcher: ToolDispatcher) -> list[Any]:
+GATHER_SUFFIX = (
+    "\n\nWork in steps: call the evidence tools you need, one after another, starting with the selected event. "
+    "When you have what you need, reply with the single word DONE. Do not write the brief yet."
+)
+WRITE_SUFFIX = (
+    "\n\nThe evidence has already been retrieved for you, below. Do not call tools. Write the brief now, citing only "
+    "evidence IDs and statRefs that appear in that evidence."
+)
+MAX_EVIDENCE_CHARS = 24_000
+
+
+def build_tools(dispatcher: ToolDispatcher, transcript: list[dict[str, Any]] | None = None) -> list[Any]:
     """One Agent Framework tool per allowed evidence tool, executed through the bound dispatcher."""
     descriptions = {item["name"]: item["description"] for item in tool_json_schemas()}
     tools = []
     for name in sorted(dispatcher.context.allowed_tools & set(TOOL_ARGUMENT_MODELS)):
         async def call(_name: str = name, **arguments: Any) -> str:
-            return dispatcher.call(_name, arguments).model_dump_json(by_alias=True)
+            text = dispatcher.call(_name, arguments).model_dump_json(by_alias=True)
+            if transcript is not None:
+                transcript.append({"tool": _name, "arguments": arguments, "result": json.loads(text)})
+            return text
         call.__name__ = name
         tools.append(tool(call, name=name, description=descriptions[name], schema=TOOL_ARGUMENT_MODELS[name]))
     return tools
@@ -80,28 +95,43 @@ class FoundryRunner:
                 self._clients[model] = FoundryChatClient(project_endpoint=self.endpoint, model=model, credential=self._credential)
         return self._clients[model]
 
-    async def _run(self, role: str, model: str, instructions: str, user_input: str, output_type: type[T], tools: list[Any] | None, temperature: float) -> T:
-        agent = Agent(
-            client=await self._client(model), instructions=instructions, tools=tools or None,
-            default_options={"response_format": output_type, "temperature": temperature, "max_tokens": TOKEN_CAPS[role]},
-        )
+    async def _call(self, role: str, model: str, instructions: str, user_input: str, tools: list[Any] | None, temperature: float, response_format: type[T] | None) -> Any:
+        options: dict[str, Any] = {"temperature": temperature, "max_tokens": TOKEN_CAPS[role]}
+        if response_format is not None:
+            options["response_format"] = response_format
+        agent = Agent(client=await self._client(model), instructions=instructions, tools=tools or None, default_options=options)
         try:
             result = await agent.run(user_input)
         except Exception as error:  # surfaced as a workflow fallback, never a crash
             raise RunnerError(f"{role} model call failed: {type(error).__name__}") from error
         details = getattr(result, "usage_details", None) or {}
         self.usage.add(details.get("input_token_count") or 0, details.get("output_token_count") or 0)
-        value = getattr(result, "value", None)
-        if isinstance(value, output_type):
-            return value
+        return result
+
+    async def _structured(self, role: str, model: str, instructions: str, user_input: str, output_type: type[T], temperature: float) -> T:
+        result = await self._call(role, model, instructions, user_input, None, temperature, output_type)
         try:
+            value = result.value
+            if isinstance(value, output_type):
+                return value
             return output_type.model_validate_json(result.text)
         except Exception as error:
-            raise RunnerError(f"{role} returned output that does not match {output_type.__name__}") from error
+            reason = " ".join(str(error).split("\n")[1:3])[:200] or type(error).__name__
+            raise InvalidOutput(f"{output_type.__name__}: {reason}") from error
 
     async def run_tool_agent(self, *, role: str, instructions: str, user_input: str, dispatcher: ToolDispatcher, output_type: type[T], run: RunContext) -> T:
-        return await self._run(role, self.tools_model, instructions, user_input, output_type, build_tools(dispatcher), TOOL_TEMPERATURE)
+        """Two phases: the model gathers evidence with tools, then writes the structured brief from what it gathered.
+
+        Asking for strict structured output and tools in the same call made DeepSeek answer in JSON immediately and
+        skip the tools, so the phases are separate.
+        """
+        transcript: list[dict[str, Any]] = []
+        await self._call(role, self.tools_model, instructions + GATHER_SUFFIX, user_input, build_tools(dispatcher, transcript), TOOL_TEMPERATURE, None)
+        if not transcript:
+            raise InvalidOutput("the model did not call any evidence tool")
+        evidence = json.dumps(transcript, ensure_ascii=False)[:MAX_EVIDENCE_CHARS]
+        return await self._structured(role, self.tools_model, instructions + WRITE_SUFFIX, f"{user_input}\n\nEvidence returned by the tools:\n{evidence}", output_type, TOOL_TEMPERATURE)
 
     async def run_writer(self, *, role: str, instructions: str, user_input: str, output_type: type[T], run: RunContext) -> T:
         temperature = WRITER_TEMPERATURE if role == "storyteller" else TOOL_TEMPERATURE
-        return await self._run(role, self.small_model, instructions, user_input, output_type, None, temperature)
+        return await self._structured(role, self.small_model, instructions, user_input, output_type, temperature)

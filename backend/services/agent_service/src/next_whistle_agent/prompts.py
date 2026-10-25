@@ -57,9 +57,20 @@ def storyteller_instructions(context: BoundContext) -> str:
     return "\n".join(parts)
 
 
+def allowed_numbers(brief: EvidenceBrief) -> str:
+    """The only numbers the Storyteller may state, each with the reference its number claim must cite."""
+    lines = [f"- statRef {stat.stat_ref} = {stat.value}  (cite as statRef)" for stat in brief.stats]
+    geometry = (brief.ruling.geometry or {}) if brief.ruling else {}
+    if geometry.get("geometryRef") and geometry.get("marginM") is not None:
+        lines.append(f"- geometryRef {geometry['geometryRef']} = {geometry['marginM']} (the attacker's margin beyond the line, in metres; cite as geometryRef)")
+    if not lines:
+        return "Numbers you may state: NONE. Write no digits at all; describe anything numeric in words."
+    return "Numbers you may state (any other number is invalid; each one needs a number claim citing its reference):\n" + "\n".join(lines)
+
+
 def storyteller_input(context: BoundContext, brief: EvidenceBrief, failures: list[str] | None = None) -> str:
     kind = "RefereeAnswer" if context.intent in {"decision", "referee_question"} else "Explanation"
-    text = f"Write a {kind} from this brief.\nBrief:\n" + brief.model_dump_json(by_alias=True)
+    text = f"Write a {kind} from this brief.\n{allowed_numbers(brief)}\nBrief:\n" + brief.model_dump_json(by_alias=True)
     if failures:
         text += "\n\nYour previous answer failed validation. Fix these problems:\n- " + "\n- ".join(failures)
     return text

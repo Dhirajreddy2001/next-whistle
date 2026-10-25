@@ -36,6 +36,10 @@ class RunnerError(Exception):
     """A role could not produce output (for example a required tool failed)."""
 
 
+class InvalidOutput(RunnerError):
+    """The model answered, but not in the required shape. The orchestrator treats it as a validation failure and retries once."""
+
+
 def _label(event_type: str, language: str) -> str:
     if language.startswith("es"):
         return _ES_LABELS.get(event_type, event_type.replace("_", " "))

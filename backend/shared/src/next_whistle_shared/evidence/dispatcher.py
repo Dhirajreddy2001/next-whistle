@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -15,6 +16,7 @@ from .rule_search import RuleIndex
 from .tool_schemas import TOOL_ARGUMENT_MODELS
 
 MAX_RESULT_CHARS = 6000
+_ID_PATTERN = re.compile(r"\b(?:e|s|r)_[a-z0-9_]{3,}\b")
 MAX_TAG_RULES = 4  # the corpus is ordered with the curated incident rules first
 
 
@@ -24,6 +26,7 @@ class EvidenceLedger:
     stat_values: dict[str, float | int | None] = field(default_factory=dict)
     visible_events: dict[str, dict[str, Any]] = field(default_factory=dict)
     rules: set[str] = field(default_factory=set)
+    known_ids: set[str] = field(default_factory=set)  # every event, snapshot or rule id any tool returned
     geometries: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
@@ -41,6 +44,9 @@ class ToolDispatcher:
         self.ledger = ledger or EvidenceLedger()
         self.calls = 0
         self._rule_index: RuleIndex | None = None
+        match_info = self.match.match
+        self._names = {p["player_id"]: p["name"] for side in (match_info["home"], match_info["away"]) for p in side["squad"]}
+        self._names.update({side["team_id"]: side["name"] for side in (match_info["home"], match_info["away"])})
 
     @property
     def events(self) -> list[dict[str, Any]]:
@@ -72,6 +78,7 @@ class ToolDispatcher:
         except Exception:
             return _error("internal", "Evidence retrieval failed.")
         evidence_ids = _collect_ids(data, "eventId")
+        self.ledger.known_ids.update(_ID_PATTERN.findall(json.dumps(data, default=str)))
         stat_refs = _collect_ids(data, "statRef")
         self.ledger.evidence_ids.update(evidence_ids)
         for event in _walk(data):
@@ -119,7 +126,7 @@ class ToolDispatcher:
             self.ledger.visible_events[visible["event_id"]] = {
                 **visible, "eventId": visible["event_id"], "availableMs": visible["available_ms"],
             }
-        return {"event": _public_event(event), "buildUp": [_public_event(e) for e in build_up], "snapshots": snapshots}
+        return {"event": _public_event(event, self._names), "buildUp": [_public_event(e, self._names) for e in build_up], "snapshots": snapshots}
 
     def _get_match_statistics(self, metrics: list[str], scope: str, team_id: str | None) -> dict[str, Any]:
         match = self.match.match
@@ -160,7 +167,7 @@ class ToolDispatcher:
             raise LookupError("Player is not in the bound match.")
         rows = [e for e in self.events if e.get("player_id") == player_id or e.get("target_player_id") == player_id]
         recent = rows[-10:]
-        return {"player": squads[player_id], "metrics": {m: _metric(m, rows, self.events, None, [], self.match.match, player_id) for m in ("passes_attempted", "passes_completed", "shots", "goals", "touches", "recoveries", "pressures")}, "involvement": [_public_event(e) for e in recent]}
+        return {"player": squads[player_id], "metrics": {m: _metric(m, rows, self.events, None, [], self.match.match, player_id) for m in ("passes_attempted", "passes_completed", "shots", "goals", "touches", "recoveries", "pressures")}, "involvement": [_public_event(e, self._names) for e in recent]}
 
     def _find_similar_events(self, event_id: str, max_results: int) -> dict[str, Any]:
         visible = self.events
@@ -193,7 +200,7 @@ class ToolDispatcher:
             game_match = _game_state_sign(item, self.dataset.matches[match_id].events) == _game_state_sign(target, self.match.events)
             score = .35 * zmatch + .25 * build_similarity + .20 * jaccard + .20 * game_match
             if score >= .55:
-                scored.append({"event": _public_event(item), "matchId": match_id, "score": round(score, 3), "similarities": ["same event type"] + (["same zone"] if zmatch else []), "differences": [] if q1 == q2 else ["qualifiers differ"]})
+                scored.append({"event": _public_event(item, self._names), "matchId": match_id, "score": round(score, 3), "similarities": ["same event type"] + (["same zone"] if zmatch else []), "differences": [] if q1 == q2 else ["qualifiers differ"]})
         return {"matches": sorted(scored, key=lambda x: (-x["score"], -x["event"]["matchMs"]))[:max_results]}
 
     def _get_rule_reference(self, incident_tag: str) -> dict[str, Any]:
@@ -245,7 +252,7 @@ class ToolDispatcher:
                 "ballX": round(ball_x, 2), "marginM": margin, "withinUncertainty": abs(margin) < .10,
                 "ownHalf": norm(attacker["x"]) <= 52.5, "involvedInPlay": involved,
                 "recordedRuling": decision.get("recorded_ruling", event.get("outcome")),
-                "snapshot": snapshot,
+                "snapshot": {"snapshot_id": snapshot["snapshot_id"], "match_ms": snapshot["match_ms"], "ball": snapshot["ball"]},  # not all 22 positions: they cost tokens the model does not need
             }
         if kind in {"tactical_foul_yellow", "penalty"}:
             point = event.get("start")
@@ -262,7 +269,7 @@ class ToolDispatcher:
                 "distanceToGoalM": distance,
                 "playersBetween": [{"playerId": p["player_id"], "teamId": "t_" + p["player_id"].split("_")[1]} for p in between],
                 "contactQualifiers": event.get("qualifiers", []), "advantagePossible": regain,
-                "recordedRuling": decision.get("recorded_ruling", event.get("outcome")), "snapshot": snapshot,
+                "recordedRuling": decision.get("recorded_ruling", event.get("outcome")), "snapshot": {"snapshot_id": snapshot["snapshot_id"], "match_ms": snapshot["match_ms"], "ball": snapshot["ball"]},  # not all 22 positions: they cost tokens the model does not need
             }
         raise NotImplementedError("Decision type is not supported by the geometry engine.")
 
@@ -307,8 +314,21 @@ def _metric(metric: str, rows: list[dict], all_rows: list[dict], team_id: str | 
     return None
 
 
-def _public_event(event: dict) -> dict:
-    return {"eventId": event["event_id"], "type": event["type"], "matchMs": event["match_ms"], "availableMs": event["available_ms"], "teamId": event.get("team_id"), "playerId": event.get("player_id"), "targetPlayerId": event.get("target_player_id"), "start": event.get("start"), "end": event.get("end"), "outcome": event.get("outcome"), "qualifiers": event.get("qualifiers", []), "relatedEventIds": event.get("related_event_ids", []), "decision": event.get("decision")}
+def _public_event(event: dict, names: dict[str, str] | None = None) -> dict:
+    """The event as the agents see it. Names are included so a model never has to repeat raw IDs, and generator-internal
+    fields (the authored margin) are left out: measurements come from get_decision_geometry only."""
+    names = names or {}
+    decision = event.get("decision")
+    if decision:
+        decision = {key: value for key, value in decision.items() if key != "authored_margin_m"}
+    return {
+        "eventId": event["event_id"], "type": event["type"], "matchMs": event["match_ms"], "availableMs": event["available_ms"],
+        "teamId": event.get("team_id"), "teamName": names.get(event.get("team_id") or ""),
+        "playerId": event.get("player_id"), "playerName": names.get(event.get("player_id") or ""),
+        "targetPlayerId": event.get("target_player_id"), "targetPlayerName": names.get(event.get("target_player_id") or ""),
+        "start": event.get("start"), "end": event.get("end"), "outcome": event.get("outcome"), "qualifiers": event.get("qualifiers", []),
+        "relatedEventIds": event.get("related_event_ids", []), "decision": decision,
+    }
 
 
 def _squads(match: dict) -> dict[str, dict]:

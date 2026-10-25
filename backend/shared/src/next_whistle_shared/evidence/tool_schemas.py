@@ -32,7 +32,7 @@ class EmptyArgs(ToolArgs):
 class GetEventEvidenceArgs(ToolArgs):
     event_id: str = Field(pattern=r"^e_[a-z0-9_]+$")
     include_build_up: bool = True
-    include_snapshots: bool = True
+    include_snapshots: bool = False  # full player positions are large; decision geometry has its own tool
 
 
 class GetMatchStatisticsArgs(ToolArgs):
