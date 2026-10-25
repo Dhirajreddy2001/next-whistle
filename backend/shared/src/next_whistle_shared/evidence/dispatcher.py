@@ -105,6 +105,7 @@ class ToolDispatcher:
         last = state_events[-1] if state_events else None
         return {"matchId": self.context.match_id, "datasetVersion": self.dataset.version,
                 "cutoffMs": self.context.cutoff_ms, "score": score,
+                "scoreLine": f"{home['name']} {score['home']}–{score['away']} {away['name']}",
                 "clockMs": last["match_ms"] if last else 0,
                 "lastEventId": last["event_id"] if last else None,
                 "eventCount": len(state_events)}

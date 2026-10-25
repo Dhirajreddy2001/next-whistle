@@ -135,3 +135,36 @@ def test_referee_can_search_rules_and_ledger_records_returned_rules():
     )
     analyst = ToolDispatcher(analyst_context, dataset)
     assert analyst.call("search_rules", {"query": "offside", "max_results": 1}).error.code == "unknown_tool"
+
+
+def test_prefetch_gathers_standard_evidence_through_the_bound_dispatcher():
+    from next_whistle_agent.prefetch import prefetch
+
+    event_id = "e_m_rvr_hrb_01167"  # a recorded offside decision
+    ctx = context(cutoff=4_000_000, intent="decision", agent="referee", event=event_id)
+    dispatcher = ToolDispatcher(ctx, DATASET)
+    transcript = prefetch(dispatcher, ctx)
+    tools = [step["tool"] for step in transcript]
+    assert tools[:2] == ["get_match_state", "get_event_evidence"]
+    assert "get_decision_geometry" in tools and "get_rule_reference" in tools
+    assert "get_match_statistics" not in tools  # the referee role is not given that tool
+    assert all(step["result"]["ok"] for step in transcript)
+    assert event_id in dispatcher.ledger.evidence_ids  # what it fetched is what the validator will accept
+
+
+def test_prefetch_recap_uses_the_last_visible_event_and_never_goes_past_the_cutoff():
+    from next_whistle_agent.prefetch import prefetch
+
+    ctx = context(cutoff=1_805_999, intent="recap", agent="analyst")
+    dispatcher = ToolDispatcher(ctx, DATASET)
+    prefetch(dispatcher, ctx)
+    assert all(e["available_ms"] <= 1_805_999 for e in dispatcher.ledger.visible_events.values())
+    assert "e_m_rvr_hrb_00574" not in dispatcher.ledger.evidence_ids  # available exactly at 1_806_000
+
+
+def test_prefetch_gives_the_analyst_the_statistics():
+    from next_whistle_agent.prefetch import prefetch
+
+    ctx = context(cutoff=4_000_000, intent="recap", agent="analyst")
+    tools = [step["tool"] for step in prefetch(ToolDispatcher(ctx, DATASET), ctx)]
+    assert "get_match_statistics" in tools and "get_event_evidence" in tools

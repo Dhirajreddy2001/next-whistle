@@ -126,7 +126,7 @@ class EvidenceValidator:
             if not significance.get("text") and (significance.get("established") or not raw.get("uncertainty")):
                 issues.append(_issue("V11", "Brief significance needs support or explicit uncertainty."))
             for fact in facts:
-                returned = self.ledger.evidence_ids | self.ledger.known_ids | self.ledger.rules
+                returned = self.ledger.evidence_ids | self.ledger.known_ids | self.ledger.rules | set(self.ledger.stat_values)
                 unseen = [e for e in fact.get("evidence_ids", []) if e not in returned]
                 if not fact.get("evidence_ids") or unseen:
                     issues.append(_issue("V15", f"Brief fact {fact.get('id')} cites evidence that no tool returned ({', '.join(unseen) or 'none given'}). Cite only event IDs that appear in tool results, or call get_event_evidence for them first."))

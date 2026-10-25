@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import asyncio
 import sys
 from pathlib import Path
@@ -322,7 +323,7 @@ def test_foundry_runner_needs_tool_calls_and_maps_bad_replies_to_retryable_failu
     )
     dispatcher = ToolDispatcher(context, DATASET)
     with pytest.raises(InvalidOutput, match="did not call any evidence tool"):
-        asyncio.run(runner.run_tool_agent(role="analyst", instructions="i", user_input="u", dispatcher=dispatcher, output_type=EvidenceBrief, run=None))
+        asyncio.run(runner.run_tool_agent(role="analyst", instructions="i", user_input="u", dispatcher=dispatcher, output_type=EvidenceBrief, run=SimpleNamespace(context=context, payload=SimpleNamespace(question_text="why?", question_id=None))))
     assert runner.phases == ["tools"]  # it never moved on to writing a brief without evidence
     with pytest.raises(InvalidOutput, match="Explanation"):
         asyncio.run(runner.run_writer(role="storyteller", instructions="i", user_input="u", output_type=Explanation, run=None))

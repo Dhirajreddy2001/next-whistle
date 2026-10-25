@@ -16,6 +16,7 @@ from agent_framework import Agent, tool
 from next_whistle_shared.evidence.dispatcher import ToolDispatcher
 from next_whistle_shared.evidence.tool_schemas import TOOL_ARGUMENT_MODELS, tool_json_schemas
 
+from .prefetch import is_free_text, prefetch
 from .runner import RunContext, T, Usage
 from .scripted import InvalidOutput, RunnerError
 
@@ -120,13 +121,18 @@ class FoundryRunner:
             raise InvalidOutput(f"{output_type.__name__}: {reason}") from error
 
     async def run_tool_agent(self, *, role: str, instructions: str, user_input: str, dispatcher: ToolDispatcher, output_type: type[T], run: RunContext) -> T:
-        """Two phases: the model gathers evidence with tools, then writes the structured brief from what it gathered.
+        """Two phases: the evidence is gathered, then the model writes the structured brief from it.
+
+        A free-text question lets the model gather with its own tools; the buttons use the standard set from `prefetch`.
 
         Asking for strict structured output and tools in the same call made DeepSeek answer in JSON immediately and
         skip the tools, so the phases are separate.
         """
-        transcript: list[dict[str, Any]] = []
-        await self._call(role, self.tools_model, instructions + GATHER_SUFFIX, user_input, build_tools(dispatcher, transcript), TOOL_TEMPERATURE, None)
+        if is_free_text(run.payload):
+            transcript: list[dict[str, Any]] = []
+            await self._call(role, self.tools_model, instructions + GATHER_SUFFIX, user_input, build_tools(dispatcher, transcript), TOOL_TEMPERATURE, None)
+        else:
+            transcript = prefetch(dispatcher, run.context)  # the standard evidence needs no model round trips
         if not transcript:
             raise InvalidOutput("the model did not call any evidence tool")
         evidence = json.dumps(transcript, ensure_ascii=False)[:MAX_EVIDENCE_CHARS]
