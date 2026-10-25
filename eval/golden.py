@@ -45,7 +45,19 @@ def build_cases(dataset: Any, root: Path) -> list[dict[str, Any]]:
             for level in LEVELS:
                 cases.append({"case_id": f"recap.{match_id}.{level}.t{fraction}", "intent": "recap", "match_id": match_id, "event_id": None,
                               "cutoff_ms": last // fraction, "level": level, "language": "en"})
+    for rule in _rules(root):
+        if not rule.get("plain"):
+            continue
+        for level in LEVELS:
+            cases.append({"case_id": f"law.{rule['rule_id']}.{level}.en", "intent": "referee_question", "match_id": "m_rvr_hrb", "event_id": None,
+                          "cutoff_ms": 1_000_000, "level": level, "language": "en", "question_text": f"Can you explain {rule['law_title'].lower()}?", "rule_id": rule["rule_id"]})
+        cases.append({"case_id": f"law.{rule['rule_id']}.beginner.es", "intent": "referee_question", "match_id": "m_rvr_hrb", "event_id": None,
+                      "cutoff_ms": 1_000_000, "level": "beginner", "language": "es", "question_text": f"¿Puedes explicar {rule['law_title'].lower()}?", "rule_id": rule["rule_id"]})
     return cases
+
+
+def _rules(root: Path) -> list[dict[str, Any]]:
+    return json.loads((root / "data" / "rules" / "v1.2.0" / "rules.json").read_text(encoding="utf-8"))
 
 
 def _case(case_id: str, intent: str, match_id: str, event: dict[str, Any], level: str, language: str) -> dict[str, Any]:

@@ -16,7 +16,7 @@ export type GenerationResult = {
   eventId?: string;
   cached?: boolean;
   generationEnabled?: boolean;
-  scope?: 'in_scope' | 'general_law' | 'redirect' | 'out_of_scope' | 'refused';
+  scope?: 'in_scope' | 'general_law' | 'redirect' | 'out_of_scope' | 'refused' | 'smalltalk';
   redirectEventId?: string | null;
   ruleRefs?: { ruleId: string; lawNumber: number; title: string; sourceUrl: string }[];
 };

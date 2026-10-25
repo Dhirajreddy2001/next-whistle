@@ -5,18 +5,19 @@ Every failure route is taken at most once per request. A second failure returns 
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from next_whistle_shared.contracts.agent import (
-    AgentRequest, AgentResponse, BoundContext, CriticVerdict, EvidenceBrief, Explanation, RefereeAnswer,
+    AgentRequest, AgentResponse, BoundContext, CriticVerdict, EvidenceBrief, Explanation, LawExplanation, RefereeAnswer,
 )
 from next_whistle_shared.evidence.dataset import EvidenceDataset
 from next_whistle_shared.evidence.dispatcher import EvidenceLedger, ToolDispatcher
 from next_whistle_shared.evidence.replay import ledger_from_brief
 from next_whistle_shared.validation.evidence_validator import EvidenceValidator, ValidationReport
 
-from .prompts import PROMPT_VERSION, critic_input, role_prompt, storyteller_input, storyteller_instructions, tool_agent_input
+from .prompts import PROMPT_VERSION, critic_input, law_input, law_instructions, role_prompt, storyteller_input, storyteller_instructions, tool_agent_input
 from .runner import AgentRunner, RunContext
 from .scripted import InvalidOutput, RunnerError
 
@@ -103,9 +104,60 @@ def _fallback(payload: AgentRequest, trace: WorkflowTrace, reason: str, brief: E
     return WorkflowResult(response, trace)
 
 
+async def run_law_workflow(payload: AgentRequest, runner: AgentRunner) -> WorkflowResult:
+    """A general question about the Laws: the Core found the rule, the model only explains it for this viewer.
+
+    There is no retrieval and no Analyst. The Storyteller sees the rule excerpts and nothing else, and its answer
+    is held to the same checks (rule ids it may cite, numbers it may state, no internal names).
+    """
+    context = payload.context
+    assert context is not None
+    trace = WorkflowTrace()
+    excerpts = payload.rule_excerpts
+    ledger = EvidenceLedger()
+    ledger.rules.update(excerpt.rule_id for excerpt in excerpts)
+    ledger.known_ids.update(excerpt.rule_id for excerpt in excerpts)
+    ledger.allowed_numbers.update(re.findall(r"(?<![\w.])\d+(?:\.\d+)?", " ".join(f"{e.summary} {e.plain or ''}" for e in excerpts)))
+    validator = EvidenceValidator(context, ledger, {})
+    run = RunContext(context=context, payload=payload)
+
+    async def attempt(failures: list[str] | None):
+        trace.add("agent.law_storyteller", retry=bool(failures))
+        try:
+            candidate = await runner.run_writer(
+                role="storyteller", instructions=law_instructions(context), user_input=law_input(payload, failures),
+                output_type=LawExplanation, run=run,
+            )
+        except InvalidOutput as error:
+            trace.add("answer.validate", passed=False, issues=[f"V1: {error}"])
+            return None, [f"V1: the answer did not match the required format ({error})"]
+        ids = [law for law in candidate.law_ids if law in ledger.rules] or [e.rule_id for e in excerpts]
+        candidate = candidate.model_copy(update={"law_ids": ids[:3]})  # only the excerpts it was given may be cited
+        problems = _failures(validator.validate(candidate))
+        trace.add("answer.validate", passed=not problems, issues=problems)
+        return candidate, problems
+
+    try:
+        answer, problems = await attempt(None)
+        if problems:
+            trace.retries += 1
+            answer, problems = await attempt(problems)
+            if problems:
+                return _fallback(payload, trace, "answer_validation_failed")
+    except RunnerError as error:
+        return _fallback(payload, trace, f"law_storyteller_failed: {error}")
+    response = AgentResponse(
+        request_id=payload.request_id, status="ok", source=runner.source, workflow_version=WORKFLOW_VERSION,
+        answer=f"{answer.headline.rstrip(' .')}. {answer.answer}"[:2400], law_explanation=answer,
+    )
+    return WorkflowResult(response, trace, ledger)
+
+
 async def run_workflow(
     payload: AgentRequest, dataset: EvidenceDataset, runner: AgentRunner, *, critic_enabled: bool = False,
 ) -> WorkflowResult:
+    if payload.rule_excerpts:
+        return await run_law_workflow(payload, runner)
     context = payload.context
     assert context is not None
     trace = WorkflowTrace()

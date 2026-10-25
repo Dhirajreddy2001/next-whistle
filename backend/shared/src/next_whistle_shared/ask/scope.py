@@ -56,6 +56,11 @@ def is_definition_question(text: str) -> bool:
     return bool(_DEFINITION.search(text)) and not _DEICTIC.search(text)
 
 
+def refers_to_selected_moment(text: str) -> bool:
+    """True when the question points at the moment on screen ("this", "that", "why was", "the flag")."""
+    return bool(_DEICTIC.search(text))
+
+
 def mentioned_decision_type(text: str) -> str | None:
     lowered = text.lower()
     for decision_type, words in DECISION_KEYWORDS.items():

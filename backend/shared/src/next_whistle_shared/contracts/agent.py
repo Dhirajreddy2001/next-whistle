@@ -202,6 +202,24 @@ class RefereeAnswer(ContractModel):
     claims: list[Claim] = Field(default_factory=list, max_length=32)
 
 
+class RuleExcerpt(ContractModel):
+    """A project-authored paraphrase of a Law, found by the Core. The agent may explain it but add nothing to it."""
+
+    rule_id: str = Field(pattern=r"^r_[a-z0-9_]+$")
+    law_number: int = Field(ge=1, le=17)
+    title: str = Field(min_length=1, max_length=120)
+    summary: str = Field(min_length=1, max_length=700)
+    plain: str | None = Field(default=None, max_length=700)  # an everyday-language version, when one is written
+
+
+class LawExplanation(ContractModel):
+    """A grounded answer to a general question about the Laws of the Game."""
+
+    headline: str = Field(min_length=1, max_length=90)
+    answer: str = Field(min_length=1, max_length=900)
+    law_ids: list[str] = Field(default_factory=list, max_length=3)
+
+
 class CriticIssue(ContractModel):
     sentence: int = Field(ge=0)
     kind: Literal["unsupported", "hedging", "level"]
@@ -269,8 +287,15 @@ class AgentRequest(ContractModel):
     viewer: AgentViewer = Field(default_factory=AgentViewer)
     context: BoundContext | None = None
     evidence_brief: AgentEvidenceBrief | None = None
+    rule_excerpts: list[RuleExcerpt] = Field(default_factory=list, max_length=3)  # set for a general Laws question
     cached_brief: EvidenceBrief | None = None  # a brief the Core stored earlier; the agent then skips retrieval
     brief_cutoff_ms: int | None = Field(default=None, ge=0)  # the viewer time at which cached_brief was computed
+
+    @model_validator(mode="after")
+    def check_rule_excerpts(self) -> "AgentRequest":
+        if self.rule_excerpts and (self.intent != "referee_question" or not self.question_text or self.event_id or self.cached_brief):
+            raise ValueError("Rule excerpts are only for a typed general question, with no event and no cached brief")
+        return self
 
     @model_validator(mode="after")
     def check_cached_brief(self) -> "AgentRequest":
@@ -345,12 +370,13 @@ class AgentResponse(ContractModel):
     evidence_brief: EvidenceBrief | None = None
     explanation: Explanation | None = None
     referee_answer: RefereeAnswer | None = None
+    law_explanation: LawExplanation | None = None
     usage: TokenUsage | None = None
     brief_cutoff_ms: int | None = Field(default=None, ge=0)  # viewer time at which evidence_brief was computed
     brief_cached: bool = False  # true when the brief came from the Core's cache and no retrieval ran
 
     @model_validator(mode="after")
     def output_matches_intent_shape(self) -> "AgentResponse":
-        if self.explanation is not None and self.referee_answer is not None:
-            raise ValueError("Response cannot contain both explanation and referee answer")
+        if sum(item is not None for item in (self.explanation, self.referee_answer, self.law_explanation)) > 1:
+            raise ValueError("Response can contain only one of explanation, referee answer and law explanation")
         return self

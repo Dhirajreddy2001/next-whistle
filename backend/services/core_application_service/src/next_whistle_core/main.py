@@ -28,7 +28,7 @@ from next_whistle_core.services.agent_client import AgentServiceClient
 from next_whistle_core.services.ask import answer_without_model, load_rule_index
 from next_whistle_shared.ask import sanitize_question
 from next_whistle_core.services.generation import (
-    build_agent_request, fallback_response, project_root, referee_fallback, supported_question,
+    build_agent_request, build_law_request, fallback_response, project_root, referee_fallback, supported_question,
 )
 from next_whistle_core.store.datasets import Dataset, MatchData, load_dataset
 from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter, client_ip, hash_ip
@@ -391,7 +391,7 @@ def create_app(
             raise ApiError(429, "Generation limit reached for this session", "rate_limited", retry_after(wait))
 
     async def generation_flow(request: Request, session_id: str, cutoff_ms: int, *, body: dict, weight: int, produce,
-                              uses_model: bool, cache_key: str | None) -> JSONResponse:
+                              uses_model: bool, cache_key: str | None, time_independent: bool = False) -> JSONResponse:
         """Idempotency -> cache -> kill switch -> limits -> spend allowance -> concurrency gate -> settle -> cache."""
         ops = request.app.state.ops
         now = int(time.time())
@@ -408,7 +408,7 @@ def create_app(
             if state == "done":
                 return JSONResponse(stored, headers={"Idempotent-Replay": "true", "Cache-Control": "no-store"})
         try:
-            payload = await generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now)
+            payload = await generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now, time_independent)
         except BaseException:
             if idempotency_key is not None:
                 await ops.idempotency_fail(idempotency_key)
@@ -417,10 +417,12 @@ def create_app(
             await ops.idempotency_done(idempotency_key, payload)
         return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
-    async def generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now) -> dict:
+    async def generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now, time_independent=False) -> dict:
         ops = request.app.state.ops
+        # A Law does not change as the match goes on, so its answers are stored at time 0 and valid for every viewer.
+        stored_at, window = (0, None) if time_independent else (cutoff_ms, CACHE_CUTOFF_WINDOW_MS)
         if cache_key is not None:
-            hit = await ops.cache_get(cache_key, cutoff_ms, now)
+            hit = await ops.cache_get(cache_key, stored_at, now, window)
             if hit is not None:
                 return {**hit, "requestId": request.state.request_id, "cached": True}  # cache hits cost nothing
         if not settings.generation_enabled:
@@ -444,8 +446,8 @@ def create_app(
             raise
         await ops.settle(request_id, units)
         # Never cache an answer that cites no evidence: whatever it says, it cannot be checked, and a repeat would serve it for free.
-        if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template" and answer.get("evidenceIds"):
-            await ops.cache_put(cache_key, cutoff_ms, answer, now)
+        if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template" and (answer.get("evidenceIds") or answer.get("ruleRefs")):
+            await ops.cache_put(cache_key, stored_at, answer, now)
         return answer
 
     def brief_key(intent: str, request: Request, match_id: str, event_id: str | None, question_id: str | None) -> str:
@@ -532,6 +534,24 @@ def create_app(
                 visible_decisions=[row for row in visible_events(data, cutoff_ms) if row.get("decision")],
                 index=load_rule_index(str(project_root()), request.app.state.dataset.rules_version), level=body.level,
             )
+            if outcome is not None and outcome.scope == "general_law" and outcome.rules:
+                law_payload = build_law_request(
+                    request_id=request.state.request_id, match_id=match_id, dataset_version=request.app.state.dataset.version,
+                    cutoff_ms=cutoff_ms, question_text=question_text, language=body.language, level=body.level, rules=outcome.rules,
+                )
+                dataset = request.app.state.dataset
+                shape = outcome.topic or "q:" + hashlib.sha1(question_text.lower().strip().encode()).hexdigest()[:16]
+                law_key = "|".join(["law", shape, body.level, body.language, dataset.rules_version, settings.workflow_version])
+
+                async def produce_law(use_agent: bool):
+                    result = (await run_agent_or_fallback(request, law_payload, outcome.answer)) if use_agent else fallback_response(law_payload, answer=outcome.answer)
+                    return camelize({
+                        **base, "status": result.status, "source": result.source, "workflow_version": result.workflow_version,
+                        "scope": "general_law", "answer": result.answer, "evidence_ids": [], "rule_refs": outcome.rule_refs,
+                    }), spent_units(result)
+
+                return await generation_flow(request, session_id, cutoff_ms, body=request_body, weight=weight, produce=produce_law,
+                                             uses_model=True, cache_key=law_key, time_independent=True)
             if outcome is not None:
                 async def produce_template(_use_agent: bool):
                     return camelize({

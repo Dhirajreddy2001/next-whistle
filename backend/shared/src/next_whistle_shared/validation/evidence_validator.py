@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from next_whistle_shared.contracts.agent import (
-    BoundContext, CriticVerdict, EvidenceBrief, Explanation, RefereeAnswer,
+    BoundContext, CriticVerdict, EvidenceBrief, Explanation, LawExplanation, RefereeAnswer,
 )
 from next_whistle_shared.evidence.dispatcher import EvidenceLedger
 
@@ -42,6 +42,7 @@ class EvidenceValidator:
         if isinstance(value, EvidenceBrief):
             schema_type = EvidenceBrief
         elif isinstance(value, RefereeAnswer): schema_type = RefereeAnswer
+        elif isinstance(value, LawExplanation): schema_type = LawExplanation
         elif isinstance(value, Explanation): schema_type = Explanation
         elif isinstance(value, CriticVerdict): schema_type = CriticVerdict
         else:
@@ -79,6 +80,8 @@ class EvidenceValidator:
         scoreless = re.sub(r"\b\d+\s*[–-]\s*\d+\b", " ", prose)  # scores are checked separately by V7
         # V5 protects the viewer-facing answer. A brief's facts carry numbers straight from tool results, so it is exempt.
         for token in ([] if is_brief else re.findall(r"(?<![\w.])\d+(?:\.\d+)?", scoreless)):
+            if token in self.ledger.allowed_numbers:
+                continue  # a number that appears in the rule text being explained
             if re.search(rf"\bLaws?\s+{re.escape(token)}\b", prose):
                 continue  # a Law number such as "Law 11" is a reference, not a statistic
             if re.search(rf"\b{re.escape(token)}(?:st|nd|rd|th)\b|\b{re.escape(token)}\s*(?:minutes?|mins?)\b|\bminutes?\s*{re.escape(token)}\b", prose, re.I):

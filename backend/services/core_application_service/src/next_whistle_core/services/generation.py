@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import HTTPException
 
 from next_whistle_core.store.datasets import MatchData
-from next_whistle_shared.contracts.agent import AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer, QuestionTurn
+from next_whistle_shared.contracts.agent import AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer, QuestionTurn, RuleExcerpt
 
 
 def project_root() -> Path:
@@ -81,7 +81,23 @@ def fallback_response(payload: AgentRequest, *, answer: str) -> AgentResponse:
     return AgentResponse(
         request_id=payload.request_id, status="fallback", source="template",
         workflow_version="template-v1", answer=answer,
-        evidence_ids=payload.evidence_brief.evidence_ids,
+        evidence_ids=payload.evidence_brief.evidence_ids if payload.evidence_brief else [],
+    )
+
+
+def build_law_request(
+    *, request_id: str, match_id: str, dataset_version: str, cutoff_ms: int, question_text: str,
+    language: str, level: str, rules: list[dict],
+) -> AgentRequest:
+    """A general Laws question: the agent gets the rule excerpts the Core found and explains only those."""
+    return AgentRequest(
+        request_id=request_id, intent="referee_question", match_id=match_id, dataset_version=dataset_version,
+        cutoff_ms=cutoff_ms, evidence_cutoff_ms=cutoff_ms, question_text=question_text,
+        viewer=AgentViewer(language=language, level=level),
+        rule_excerpts=[
+            RuleExcerpt(rule_id=rule["rule_id"], law_number=rule["law_number"], title=rule["law_title"], summary=rule["summary"], plain=rule.get("plain"))
+            for rule in rules
+        ],
     )
 
 

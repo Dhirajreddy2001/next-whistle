@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from next_whistle_shared.contracts.agent import (
     BriefStatistic, Claim, CriticVerdict, DataFinding, DecisionRuling, EvidenceBrief, EvidenceFact, EvidenceFactor,
-    Explanation, FocusPlayer, LawSummary, RefereeAnswer, RuleExplanation, Significance,
+    Explanation, FocusPlayer, LawExplanation, LawSummary, RefereeAnswer, RuleExplanation, Significance,
 )
 from next_whistle_shared.evidence.dispatcher import ToolDispatcher
 
@@ -83,6 +83,8 @@ class ScriptedRunner:
         if role == "critic":
             verdict = self.critic_verdicts.pop(0) if self.critic_verdicts else "pass"
             return CriticVerdict(verdict=verdict)
+        if output_type is LawExplanation:
+            return self._law_explanation(run)
         assert run.brief is not None
         answer = self._referee_answer(run) if run.context.intent in {"decision", "referee_question"} else self._explanation(run)
         if self.corrupt_answer is not None:
@@ -191,6 +193,15 @@ class ScriptedRunner:
             significance_established=brief.significance.established, uncertainty=(brief.uncertainty[0] if brief.uncertainty else "")[:240],
             focus_player=focus, claims=claims,
         )
+
+    def _law_explanation(self, run: RunContext) -> LawExplanation:
+        excerpts, context = run.payload.rule_excerpts, run.context
+        top = excerpts[0]
+        text = top.plain if context.level == "beginner" and top.plain else top.summary
+        if context.language.startswith("es"):
+            text = "Según las Reglas de Juego: " + text
+        answer = LawExplanation(headline=f"Law {top.law_number}: {top.title}"[:90], answer=text[:900], law_ids=[excerpt.rule_id for excerpt in excerpts][:3])
+        return self.corrupt_answer(answer, run) if self.corrupt_answer is not None else answer
 
     def _referee_answer(self, run: RunContext) -> RefereeAnswer:
         brief, context = run.brief, run.context

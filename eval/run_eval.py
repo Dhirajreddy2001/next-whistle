@@ -30,11 +30,21 @@ from next_whistle_agent.scripted import ScriptedRunner  # noqa: E402
 from next_whistle_agent.workflow import _load_dataset  # noqa: E402
 from next_whistle_shared.contracts.agent import AgentRequest, AgentViewer, Explanation, RefereeAnswer  # noqa: E402
 
+_RULES = json.loads((ROOT / "data" / "rules" / "v1.2.0" / "rules.json").read_text(encoding="utf-8"))
 ES_MARKERS = (" el ", " la ", " los ", " de ", " del ", "registro", "datos", "partido", "tarjeta", "gol", "decisión")
 EST_INPUT_TOKENS, EST_OUTPUT_TOKENS = 9_000, 1_500  # per case, used only for the pre-run spend estimate
 
 
 def make_request(case: dict) -> AgentRequest:
+    if case.get("rule_id"):
+        from next_whistle_shared.contracts.agent import RuleExcerpt
+        rule = next(r for r in _RULES if r["rule_id"] == case["rule_id"])
+        return AgentRequest(
+            request_id=f"req_{abs(hash(case['case_id'])) % 10**9}", intent="referee_question", match_id=case["match_id"], dataset_version="1.2.0",
+            cutoff_ms=case["cutoff_ms"], evidence_cutoff_ms=case["cutoff_ms"], question_text=case["question_text"],
+            viewer=AgentViewer(level=case["level"], language=case["language"]),
+            rule_excerpts=[RuleExcerpt(rule_id=rule["rule_id"], law_number=rule["law_number"], title=rule["law_title"], summary=rule["summary"], plain=rule.get("plain"))],
+        )
     return AgentRequest(
         request_id=f"req_{abs(hash(case['case_id'])) % 10**9}", intent=case["intent"], match_id=case["match_id"],
         dataset_version="1.2.0", cutoff_ms=case["cutoff_ms"], evidence_cutoff_ms=case["cutoff_ms"], event_id=case.get("event_id"),
@@ -44,6 +54,16 @@ def make_request(case: dict) -> AgentRequest:
 
 def score(case: dict, result, dataset, elapsed_ms: int) -> dict:
     response = result.response
+    if case.get("rule_id"):  # a general Laws question: the answer must cite only the rule it was given and respect the level
+        law = response.law_explanation
+        profile = profile_for(case["level"])
+        checks = {"completed": response.status == "ok", "rule_cited": bool(law) and law.law_ids == [case["rule_id"]],
+                  "level_words": len(response.answer.split()) <= profile.max_words + 40}
+        if case["language"].startswith("es") and law:
+            checks["language"] = any(marker in f" {response.answer.lower()} " for marker in ES_MARKERS)
+        return {"case_id": case["case_id"], "level": case["level"], "intent": "law", "passed": all(checks.values()), "checks": checks,
+                "details": {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries, "words": len(response.answer.split())},
+                "latency_ms": elapsed_ms, "answer": response.answer[:400]}
     answer = response.explanation or response.referee_answer
     checks: dict[str, bool] = {"completed": response.status == "ok"}
     details: dict = {"fallback_reason": result.trace.fallback_reason, "retries": result.trace.retries}

@@ -1,10 +1,10 @@
 from .agent import (
     AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer, BoundContext,
-    CriticVerdict, EvidenceBrief, Explanation, RefereeAnswer, ToolResultEnvelope,
+    CriticVerdict, EvidenceBrief, Explanation, LawExplanation, RefereeAnswer, RuleExcerpt, ToolResultEnvelope,
 )
 
 __all__ = [
     "AgentEvidenceBrief", "AgentRequest", "AgentResponse", "AgentViewer",
     "BoundContext", "CriticVerdict", "EvidenceBrief", "Explanation",
-    "RefereeAnswer", "ToolResultEnvelope",
+    "LawExplanation", "RefereeAnswer", "RuleExcerpt", "ToolResultEnvelope",
 ]

@@ -434,3 +434,63 @@ def test_an_explanation_may_only_cite_a_rule_a_tool_actually_returned():
 
     invented, _ = run(request(), ScriptedRunner(corrupt_answer=cites("Law 11")))  # the Analyst has no rule tool
     assert invented.response.status == "ok" and invented.response.explanation.rule is None
+
+
+# ---- general Laws questions: explain only the rule the Core found -----------------------------------------------------
+
+def law_request(level="beginner", language="en", text="when is a red card given", excerpts=None):
+    import json
+    from next_whistle_shared.contracts.agent import RuleExcerpt
+
+    rules = json.loads((Path(__file__).resolve().parents[4] / "data/rules/v1.2.0/rules.json").read_text(encoding="utf-8"))
+    chosen = excerpts or [next(r for r in rules if r["rule_id"] == "r_law12_red_card")]
+    return AgentRequest(
+        request_id="req_law", intent="referee_question", match_id="m_rvr_hrb", dataset_version=DATASET.version, cutoff_ms=4_600_000,
+        evidence_cutoff_ms=4_600_000, question_text=text, viewer=AgentViewer(level=level, language=language),
+        rule_excerpts=[RuleExcerpt(rule_id=r["rule_id"], law_number=r["law_number"], title=r["law_title"], summary=r["summary"], plain=r.get("plain")) for r in chosen],
+    )
+
+
+from pathlib import Path  # noqa: E402
+
+
+def test_a_rule_question_runs_one_storyteller_call_and_no_retrieval():
+    result, runner = run(law_request())
+    assert result.response.status == "ok" and runner.calls == ["storyteller"]
+    assert result.response.law_explanation.law_ids == ["r_law12_red_card"] and "red card" in result.response.answer.lower()
+    pro, _ = run(law_request(level="pro"))
+    assert pro.response.answer != result.response.answer  # the level changes the wording
+
+
+def test_a_rule_answer_may_cite_only_the_rules_it_was_given_and_state_only_numbers_from_them():
+    from next_whistle_shared.contracts.agent import LawExplanation
+
+    def sloppy(answer, _):
+        return LawExplanation(headline="Red cards", answer="A red card is shown for serious foul play, and a goalkeeper may hold the ball 8 seconds.", law_ids=["r_law12_red_card", "r_law99_invented"])
+
+    result, runner = run(law_request(), ScriptedRunner(corrupt_answer=sloppy))
+    assert result.response.status == "fallback" and result.trace.fallback_reason == "answer_validation_failed" and runner.calls == ["storyteller", "storyteller"]
+    assert any("without a number claim" in issue for step in result.trace.steps for issue in step.get("issues", []))
+    from next_whistle_shared.contracts.agent import LawExplanation as L
+    fine, _ = run(law_request(), ScriptedRunner(corrupt_answer=lambda a, _: L(headline="Law 12", answer="Here is the rule.", law_ids=["r_law12_red_card", "r_law99_invented"])))
+    assert fine.response.law_explanation.law_ids == ["r_law12_red_card"]  # an id it was not given is dropped
+
+
+def test_numbers_that_the_rule_text_contains_are_allowed():
+    import json
+    from next_whistle_shared.contracts.agent import LawExplanation
+
+    rules = json.loads((Path(__file__).resolve().parents[4] / "data/rules/v1.2.0/rules.json").read_text(encoding="utf-8"))
+    corner = [next(r for r in rules if r["rule_id"] == "r_law17_corner_kick")]
+    ok, _ = run(law_request(text="how far must defenders stand at a corner", excerpts=corner), ScriptedRunner(corrupt_answer=lambda a, _: LawExplanation(headline="Corner kick", answer="Opponents must stay at least 9.15 metres away.", law_ids=["r_law17_corner_kick"])))
+    assert ok.response.status == "ok"
+
+
+def test_rule_requests_cannot_smuggle_in_an_event_or_a_cached_brief():
+    import pytest as _pytest
+
+    base = law_request().model_dump(by_alias=True)
+    with _pytest.raises(ValueError, match="typed general question"):
+        AgentRequest.model_validate({**base, "eventId": DISALLOWED, "context": None})
+    with _pytest.raises(ValueError, match="typed general question"):
+        AgentRequest.model_validate({**base, "intent": "explain", "context": None})

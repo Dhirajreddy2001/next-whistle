@@ -9,7 +9,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from next_whistle_shared.ask import is_definition_question, is_future_question, is_injection, mentioned_decision_type
+from next_whistle_shared.ask import (
+    is_definition_question, is_future_question, is_injection, mentioned_decision_type, refers_to_selected_moment,
+)
 from next_whistle_shared.evidence.rule_search import RuleIndex
 
 MIN_RULE_SCORE = 5.0
@@ -52,6 +54,8 @@ class AskOutcome:
     answer: str
     rule_refs: list[dict[str, Any]] = field(default_factory=list)
     redirect_event_id: str | None = None
+    rules: list[dict[str, Any]] = field(default_factory=list)  # for general_law: the rule(s) the agent may explain
+    topic: str | None = None  # the rule id when the question names a rule topic directly (a stable cache key)
 
 
 @lru_cache(maxsize=4)
@@ -64,25 +68,37 @@ def _rule_ref(rule: dict[str, Any]) -> dict[str, Any]:
     return {"ruleId": rule["rule_id"], "lawNumber": rule["law_number"], "title": rule["law_title"], "sourceUrl": rule["source_url"]}
 
 
+def _names_a_topic(question: str) -> bool:
+    return any(pattern.search(question) for pattern, _ in _TOPICS)
+
+
 def _strong_hits(question: str, index: RuleIndex) -> list[dict[str, Any]]:
     return [rule for score, rule in index.search(question, 2) if score >= MIN_RULE_SCORE]
 
 
-def _law_outcome(rules: list[dict[str, Any]], level: str) -> AskOutcome:
-    """Beginners get the plain-language explanation when one is written; everyone else gets the Laws' summary."""
+def _law_outcome(rules: list[dict[str, Any]], level: str, topic: str | None = None) -> AskOutcome:
+    """The fixed answer (used when the model is unavailable): beginners get the plain version when one is written."""
     top = rules[0]
+    refs = [_rule_ref(rule) for rule in rules]
     if level == "beginner" and top.get("plain"):
-        return AskOutcome("general_law", top["plain"], [_rule_ref(rule) for rule in rules])
-    return AskOutcome("general_law", f"Under the Laws of the Game: {top['summary']}", [_rule_ref(rule) for rule in rules])
+        return AskOutcome("general_law", top["plain"], refs, rules=rules[:3], topic=topic)
+    return AskOutcome("general_law", f"Under the Laws of the Game: {top['summary']}", refs, rules=rules[:3], topic=topic)
 
 
 def _law_answer(question: str, index: RuleIndex, level: str) -> AskOutcome | None:
     by_id = {rule["rule_id"]: rule for rule in index.rules}
     for pattern, rule_id in _TOPICS:
         if pattern.search(question) and rule_id in by_id:
-            return _law_outcome([by_id[rule_id]], level)
+            return _law_outcome([by_id[rule_id]], level, topic=rule_id)
     strong = _strong_hits(question, index)
     return _law_outcome(strong, level) if strong else None
+
+
+_GREETING = re.compile(r"^\s*(hi|hello|hey|hiya|hola|yo|good\s+(?:morning|afternoon|evening)|thanks|thank\s+you|gracias)\b[\s!.?]*$", re.IGNORECASE)
+_SMALLTALK = {
+    "en": "Hi! Pick a recorded decision in the Decisions tab and ask me about it, or ask about the Laws of the Game, for example \"When is a red card shown?\" or \"What is offside?\"",
+    "es": "¡Hola! Elige una decisión registrada en la pestaña Decisiones y pregúntame por ella, o pregunta por las Reglas de Juego, por ejemplo \"¿Cuándo se muestra una tarjeta roja?\" o \"¿Qué es el fuera de juego?\"",
+}
 
 
 def _text(key: str, language: str) -> str:
@@ -95,11 +111,14 @@ def answer_without_model(
     """Return an outcome when the question needs no model, or None when it belongs to the selected decision."""
     if is_injection(question):
         return AskOutcome("refused", _text("refused", language))
+    if _GREETING.match(question):
+        return AskOutcome("smalltalk", _SMALLTALK["es" if language.startswith("es") else "en"])
     if is_future_question(question):
         return AskOutcome("out_of_scope", _text("out_of_scope", language))
 
     # A question about what a rule means is answered from the Laws, even when a decision is selected and shares the word.
-    if is_definition_question(question):
+    # The same goes for any question that names a rule topic without pointing at the moment on screen.
+    if is_definition_question(question) or (_names_a_topic(question) and not refers_to_selected_moment(question)):
         definition = _law_answer(question, index, level)
         if definition is not None:
             return definition

@@ -26,6 +26,7 @@ class EvidenceLedger:
     stat_values: dict[str, float | int | None] = field(default_factory=dict)
     visible_events: dict[str, dict[str, Any]] = field(default_factory=dict)
     rules: set[str] = field(default_factory=set)
+    allowed_numbers: set[str] = field(default_factory=set)  # numbers a rule answer may state because the rule text contains them
     known_ids: set[str] = field(default_factory=set)  # every event, snapshot or rule id any tool returned
     geometries: dict[str, dict[str, Any]] = field(default_factory=dict)
 
