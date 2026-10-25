@@ -1,4 +1,4 @@
-.PHONY: install install-backend install-agent run eval eval-live setup backend core agent frontend test test-core test-agent build data validate-data
+.PHONY: install install-backend install-agent run eval eval-live cloud-what-if cloud-up cloud-down cloud-env setup backend core agent frontend test test-core test-agent build data validate-data
 
 install: install-backend install-agent
 	cd frontend && npm install
@@ -30,6 +30,20 @@ eval:
 # PRICE_INPUT_PER_MTOK, PRICE_OUTPUT_PER_MTOK, and an explicit cap, e.g. make eval-live MAX_USD=2 LIMIT=12
 eval-live:
 	cd backend && AGENT_MODE=foundry .venv-agent/bin/python ../eval/run_eval.py --mode foundry --confirm-spend --max-usd $(MAX_USD) --limit $(LIMIT)
+
+# Azure (all in one resource group; see infra/README.md). None of these run until you invoke them.
+cloud-what-if:
+	infra/deploy.sh --what-if
+
+cloud-up:
+	infra/deploy.sh
+
+cloud-down:
+	infra/destroy.sh
+
+# Print the environment variables for running the live eval from your laptop against the deployed Foundry project.
+cloud-env:
+	@python3 infra/env.py
 
 setup:
 	uv sync --project backend/services/core_application_service --python 3.12
