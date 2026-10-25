@@ -128,6 +128,8 @@ async def main_async(args) -> int:
     rows: list[dict] = []
     spent = 0.0
     started = datetime.now(timezone.utc)
+    partial = ROOT / "eval" / "reports" / f"{started.strftime('%Y%m%dT%H%M%SZ')}-partial.jsonl"
+    partial.parent.mkdir(parents=True, exist_ok=True)
 
     async def run_all(make_runner):
         nonlocal spent
@@ -141,6 +143,10 @@ async def main_async(args) -> int:
             row["tokens"] = {"input": used[0], "output": used[1], "calls": used[2]}
             spent += (used[0] * price_in + used[1] * price_out) / 1e6
             rows.append(row)
+            if live:  # progress is visible while a slow run is going, and a stopped run keeps what it scored
+                print(f"[{len(rows)}/{len(cases)}] {'pass' if row['passed'] else 'FAIL'} {row['case_id']} {row['latency_ms']}ms ${spent:.3f}", flush=True)
+                with partial.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(row, ensure_ascii=False) + "\n")
             if live and spent >= args.max_usd:
                 print(f"Spend cap reached (${spent:.2f}); stopping after {len(rows)} cases.")
                 break
