@@ -24,15 +24,15 @@ _DECISION_TAGS = {
 }
 # "What is X?" questions go straight to the rule that defines X; ranking is only the fallback.
 _TOPICS = [
-    (re.compile(r"\boffside\b", re.I), "r_law11_offside"),
-    (re.compile(r"\bpenalt(?:y|ies)\b|\bspot\s*kick\b", re.I), "r_law14_penalty_kick"),
-    (re.compile(r"\byellow\s*card|\bbooking|\bcaution", re.I), "r_law12_yellow_card"),
-    (re.compile(r"\bred\s*card|\bsent\s*off|\bsending[\s-]*off", re.I), "r_law12_red_card"),
-    (re.compile(r"\bcorner", re.I), "r_law17_corner_kick"),
-    (re.compile(r"\bfree[\s-]*kick", re.I), "r_law13_free_kick"),
-    (re.compile(r"\bhand[\s-]*ball|\bhandling", re.I), "r_law12_handball"),
+    (re.compile(r"\boffside\b|fuera\s+de\s+juego", re.I), "r_law11_offside"),
+    (re.compile(r"\bpenalt(?:y|ies)\b|\bspot\s*kick\b|\bpenal(?:ti)?\b", re.I), "r_law14_penalty_kick"),
+    (re.compile(r"\byellow\s*card|\bbooking|\bcaution|tarjeta\s+amarilla|\bamonestaci", re.I), "r_law12_yellow_card"),
+    (re.compile(r"\bred\s*card|\bsent\s*off|\bsending[\s-]*off|tarjeta\s+roja|\bexpulsi", re.I), "r_law12_red_card"),
+    (re.compile(r"\bcorner|\bsaque\s+de\s+esquina|\btiro\s+de\s+esquina", re.I), "r_law17_corner_kick"),
+    (re.compile(r"\bfree[\s-]*kick|tiro\s+libre", re.I), "r_law13_free_kick"),
+    (re.compile(r"\bhand[\s-]*ball|\bhandling|\bmano\b|\bmanos\b", re.I), "r_law12_handball"),
     (re.compile(r"\bvar\b|video\s+(?:assistant\s+)?referee|video\s+review", re.I), "r_law5_var"),
-    (re.compile(r"\badvantage", re.I), "r_law5_advantage"),
+    (re.compile(r"\badvantage|\bventaja\b", re.I), "r_law5_advantage"),
 ]
 _DEICTIC_WORDS = ("this", "that", "here", "the flag", "the decision", "the call", "the ruling", "why was", "why did")
 
