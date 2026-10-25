@@ -495,3 +495,28 @@ def test_rule_requests_cannot_smuggle_in_an_event_or_a_cached_brief():
         AgentRequest.model_validate({**base, "eventId": DISALLOWED, "context": None})
     with _pytest.raises(ValueError, match="typed general question"):
         AgentRequest.model_validate({**base, "intent": "explain", "context": None})
+
+
+def test_storyteller_is_given_only_as_many_statistics_as_the_level_allows():
+    from next_whistle_agent.prompts import for_viewer
+
+    result, _ = run(request(intent="recap", event=None, level="pro"))
+    brief = result.response.evidence_brief
+    assert len(brief.stats) >= 2
+    beginner = for_viewer(SimpleNamespace(level="beginner"), brief)
+    assert len(beginner.stats) <= 2
+    assert all(".goals." in stat.stat_ref for stat in beginner.stats) or len(brief.stats) < 2  # goals come first
+    assert len(brief.stats) >= len(beginner.stats)  # the stored brief keeps everything
+
+
+def test_a_score_written_from_the_leaders_side_is_accepted_but_a_wrong_one_is_not():
+    def with_score(text):
+        return lambda answer, ctx: answer.model_copy(update={"what_happened": answer.what_happened + f" It stands at {text}."})
+
+    result, _ = run(request())
+    state = result.ledger.visible_events["__match_state__"]["score"]
+    home, away = state["home"], state["away"]
+    ok, _ = run(request(), ScriptedRunner(corrupt_answer=with_score(f"{max(home, away)}–{min(home, away)}")))
+    assert ok.response.status == "ok" and ok.trace.retries == 0
+    bad, _ = run(request(), ScriptedRunner(corrupt_answer=with_score("9–9")))
+    assert bad.trace.retries == 1

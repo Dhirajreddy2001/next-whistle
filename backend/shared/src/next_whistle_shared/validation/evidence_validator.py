@@ -98,7 +98,8 @@ class EvidenceValidator:
         score = re.search(r"\b(\d+)\s*[–-]\s*(\d+)\b", prose)
         if score:
             state = self.ledger.visible_events.get("__match_state__", {}).get("score")
-            if state and [int(score[1]), int(score[2])] != [state.get("home"), state.get("away")]: issues.append(_issue("V7", "Prose score differs from match state."))
+            # "1–0" may be written from the leader's side, so the two numbers are compared, not their order
+            if state and sorted((int(score[1]), int(score[2]))) != sorted((state.get("home"), state.get("away"))): issues.append(_issue("V7", "Prose score differs from match state."))
         for rule in _rule_ids(raw):
             if rule not in self.ledger.rules: issues.append(_issue("V8", f"Rule {rule} is absent from the tool ledger."))
         focus = raw.get("focus_player")

@@ -68,8 +68,24 @@ def allowed_numbers(brief: EvidenceBrief) -> str:
     return "Numbers you may state (any other number is invalid; each one needs a number claim citing its reference):\n" + "\n".join(lines)
 
 
+_STAT_PRIORITY = ["goals", "shots_on_target", "shots", "possession_pct"]
+
+
+def for_viewer(context: BoundContext, brief: EvidenceBrief) -> EvidenceBrief:
+    """The statistics a viewer's number limit allows, goals first. The stored brief keeps all of them.
+
+    Handing the Storyteller more figures than it may state only makes it overshoot the limit.
+    """
+    room = profile_for(context.level).max_numbers
+    if brief.ruling and (brief.ruling.geometry or {}).get("marginM") is not None:
+        room -= 1  # the measured margin takes a slot
+    rank = lambda stat: next((i for i, metric in enumerate(_STAT_PRIORITY) if f".{metric}." in stat.stat_ref), len(_STAT_PRIORITY))
+    return brief.model_copy(update={"stats": sorted(brief.stats, key=rank)[:max(room, 0)]})
+
+
 def storyteller_input(context: BoundContext, brief: EvidenceBrief, failures: list[str] | None = None) -> str:
     kind = "RefereeAnswer" if context.intent in {"decision", "referee_question"} else "Explanation"
+    brief = for_viewer(context, brief)
     text = f"Write a {kind} from this brief.\n{allowed_numbers(brief)}\nBrief:\n" + brief.model_dump_json(by_alias=True)
     if failures:
         text += "\n\nYour previous answer failed validation. Fix these problems:\n- " + "\n- ".join(failures)

@@ -6,6 +6,7 @@ The dispatcher stays the only way to retrieve evidence: each allowed tool is a t
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from contextlib import AsyncExitStack
@@ -21,6 +22,7 @@ from .runner import RunContext, T, Usage
 from .scripted import InvalidOutput, RunnerError
 
 TOOL_TEMPERATURE, WRITER_TEMPERATURE = 0.2, 0.5
+CALL_TIMEOUT_SECONDS = float(os.getenv("MODEL_CALL_TIMEOUT_SECONDS", "45"))  # one stalled model call must not hold a request forever
 TOKEN_CAPS = {"analyst": 14_000, "referee": 12_000, "storyteller": 3_000, "critic": 2_500}
 
 
@@ -102,8 +104,8 @@ class FoundryRunner:
             options["response_format"] = response_format
         agent = Agent(client=await self._client(model), instructions=instructions, tools=tools or None, default_options=options)
         try:
-            result = await agent.run(user_input)
-        except Exception as error:  # surfaced as a workflow fallback, never a crash
+            result = await asyncio.wait_for(agent.run(user_input), CALL_TIMEOUT_SECONDS)
+        except Exception as error:  # surfaced as a workflow fallback, never a crash (a stalled call is a timeout)
             raise RunnerError(f"{role} model call failed: {type(error).__name__}") from error
         details = getattr(result, "usage_details", None) or {}
         self.usage.add(details.get("input_token_count") or 0, details.get("output_token_count") or 0)
