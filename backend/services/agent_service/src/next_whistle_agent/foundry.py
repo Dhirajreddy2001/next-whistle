@@ -37,8 +37,10 @@ def build_tools(dispatcher: ToolDispatcher) -> list[Any]:
 class FoundryRunner:
     source = "generated"
 
-    def __init__(self, endpoint: str, tools_model: str, small_model: str):
-        self.endpoint, self.tools_model, self.small_model = endpoint, tools_model, small_model
+    def __init__(self, endpoint: str | None, tools_model: str, small_model: str, base_url: str | None = None):
+        # `base_url` (https://<account>.services.ai.azure.com/openai/v1) calls the model deployments directly; otherwise the
+        # Foundry project endpoint is used.
+        self.endpoint, self.tools_model, self.small_model, self.base_url = endpoint, tools_model, small_model, base_url
         self.usage = Usage()
         self._stack: AsyncExitStack | None = None
         self._credential: Any = None
@@ -46,9 +48,11 @@ class FoundryRunner:
 
     @classmethod
     def from_env(cls) -> "FoundryRunner":
-        endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
+        endpoint, base_url = os.getenv("FOUNDRY_PROJECT_ENDPOINT"), os.getenv("FOUNDRY_OPENAI_BASE_URL")
+        if not endpoint and not base_url:
+            raise KeyError("Set FOUNDRY_OPENAI_BASE_URL (direct) or FOUNDRY_PROJECT_ENDPOINT")
         tools_model = os.getenv("MODEL_TOOLS") or os.environ["FOUNDRY_MODEL"]
-        return cls(endpoint, tools_model, os.getenv("MODEL_SMALL") or tools_model)
+        return cls(endpoint, tools_model, os.getenv("MODEL_SMALL") or tools_model, base_url)
 
     async def __aenter__(self) -> "FoundryRunner":
         from azure.identity.aio import DefaultAzureCredential
@@ -65,10 +69,15 @@ class FoundryRunner:
         if self._stack is None:
             raise RuntimeError("Use FoundryRunner as an async context manager.")
         if model not in self._clients:
-            from agent_framework.foundry import FoundryChatClient
+            # The clients wrap the credential and have nothing of their own to close; the credential is closed on exit.
+            if self.base_url:
+                from agent_framework.openai import OpenAIChatCompletionClient
 
-            # The client wraps the credential and has nothing of its own to close; the credential is closed on exit.
-            self._clients[model] = FoundryChatClient(project_endpoint=self.endpoint, model=model, credential=self._credential)
+                self._clients[model] = OpenAIChatCompletionClient(model=model, base_url=self.base_url, credential=self._credential)
+            else:
+                from agent_framework.foundry import FoundryChatClient
+
+                self._clients[model] = FoundryChatClient(project_endpoint=self.endpoint, model=model, credential=self._credential)
         return self._clients[model]
 
     async def _run(self, role: str, model: str, instructions: str, user_input: str, output_type: type[T], tools: list[Any] | None, temperature: float) -> T:
