@@ -525,7 +525,7 @@ def create_app(
             outcome = answer_without_model(
                 question=question_text, language=body.language, selected_event=event,
                 visible_decisions=[row for row in visible_events(data, cutoff_ms) if row.get("decision")],
-                index=load_rule_index(str(project_root()), request.app.state.dataset.rules_version),
+                index=load_rule_index(str(project_root()), request.app.state.dataset.rules_version), level=body.level,
             )
             if outcome is not None:
                 async def produce_template(_use_agent: bool):

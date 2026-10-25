@@ -277,3 +277,22 @@ def test_ops_store_windows_and_stale_reservations(tmp_path):
     assert store.consume("scope", "k", 3, 60, now=1061, weight=2) == (True, 0)
     assert store.reserve("r1", 60, now=0) and not store.reserve("r2", 60, now=1)
     assert store.reserve("r2", 60, now=10_000)  # r1 was abandoned and expired, freeing the budget
+
+
+def test_definition_questions_are_answered_from_the_laws_even_with_a_decision_selected(tmp_path):
+    agent = StubAgent()
+    with build(tmp_path, agent, limit_session_hour=100, limit_ip_hour=100) as client:
+        headers = session(client)
+        for text in ("what is offside", "yeah but I don't know what offside means explain", "What does offside mean?"):
+            body = ask(client, headers, text, eventId="e_m_rvr_hrb_01167", level="beginner").json()
+            assert body["scope"] == "general_law" and body["ruleRefs"][0]["lawNumber"] == 11
+            assert "second-last defender" in body["answer"] and "Under the Laws" not in body["answer"]  # the plain-language version
+        pro = ask(client, headers, "what is offside", eventId="e_m_rvr_hrb_01167", level="pro").json()
+        assert pro["answer"].startswith("Under the Laws of the Game:")  # others get the Laws' own summary
+        spanish_free = ask(client, headers, "what is a penalty", level="beginner").json()
+        assert "11 metres" in spanish_free["answer"]
+        about_this = ask(client, headers, "Why was this offside?", eventId="e_m_rvr_hrb_01167").json()
+        assert about_this["scope"] == "in_scope"  # questions about the selected moment still reach the agent
+        position = ask(client, headers, "Was the attacker beyond the defender?", eventId="e_m_rvr_hrb_01167").json()
+        assert position["scope"] == "in_scope"
+    assert agent.calls == 2 and True

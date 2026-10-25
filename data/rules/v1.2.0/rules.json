@@ -40,7 +40,8 @@
     "source_url": "https://www.theifab.com/laws/latest/the-referee/",
     "source_title": "IFAB Laws of the Game — Law 5: The Referee",
     "section": "5.2",
-    "keywords": ""
+    "keywords": "",
+    "plain": "Advantage means the referee lets play carry on after a foul because the fouled team is still in a good position, instead of stopping the game."
   },
   {
     "rule_id": "r_law5_var",
@@ -55,7 +56,8 @@
     "source_url": "https://www.theifab.com/laws/latest/the-referee/",
     "source_title": "IFAB Laws of the Game — Law 5: The Referee",
     "section": "5.4",
-    "keywords": "video review var check"
+    "keywords": "video review var check",
+    "plain": "VAR is a team of video referees who watch the game on screens. They step in only for clear mistakes about goals, penalties, direct red cards or the wrong player being punished, and the referee on the field still makes the final decision."
   },
   {
     "rule_id": "r_law7_added_time",
@@ -156,7 +158,8 @@
     "source_url": "https://www.theifab.com/laws/latest/offside/",
     "source_title": "IFAB Laws of the Game — Law 11: Offside",
     "section": "11.1",
-    "keywords": "offside flag linesman assistant second last defender"
+    "keywords": "offside flag linesman assistant second last defender",
+    "plain": "Offside is a rule that stops attackers from just waiting next to the other team's goal. When a teammate passes the ball forward, an attacker must not be closer to the goal line than both the ball and the second-last defender (the goalkeeper usually counts as one of the defenders). Standing there is not a foul by itself: the referee only gives offside if that player then joins in, for example by playing the ball or getting in a defender's way. The other team then gets a free kick."
   },
   {
     "rule_id": "r_law11_offside_involvement",
@@ -232,7 +235,8 @@
     "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
     "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
     "section": "12.3",
-    "keywords": "booked caution booking"
+    "keywords": "booked caution booking",
+    "plain": "A yellow card is a warning to a player. It is shown for things like a reckless tackle, wasting time, arguing with the referee or a foul that stops a promising attack. It does not send the player off."
   },
   {
     "rule_id": "r_law12_red_card",
@@ -246,7 +250,8 @@
     "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
     "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
     "section": "12.3",
-    "keywords": "sent off dismissed ejected straight red"
+    "keywords": "sent off dismissed ejected straight red",
+    "plain": "A red card sends a player off for the rest of the match, and their team has to play one player short because they cannot be replaced. It is shown for very serious things, such as dangerous or violent play, fouling to stop an obvious goal chance, or a second yellow card in the same match."
   },
   {
     "rule_id": "r_law12_dogso",
@@ -304,7 +309,8 @@
     "source_url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/",
     "source_title": "IFAB Laws of the Game — Law 12: Fouls and Misconduct",
     "section": "12.1",
-    "keywords": "hand arm touch"
+    "keywords": "hand arm touch",
+    "plain": "Handball means deliberately touching the ball with the hand or arm, or making your body unnaturally bigger so your arm blocks the ball. It gives the other team a free kick, or a penalty if it happens in the defender's own box."
   },
   {
     "rule_id": "r_law13_free_kick",
@@ -319,7 +325,8 @@
     "source_url": "https://www.theifab.com/laws/latest/free-kicks/",
     "source_title": "IFAB Laws of the Game — Law 13: Free Kicks",
     "section": "13.1",
-    "keywords": "wall set piece"
+    "keywords": "wall set piece",
+    "plain": "A free kick restarts play after a foul. The ball is placed where the foul happened and the other team must stay about nine metres away. A direct free kick can go straight into the goal, while an indirect one must touch another player first."
   },
   {
     "rule_id": "r_law14_penalty_kick",
@@ -334,7 +341,8 @@
     "source_url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
     "source_title": "IFAB Laws of the Game — Law 14: The Penalty Kick",
     "section": "14.1",
-    "keywords": "penalty spot spot kick area foul"
+    "keywords": "penalty spot spot kick area foul",
+    "plain": "A penalty is a free shot at goal from 11 metres, given when a defender commits a foul inside their own penalty box. Only the kicker and the goalkeeper take part, and everyone else waits outside the box."
   },
   {
     "rule_id": "r_law14_penalty_outcomes",
@@ -392,7 +400,8 @@
     "source_url": "https://www.theifab.com/laws/latest/the-corner-kick/",
     "source_title": "IFAB Laws of the Game — Law 17: The Corner Kick",
     "section": "17.1",
-    "keywords": "corner flag"
+    "keywords": "corner flag",
+    "plain": "A corner kick goes to the attacking team when the ball crosses the goal line after a defender touched it last. The ball is placed in the corner and kicked into play, and the other team must stay about nine metres away."
   },
   {
     "rule_id": "r_law1_surface",

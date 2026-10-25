@@ -21,6 +21,15 @@ _FUTURE = re.compile(
     re.IGNORECASE,
 )
 
+# "What is offside?", "I don't know what a penalty means": a question about the rule itself, not about this decision.
+_DEFINITION = re.compile(
+    r"\b(what\s+is|what's|whats|what\s+are|what\s+does\s+.{1,40}\s+mean|what\s+do\s+you\s+mean|meaning\s+of|define|definition\s+of"
+    r"|(?:don'?t|do\s+not)\s+(?:know|understand)\s+what|explain\s+(?:what|the\s+rule)|how\s+does\s+.{1,30}\s+work)\b",
+    re.IGNORECASE,
+)
+# Words that tie a question to the selected moment.
+_DEICTIC = re.compile(r"\b(this|that|these|those|here|the\s+(?:flag|decision|call|ruling|goal)|why\s+(?:was|did|is))\b", re.IGNORECASE)
+
 # Phrases that point at a recorded decision type in the match data.
 DECISION_KEYWORDS: dict[str, tuple[str, ...]] = {
     "offside": ("offside", "onside", "flag", "linesman", "assistant referee"),
@@ -40,6 +49,11 @@ def is_injection(text: str) -> bool:
 
 def is_future_question(text: str) -> bool:
     return bool(_FUTURE.search(text))
+
+
+def is_definition_question(text: str) -> bool:
+    """True when the viewer is asking what a rule or term means, with no reference to the selected moment."""
+    return bool(_DEFINITION.search(text)) and not _DEICTIC.search(text)
 
 
 def mentioned_decision_type(text: str) -> str | None:
