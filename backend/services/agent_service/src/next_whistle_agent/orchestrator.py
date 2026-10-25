@@ -118,6 +118,7 @@ async def run_law_workflow(payload: AgentRequest, runner: AgentRunner) -> Workfl
     ledger.rules.update(excerpt.rule_id for excerpt in excerpts)
     ledger.known_ids.update(excerpt.rule_id for excerpt in excerpts)
     ledger.allowed_numbers.update(re.findall(r"(?<![\w.])\d+(?:\.\d+)?", " ".join(f"{e.summary} {e.plain or ''}" for e in excerpts)))
+    ledger.allowed_numbers.update(str(e.law_number) for e in excerpts)  # the Laws it was given may be cited by number
     validator = EvidenceValidator(context, ledger, {})
     run = RunContext(context=context, payload=payload)
 
