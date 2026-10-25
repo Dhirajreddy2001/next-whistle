@@ -166,3 +166,66 @@ def test_hosted_workflow_builds_fresh_executors_for_every_request():
     first, second = build_workflow(None), build_workflow(None)
     assert first is not second
     assert not {id(e) for e in first.get_executors_list()} & {id(e) for e in second.get_executors_list()}
+
+
+# ---- brief cache: the level-free brief is reused, only the Storyteller runs ------------------------------------------
+
+def fresh_brief(level="beginner", **kwargs):
+    result, runner = run(request(level=level, **kwargs))
+    return result.response.evidence_brief, result.response.brief_cutoff_ms, result
+
+
+def with_brief(brief, brief_cutoff, level="pro", cutoff=4_650_000, **kwargs):
+    payload = request(level=level, cutoff=cutoff, **kwargs).model_copy(update={"cached_brief": brief, "brief_cutoff_ms": brief_cutoff})
+    return AgentRequest.model_validate(payload.model_dump(by_alias=True))
+
+
+def test_a_cached_brief_skips_retrieval_and_serves_any_level_and_language():
+    brief, brief_cutoff, fresh = fresh_brief("beginner")
+    assert brief_cutoff == 4_600_000 and fresh.response.brief_cached is False
+    answers = {}
+    for level, language in (("pro", "en"), ("intermediate", "en"), ("beginner", "es")):
+        payload = with_brief(brief, brief_cutoff, level=level, language=language)
+        result, runner = run(payload)
+        assert runner.calls == ["storyteller"]  # no Analyst: no tool calls, no retrieval tokens
+        assert result.response.status == "ok" and result.response.brief_cached is True and result.response.brief_cutoff_ms == 4_600_000
+        assert result.trace.steps[0] == {"step": "brief.cache", "used": True}
+        answers[(level, language)] = result.response.answer
+    assert len(set(answers.values())) == 3
+    assert answers[("beginner", "es")].startswith("Disallowed") or "Registro" in run(with_brief(brief, brief_cutoff, language="es", level="beginner"))[0].response.explanation.what_happened
+
+
+def test_a_cached_brief_that_cites_evidence_not_yet_visible_is_ignored():
+    brief, _, _ = fresh_brief()
+    result, runner = run(with_brief(brief, 3_000_000, cutoff=4_600_000))  # claims to be from before its own evidence existed
+    assert runner.calls == ["analyst", "storyteller"] and result.response.brief_cached is False
+    assert result.trace.steps[0] == {"step": "brief.cache", "used": False}
+
+
+def test_a_cached_brief_the_answer_cannot_stand_on_falls_back_to_one_full_run():
+    def invented_stat(answer, _):
+        claim = Claim(id="c9", kind="number", text="Shots: 99", stat_ref="team.shots.t_unknown", value=99, evidence_ids=[DISALLOWED])
+        return answer.model_copy(update={"claims": [*answer.claims, claim]})
+
+    brief, brief_cutoff, _ = fresh_brief()
+    result, runner = run(with_brief(brief, brief_cutoff), ScriptedRunner(corrupt_answer=first_call_only(invented_stat)))
+    assert runner.calls == ["storyteller", "analyst", "storyteller"] and result.response.status == "ok"
+    assert result.response.brief_cached is False
+
+
+@pytest.mark.parametrize("change, message", [
+    ({"brief_cutoff_ms": None}, "together"),
+    ({"brief_cutoff_ms": 9_999_999}, "newer than the viewer"),
+    ({"question_text": "Why?"}, "Free-text"),
+    ({"event_id": "e_m_rvr_hrb_00574"}, "different request"),
+    ({"intent": "recap", "event_id": None}, "different request"),
+])
+def test_cached_brief_contract_rejects_unsafe_combinations(change, message):
+    brief, brief_cutoff, _ = fresh_brief()
+    data = request(cutoff=4_650_000).model_dump(by_alias=True)
+    data.update({"cachedBrief": brief.model_dump(by_alias=True), "briefCutoffMs": brief_cutoff})
+    for key, value in change.items():
+        data[{"brief_cutoff_ms": "briefCutoffMs", "question_text": "questionText", "event_id": "eventId", "intent": "intent"}[key]] = value
+    data["context"] = None
+    with pytest.raises(ValueError, match=message):
+        AgentRequest.model_validate(data)

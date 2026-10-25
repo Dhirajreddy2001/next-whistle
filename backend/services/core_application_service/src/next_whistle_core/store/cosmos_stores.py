@@ -181,9 +181,10 @@ class CosmosOps:
 
     # ---- answer cache ---------------------------------------------------------------------------------------
 
-    async def cache_get(self, cache_key: str, cutoff_ms: int, now: int) -> dict[str, Any] | None:
-        """Newest answer computed at or before the viewer's cutoff (within a minute), so the cache cannot reveal the future."""
-        rows = await self.table.rows(f"cache:{cache_key}", "cutoff_ms", above=cutoff_ms - CACHE_CUTOFF_WINDOW_MS - 1, at_most=cutoff_ms, newest_first=True, limit=1)
+    async def cache_get(self, cache_key: str, cutoff_ms: int, now: int, window_ms: int | None = CACHE_CUTOFF_WINDOW_MS) -> dict[str, Any] | None:
+        """Newest item computed at or before the viewer's cutoff (and within `window_ms` if given), so the cache cannot reveal the future."""
+        above = cutoff_ms - window_ms - 1 if window_ms is not None else -1
+        rows = await self.table.rows(f"cache:{cache_key}", "cutoff_ms", above=above, at_most=cutoff_ms, newest_first=True, limit=1)
         return json.loads(rows[0]["response"]) if rows else None
 
     async def cache_put(self, cache_key: str, cutoff_ms: int, response: dict[str, Any], now: int) -> None:

@@ -100,12 +100,17 @@ class OpsStore(SQLiteBase):
 
     # ---- answer cache -------------------------------------------------------------------------------------
 
-    def cache_get(self, cache_key: str, cutoff_ms: int, now: int) -> dict[str, Any] | None:
-        """Newest cached answer computed at or before the viewer's cutoff, so a cached answer can never reveal the future."""
+    def cache_get(self, cache_key: str, cutoff_ms: int, now: int, window_ms: int | None = CACHE_CUTOFF_WINDOW_MS) -> dict[str, Any] | None:
+        """Newest item computed at or before the viewer's cutoff, so a cached item can never reveal the future.
+
+        `window_ms` limits how far back it may have been computed; None accepts any earlier time (used for items that
+        describe one fixed moment, such as a brief about a single event).
+        """
+        lowest = cutoff_ms - window_ms if window_ms is not None else -1
         with self._connection() as c:
             row = c.execute(
                 "SELECT response FROM answer_cache WHERE cache_key = ? AND cutoff_ms <= ? AND cutoff_ms >= ? AND created_at > ? ORDER BY cutoff_ms DESC LIMIT 1",
-                (cache_key, cutoff_ms, cutoff_ms - CACHE_CUTOFF_WINDOW_MS, now - CACHE_TTL_SECONDS),
+                (cache_key, cutoff_ms, lowest, now - CACHE_TTL_SECONDS),
             ).fetchone()
             return json.loads(row["response"]) if row else None
 

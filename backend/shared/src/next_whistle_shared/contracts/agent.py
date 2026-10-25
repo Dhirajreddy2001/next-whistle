@@ -266,6 +266,21 @@ class AgentRequest(ContractModel):
     viewer: AgentViewer = Field(default_factory=AgentViewer)
     context: BoundContext | None = None
     evidence_brief: AgentEvidenceBrief | None = None
+    cached_brief: EvidenceBrief | None = None  # a brief the Core stored earlier; the agent then skips retrieval
+    brief_cutoff_ms: int | None = Field(default=None, ge=0)  # the viewer time at which cached_brief was computed
+
+    @model_validator(mode="after")
+    def check_cached_brief(self) -> "AgentRequest":
+        if (self.cached_brief is None) != (self.brief_cutoff_ms is None):
+            raise ValueError("cachedBrief and briefCutoffMs must be given together")
+        if self.cached_brief is not None:
+            if self.brief_cutoff_ms > self.cutoff_ms:
+                raise ValueError("A cached brief cannot be newer than the viewer's time")
+            if self.question_text is not None and self.question_id is None:
+                raise ValueError("Free-text questions never use a cached brief")  # suggested questions carry an ID and may
+            if self.cached_brief.event_id != self.event_id or self.cached_brief.intent != self.intent:
+                raise ValueError("The cached brief is for a different request")
+        return self
 
     @model_validator(mode="after")
     def bind_immutable_context(self) -> "AgentRequest":
@@ -328,6 +343,8 @@ class AgentResponse(ContractModel):
     explanation: Explanation | None = None
     referee_answer: RefereeAnswer | None = None
     usage: TokenUsage | None = None
+    brief_cutoff_ms: int | None = Field(default=None, ge=0)  # viewer time at which evidence_brief was computed
+    brief_cached: bool = False  # true when the brief came from the Core's cache and no retrieval ran
 
     @model_validator(mode="after")
     def output_matches_intent_shape(self) -> "AgentResponse":

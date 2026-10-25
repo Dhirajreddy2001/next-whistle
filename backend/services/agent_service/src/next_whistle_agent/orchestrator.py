@@ -9,10 +9,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from next_whistle_shared.contracts.agent import (
-    AgentRequest, AgentResponse, CriticVerdict, EvidenceBrief, Explanation, RefereeAnswer,
+    AgentRequest, AgentResponse, BoundContext, CriticVerdict, EvidenceBrief, Explanation, RefereeAnswer,
 )
 from next_whistle_shared.evidence.dataset import EvidenceDataset
 from next_whistle_shared.evidence.dispatcher import EvidenceLedger, ToolDispatcher
+from next_whistle_shared.evidence.replay import ledger_from_brief
 from next_whistle_shared.validation.evidence_validator import EvidenceValidator, ValidationReport
 
 from .prompts import PROMPT_VERSION, critic_input, role_prompt, storyteller_input, storyteller_instructions, tool_agent_input
@@ -87,6 +88,26 @@ async def run_workflow(
 
     run = RunContext(context=context, payload=payload)
 
+    # A brief the Core cached earlier is level-free, so it can be reused for any viewer level or language.
+    # It is checked against the dataset again at the time it was computed; if anything is off it is ignored.
+    brief: EvidenceBrief | None = None
+    from_cache = False
+    brief_cutoff = context.cutoff_ms
+    if payload.cached_brief is not None:
+        cache_context = BoundContext.model_validate({**context.model_dump(), "cutoff_ms": payload.brief_cutoff_ms, "evidence_cutoff_ms": payload.brief_cutoff_ms})
+        cache_ledger = ledger_from_brief(payload.cached_brief, dataset, context.match_id, payload.brief_cutoff_ms)
+        accepted = False
+        if cache_ledger is not None:
+            cache_state = ToolDispatcher(cache_context.for_agent(tool_role), dataset, cache_ledger).call("get_match_state", {})
+            if cache_state.ok:
+                cache_ledger.visible_events["__match_state__"] = {**cache_state.data, "available_ms": payload.brief_cutoff_ms, "match_ms": cache_state.data["clockMs"]}
+                cache_validator = EvidenceValidator(cache_context, cache_ledger, _squads_with_teams(agent_dispatcher))
+                accepted = cache_validator.validate(payload.cached_brief).passed
+        trace.add("brief.cache", used=accepted)
+        if accepted:
+            brief, from_cache, brief_cutoff = payload.cached_brief, True, payload.brief_cutoff_ms
+            ledger, validator = cache_ledger, cache_validator  # answers are checked against the same time the brief describes
+
     async def produce_brief(failures: list[str] | None) -> EvidenceBrief:
         run.failures = failures or []
         trace.add(f"agent.{tool_role}", retry=bool(failures))
@@ -96,16 +117,17 @@ async def run_workflow(
         )
 
     try:
-        brief = await produce_brief(None)
-        report = validator.validate(brief)
-        trace.add("brief.validate", passed=report.passed, issues=_failures(report))
-        if not report.passed:
-            trace.retries += 1
-            brief = await produce_brief(_failures(report))
+        if not from_cache:
+            brief = await produce_brief(None)
             report = validator.validate(brief)
             trace.add("brief.validate", passed=report.passed, issues=_failures(report))
             if not report.passed:
-                return _fallback(payload, trace, "brief_validation_failed")
+                trace.retries += 1
+                brief = await produce_brief(_failures(report))
+                report = validator.validate(brief)
+                trace.add("brief.validate", passed=report.passed, issues=_failures(report))
+                if not report.passed:
+                    return _fallback(payload, trace, "brief_validation_failed")
     except RunnerError as error:
         return _fallback(payload, trace, f"{tool_role}_failed: {error}")
     if brief.scope != "in_scope":
@@ -129,6 +151,9 @@ async def run_workflow(
         if not report.passed:
             failures = _failures(report)
             trace.retries += 1
+            if from_cache and any(item.split(":")[0] in EVIDENCE_FAILURES for item in failures):
+                # The cached brief is missing something the answer needs: drop it and run the full workflow once.
+                return await run_workflow(payload.model_copy(update={"cached_brief": None, "brief_cutoff_ms": None}), dataset, runner, critic_enabled=critic_enabled)
             if any(item.split(":")[0] in EVIDENCE_FAILURES for item in failures):
                 # The answer needs a fact the brief lacks: one tool-capable re-run, then the Storyteller again.
                 brief = await produce_brief(failures)
@@ -171,5 +196,6 @@ async def run_workflow(
         answer=_answer_text(answer)[:2400], evidence_ids=evidence_ids[:24], evidence_brief=brief,
         explanation=answer if isinstance(answer, Explanation) else None,
         referee_answer=answer if isinstance(answer, RefereeAnswer) else None,
+        brief_cutoff_ms=brief_cutoff, brief_cached=from_cache,
     )
     return WorkflowResult(response, trace, ledger)

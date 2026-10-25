@@ -33,6 +33,7 @@ from next_whistle_core.services.generation import (
 from next_whistle_core.store.datasets import Dataset, MatchData, load_dataset
 from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter, client_ip, hash_ip
 from next_whistle_core.store.factory import open_stores
+from next_whistle_core.store.ops import CACHE_CUTOFF_WINDOW_MS
 
 ACCESS_TOKEN_SECONDS = 15 * 60
 REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60
@@ -366,6 +367,11 @@ def create_app(
             # Replay and deterministic facts remain available when generation is offline.
             return fallback_response(payload, answer=fallback_answer)
 
+    async def run_with_brief_cache(request: Request, payload, key: str | None, event_bound: bool, fallback_answer: str):
+        result = await run_agent_or_fallback(request, await attach_cached_brief(request, payload, key, event_bound), fallback_answer)
+        await remember_brief(request, key, result)
+        return result
+
     def spent_units(result) -> int:
         usage = getattr(result, "usage", None)
         return (usage.input_tokens + usage.output_tokens * settings.output_weight) if usage else 0
@@ -437,6 +443,28 @@ def create_app(
             await ops.cache_put(cache_key, cutoff_ms, answer, now)
         return answer
 
+    def brief_key(intent: str, request: Request, match_id: str, event_id: str | None, question_id: str | None) -> str:
+        """The evidence brief is level-free and language-free, so neither is part of its key."""
+        dataset = request.app.state.dataset
+        return "|".join(["brief", intent, match_id, event_id or "-", question_id or "-", dataset.version, dataset.rules_version, settings.workflow_version])
+
+    async def attach_cached_brief(request: Request, payload, key: str | None, event_bound: bool):
+        """Reuse a brief computed earlier (never later than the viewer's time) so the agent only has to write the answer."""
+        if key is None:
+            return payload
+        hit = await request.app.state.ops.cache_get(key, payload.cutoff_ms, int(time.time()), None if event_bound else CACHE_CUTOFF_WINDOW_MS)
+        if not hit:
+            return payload
+        try:
+            return type(payload).model_validate({**payload.model_dump(mode="json", by_alias=True), "cachedBrief": hit["brief"], "briefCutoffMs": hit["cutoff_ms"]})
+        except Exception:
+            return payload
+
+    async def remember_brief(request: Request, key: str | None, result) -> None:
+        if key is not None and result.status == "ok" and result.evidence_brief is not None and not result.brief_cached and result.brief_cutoff_ms is not None:
+            brief = result.evidence_brief.model_dump(mode="json", by_alias=True)
+            await request.app.state.ops.cache_put(key, result.brief_cutoff_ms, {"brief": brief, "cutoff_ms": result.brief_cutoff_ms}, int(time.time()))
+
     def cache_key(kind: str, request: Request, match_id: str, event_id: str | None, level: str, language: str, extra: str = "") -> str:
         dataset = request.app.state.dataset
         return "|".join([kind, match_id, event_id or "-", level, language, extra, dataset.version, dataset.rules_version, settings.workflow_version])
@@ -455,9 +483,10 @@ def create_app(
             language=body.language, level=body.level,
         )
         fallback_answer = f"{payload.evidence_brief.headline}: {payload.evidence_brief.summary}"
+        brief_cache_key = brief_key(body.intent, request, match_id, body.event_id, None)
 
         async def produce(use_agent: bool):
-            result = await run_agent_or_fallback(request, payload, fallback_answer) if use_agent else fallback_response(payload, answer=fallback_answer)
+            result = (await run_with_brief_cache(request, payload, brief_cache_key, body.event_id is not None, fallback_answer)) if use_agent else fallback_response(payload, answer=fallback_answer)
             return camelize({
                 "request_id": result.request_id, "match_id": match_id,
                 "dataset_version": request.app.state.dataset.version,
@@ -520,9 +549,11 @@ def create_app(
             history=[{"question": turn.question, "answer_headline": turn.answer_headline} for turn in body.history],
         )
         fallback_text, rule_refs = referee_fallback(data, event, body.language)
+        # Only suggested questions share a brief; free-text questions shape the analysis, so they never do.
+        brief_cache_key = None if body.question_text else brief_key("referee_question", request, match_id, body.event_id, body.question_id)
 
         async def produce(use_agent: bool):
-            result = await run_agent_or_fallback(request, payload, fallback_text) if use_agent else fallback_response(payload, answer=fallback_text)
+            result = (await run_with_brief_cache(request, payload, brief_cache_key, True, fallback_text)) if use_agent else fallback_response(payload, answer=fallback_text)
             return camelize({
                 **base, "status": result.status, "source": result.source,
                 "workflow_version": result.workflow_version, "scope": "in_scope",

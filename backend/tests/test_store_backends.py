@@ -129,3 +129,11 @@ def test_cosmos_backend_without_an_endpoint_refuses_to_start(tmp_path):
     settings = replace(Settings.from_env(), session_db_path=tmp_path / "s.sqlite3", session_signing_key="k" * 40, store_backend="cosmos", cosmos_endpoint=None)
     with pytest.raises(RuntimeError, match="COSMOS_ENDPOINT"), TestClient(create_app(settings)):
         pass
+
+
+@backend_test
+async def test_cache_window_can_be_unlimited_but_never_future(sessions, ops):
+    await ops.cache_put("brief", 100_000, {"brief": "x"}, 0)
+    assert await ops.cache_get("brief", 100_000 + 5_000_000, 1, None) == {"brief": "x"}  # a fixed moment stays valid later
+    assert await ops.cache_get("brief", 100_000 + 5_000_000, 1) is None  # the default one-minute window still applies
+    assert await ops.cache_get("brief", 99_999, 1, None) is None  # but never to a viewer who has seen less
