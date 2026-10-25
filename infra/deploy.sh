@@ -53,12 +53,12 @@ az group create --name "$RG" --location "$LOCATION" --output none --tags \
 
 dev_id="$(az ad signed-in-user show --query id -o tsv 2>/dev/null || true)"
 params="$(mktemp)"; trap 'rm -f "$params"' EXIT
-python3 - "$params" "$dev_id" "$BUDGET_EMAIL" "$(date +%Y-%m-01)" "${COSMOS_FREE_TIER:-true}" <<'PY'
+python3 - "$params" "$dev_id" "$BUDGET_EMAIL" "$(date +%Y-%m-01)" "${COSMOS_FREE_TIER:-true}" "${DEPLOY_APP:-false}" <<'PY'
 import json, os, sys
-path, dev, email, start, free = sys.argv[1:6]
+path, dev, email, start, free, deploy_app = sys.argv[1:7]
 values = {
     "sessionSigningKey": os.environ["SESSION_SIGNING_KEY"], "ipHashKey": os.environ["IP_HASH_KEY"],
-    "developerPrincipalId": dev, "budgetContactEmails": [email], "budgetStartDate": start, "cosmosFreeTier": free == "true",
+    "developerPrincipalId": dev, "budgetContactEmails": [email], "budgetStartDate": start, "cosmosFreeTier": free == "true", "deployApp": deploy_app == "true",
 }
 for name in ("CORE_IMAGE", "ALLOWED_ORIGIN", "AGENT_SERVICE_URL"):
     if os.environ.get(name):

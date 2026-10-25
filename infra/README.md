@@ -7,7 +7,7 @@ Everything for the contest lives in **one resource group** (`rg-nextwhistle-prod
 | Resource | Role |
 | --- | --- |
 | User-assigned managed identity `id-nextwhistle` | The "service account". The Core app runs as it, and it holds every role below. No keys or passwords. |
-| Foundry account + project `nextwhistle`, deployments `tools` and `small` | Models for the agents. The identity gets *Azure AI User* and *Cognitive Services OpenAI User*. Key access is disabled. |
+| Foundry account + project `nextwhistle`, deployments `tools` and `small` | Models for the agents. The identity gets *Foundry User* (formerly Azure AI User) and *Cognitive Services OpenAI User*. Key access is disabled. |
 | Cosmos DB for NoSQL (free tier), database `nextwhistle`, container `state` | Sessions, limits, spend allowance, cache. The identity gets the data-plane *Data Contributor* role. Key access is disabled. |
 | Storage account (private, no shared key) | Datasets and rules. The identity gets *Blob Data Contributor*. |
 | Container Apps environment + Core app (scale 0 to 1) | Runs as the identity; secrets are Container Apps secrets. |
@@ -31,7 +31,7 @@ make cloud-down        # deletes everything and checks nothing is left
 
 ## One-step deletion
 
-`make cloud-down` lists everything, asks you to type the resource group name, refuses to touch a group not tagged `Project=NextWhistle` and `Environment=Contest`, deletes the group, then **purges the soft-deleted Foundry account** (Azure otherwise keeps holding its name and quota) and verifies nothing tagged `Project=NextWhistle` remains. Two things sit outside the group and need their own cleanup: any GitHub OIDC deployment app registration (pass `APP_ID=<id>` to remove it) and the GHCR image.
+`make cloud-down` lists everything, asks you to type the resource group name, refuses to touch a group not tagged `Project=NextWhistle` and `Environment=Contest`, deletes the group, then **purges the soft-deleted Foundry account** (Azure otherwise keeps holding its name and quota) and verifies nothing tagged `Project=NextWhistle` remains. The local-testing service account (`sp-nextwhistle-local`) is an Entra app registration outside the group; `cloud-down` deletes it using the ID in `.local/cloud-sp.env`. Only the GHCR image and any GitHub OIDC deployment identity need separate cleanup.
 
 ## Before the first real deployment
 
@@ -41,3 +41,7 @@ These are known gaps; none were exercised against Azure from here.
 - The agent reads datasets and rules from disk; the hosted source ZIP must either include them or read them from Blob.
 - Model names, versions and quota in `main.bicep` are defaults to verify with `az cognitiveservices model list`.
 - The template compiles and lints with Bicep 0.48.1, but `what-if` and the first deployment can still surface region, quota or API-version problems.
+
+## Local service account
+
+`sp-nextwhistle-local` is a service principal for running things from your laptop (the live evaluation, local Foundry calls). It holds only *Foundry User* and *Cognitive Services OpenAI User* on `rg-nextwhistle-prod`, its secret expires on 2026-11-12, and the credentials are in `.local/cloud-sp.env` (mode 600, git-ignored, never printed). Load them with `set -a; source .local/cloud-sp.env; set +a`; `DefaultAzureCredential` then uses them automatically. The deployed Core app uses the managed identity instead, which needs no secret.

@@ -28,6 +28,9 @@ param sessionSigningKey string
 @description('Key used to hash client addresses.')
 param ipHashKey string
 
+@description('Deploy the Container App and Static Web App. Leave false while testing locally; the data, identity and Foundry pieces are always created.')
+param deployApp bool = false
+
 @description('Free tier is allowed once per subscription. Set false if this subscription already has a free Cosmos DB account.')
 param cosmosFreeTier bool = true
 
@@ -44,10 +47,10 @@ param budgetUsd int = 20
 param budgetStartDate string
 
 @description('Model deployed for the Analyst and Referee (needs tool calling). Confirm availability with: az cognitiveservices model list')
-param toolsModel object = { name: 'gpt-4.1', version: '2025-04-14', capacity: 10 }
+param toolsModel object = { name: 'gpt-4.1', version: '2025-04-14', sku: 'Standard', capacity: 30 }
 
 @description('Smaller model for the Storyteller and Critic.')
-param smallModel object = { name: 'gpt-4.1-mini', version: '2025-04-14', capacity: 10 }
+param smallModel object = { name: 'gpt-4.1-mini', version: '2025-04-14', sku: 'Standard', capacity: 50 }
 
 param tags object = {
   Project: 'NextWhistle'
@@ -64,7 +67,7 @@ var foundryName = take('ai-${namePrefix}-${suffix}', 64)
 
 // Built-in role definitions.
 var roleBlobContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-var roleAzureAiUser = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+var roleAzureAiUser = '53ca6127-db72-4b80-b1b0-d745d6d5456d' // "Foundry User" (formerly "Azure AI User")
 var roleOpenAiUser = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
 var cosmosDataContributor = '00000000-0000-0000-0000-000000000002'
 
@@ -182,6 +185,17 @@ resource cosmosIdentityRole 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssign
   }
 }
 
+// Optional: your own login may use the state database from a laptop (no key needed).
+resource developerCosmosRole 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-11-15' = if (!empty(developerPrincipalId)) {
+  parent: cosmos
+  name: guid(cosmos.id, developerPrincipalId, cosmosDataContributor)
+  properties: {
+    roleDefinitionId: '${cosmos.id}/sqlRoleDefinitions/${cosmosDataContributor}'
+    principalId: developerPrincipalId
+    scope: cosmos.id
+  }
+}
+
 // ---- Foundry: account, project, model deployments -------------------------------------------------------------
 resource foundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: foundryName
@@ -209,14 +223,14 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
 resource toolsDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   parent: foundry
   name: 'tools'
-  sku: { name: 'GlobalStandard', capacity: toolsModel.capacity }
+  sku: { name: toolsModel.sku, capacity: toolsModel.capacity }
   properties: { model: { format: 'OpenAI', name: toolsModel.name, version: toolsModel.version } }
 }
 
 resource smallDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   parent: foundry
   name: 'small'
-  sku: { name: 'GlobalStandard', capacity: smallModel.capacity }
+  sku: { name: smallModel.sku, capacity: smallModel.capacity }
   properties: { model: { format: 'OpenAI', name: smallModel.name, version: smallModel.version } }
   dependsOn: [ toolsDeployment ]  // deployments on one account are created one at a time
 }
@@ -263,7 +277,7 @@ resource developerOpenAi 'Microsoft.Authorization/roleAssignments@2022-04-01' = 
 }
 
 // ---- Core API on Container Apps --------------------------------------------------------------------------------
-resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = if (deployApp) {
   name: 'cae-${namePrefix}'
   location: location
   tags: tags
@@ -278,7 +292,7 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
-resource core 'Microsoft.App/containerApps@2024-03-01' = {
+resource core 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
   name: 'ca-${namePrefix}-core'
   location: location
   tags: tags
@@ -327,7 +341,7 @@ resource core 'Microsoft.App/containerApps@2024-03-01' = {
 }
 
 // ---- frontend ---------------------------------------------------------------------------------------------------
-resource site 'Microsoft.Web/staticSites@2023-12-01' = {
+resource site 'Microsoft.Web/staticSites@2023-12-01' = if (deployApp) {
   name: 'swa-${namePrefix}-${suffix}'
   location: staticSiteLocation
   tags: tags
@@ -354,8 +368,8 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 }
 
 output identityClientId string = identity.properties.clientId
-output coreUrl string = 'https://${core.properties.configuration.ingress.fqdn}'
-output staticSiteHost string = site.properties.defaultHostname
+output coreUrl string = deployApp ? 'https://${core.?properties.configuration.ingress.fqdn}' : ''
+output staticSiteHost string = deployApp ? '${site.?properties.defaultHostname}' : ''
 output cosmosEndpoint string = cosmos.properties.documentEndpoint
 output foundryProjectEndpoint string = 'https://${foundryName}.services.ai.azure.com/api/projects/${project.name}'
 output modelToolsDeployment string = toolsDeployment.name

@@ -41,6 +41,12 @@ deleted="$(az cognitiveservices account list-deleted --query 'length(@)' -o tsv 
 echo "  resources still tagged: $left"
 echo "  soft-deleted Foundry accounts still held: $deleted"
 [[ "$left" == "0" ]] || echo "WARNING: some tagged resources remain. Inspect them with: az resource list --tag Project=NextWhistle -o table"
-if [[ -n "${APP_ID:-}" ]]; then az ad app delete --id "$APP_ID" && echo "Deleted deployment app registration $APP_ID"; fi
+# The local-testing service account (an Entra app registration) lives outside the resource group, so remove it explicitly.
+SP_FILE=".local/cloud-sp.env"
+if [[ -z "${APP_ID:-}" && -f "$SP_FILE" ]]; then APP_ID="$(grep '^AZURE_CLIENT_ID=' "$SP_FILE" | cut -d= -f2)"; fi
+if [[ -n "${APP_ID:-}" ]]; then
+  if az ad app delete --id "$APP_ID" 2>/dev/null; then echo "Deleted service account (app registration $APP_ID)"; else echo "Could not delete app registration $APP_ID; check: az ad app show --id $APP_ID"; fi
+  rm -f "$SP_FILE" && echo "Removed $SP_FILE"
+fi
 echo "Done. Local secrets in .local/cloud.env were NOT removed; delete that file yourself if you no longer need it."
 echo "Also check Cost Management in a day or two, and remove any GitHub federated credential you created."
