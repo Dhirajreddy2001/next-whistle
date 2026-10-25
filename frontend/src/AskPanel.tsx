@@ -66,7 +66,7 @@ export function AskPanel({ matchId, language, level, clockMs, decision, suggesti
         {!turn.result && !turn.error && <p className="ask-wait">Checking the evidence…</p>}
         {turn.error && <p role="alert" className="ask-error">{turn.error}</p>}
         {turn.result && <div className="ask-answer">
-          <p className="status">{SCOPE_NOTE[turn.result.scope ?? ''] ?? (turn.result.source === 'template' ? 'Facts only' : turn.result.source === 'fake' ? 'Demo agent' : 'AI generated')}</p>
+          <p className="status">{turn.result.generationEnabled === false ? 'AI answers paused' : SCOPE_NOTE[turn.result.scope ?? ''] ?? (turn.result.source === 'template' ? 'Facts only' : turn.result.source === 'fake' ? 'Demo agent' : 'AI generated')}</p>
           <p>{turn.result.answer}</p>
           {turn.result.scope === 'redirect' && turn.result.redirectEventId && <button type="button" className="ask-link" onClick={() => onShowDecision(turn.result!.redirectEventId!)}>Show that decision</button>}
           {!!turn.result.ruleRefs?.length && <ul aria-label="Rule sources">{turn.result.ruleRefs.map(rule => <li key={rule.ruleId}><a href={rule.sourceUrl} target="_blank" rel="noreferrer">IFAB Law {rule.lawNumber}: {rule.title}</a></li>)}</ul>}

@@ -14,6 +14,8 @@ export type GenerationResult = {
   answer: string;
   evidenceIds: string[];
   eventId?: string;
+  cached?: boolean;
+  generationEnabled?: boolean;
   scope?: 'in_scope' | 'general_law' | 'redirect' | 'out_of_scope' | 'refused';
   redirectEventId?: string | null;
   ruleRefs?: { ruleId: string; lawNumber: number; title: string; sourceUrl: string }[];
@@ -72,13 +74,29 @@ function withSession(task: () => Promise<SessionTokens>): Promise<SessionTokens>
   return sessionTask;
 }
 
+function newIdempotencyKey(): string {
+  try { return crypto.randomUUID(); } catch { return `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`; }
+}
+
+async function refusalMessage(response: Response): Promise<string> {
+  const problem = await response.json().catch(() => ({})) as { title?: string; code?: string };
+  const wait = Number(response.headers.get('Retry-After'));
+  const after = wait > 0 ? ` Try again in ${wait >= 90 ? `${Math.ceil(wait / 60)} minutes` : `${wait} seconds`}.` : '';
+  if (problem.code === 'busy') return `The assistant is busy right now.${after || ' Try again in a moment.'}`;
+  if (problem.code === 'allowance_exhausted') return 'AI explanations are paused for now. Recorded facts are still available.';
+  if (response.status === 429) return `You have reached the question limit.${after}`;
+  return problem.title ?? `Could not generate an answer (${response.status}).`;
+}
+
 async function postGeneration(path: string, body: Record<string, unknown>): Promise<GenerationResult> {
   let tokens = readSession();
   if (!tokens) tokens = await withSession(createSession);
 
+  // One key per user action: a retry after a token refresh or a network blip returns the same answer instead of generating twice.
+  const idempotencyKey = newIdempotencyKey();
   const send = (accessToken: string) => fetch(`${API}${path}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify(body),
   });
   let response = await send(tokens.accessToken);
@@ -86,11 +104,7 @@ async function postGeneration(path: string, body: Record<string, unknown>): Prom
     tokens = await withSession(() => refreshSession(tokens!));
     response = await send(tokens.accessToken);
   }
-  if (!response.ok) {
-    const problem = await response.json().catch(() => ({})) as { title?: string };
-    if (response.status === 429) throw new Error('Generation limit reached. Try again later.');
-    throw new Error(problem.title ?? `Could not generate an answer (${response.status}).`);
-  }
+  if (!response.ok) throw new Error(await refusalMessage(response));
   return response.json() as Promise<GenerationResult>;
 }
 
