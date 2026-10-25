@@ -84,7 +84,7 @@ class EvidenceValidator:
                 continue  # a number that appears in the rule text being explained
             if re.search(rf"\bLaws?\s+{re.escape(token)}\b", prose):
                 continue  # a Law number such as "Law 11" is a reference, not a statistic
-            if re.search(rf"\b{re.escape(token)}(?:st|nd|rd|th)\b|\b{re.escape(token)}\s*(?:minutes?|mins?)\b|\bminutes?\s*{re.escape(token)}\b", prose, re.I):
+            if re.search(rf"\b{re.escape(token)}(?:st|nd|rd|th)\b|\b{re.escape(token)}\s*(?:minutes?|mins?)\b|\b(?:minutes?|minutos?)\s*{re.escape(token)}\b|\b{re.escape(token)}\s*minutos?\b", prose, re.I):
                 continue  # a minute like "the 61st minute"; minutes are checked against the match clock by V6
             if token not in claimed and not re.search(rf"\b{re.escape(token)}\s*[-–']", prose) and not re.search(rf"\b{re.escape(token)}\s*[-–]\s*\d+", prose):
                 issues.append(_issue("V5", f"The number {token} appears in the text without a number claim. Delete it, or describe it in words without digits.")); break
@@ -127,7 +127,7 @@ class EvidenceValidator:
             if not significance.get("text") and (significance.get("established") or not raw.get("uncertainty")):
                 issues.append(_issue("V11", "Brief significance needs support or explicit uncertainty."))
             for fact in facts:
-                returned = self.ledger.evidence_ids | self.ledger.known_ids | self.ledger.rules | set(self.ledger.stat_values)
+                returned = self.ledger.evidence_ids | self.ledger.known_ids | self.ledger.rules | set(self.ledger.stat_values) | set(self.ledger.geometries)
                 unseen = [e for e in fact.get("evidence_ids", []) if e not in returned]
                 if not fact.get("evidence_ids") or unseen:
                     issues.append(_issue("V15", f"Brief fact {fact.get('id')} cites evidence that no tool returned ({', '.join(unseen) or 'none given'}). Cite only event IDs that appear in tool results, or call get_event_evidence for them first."))
@@ -152,7 +152,9 @@ class EvidenceValidator:
 
 
 # Capitalised words that are not names: the Laws, the governing body and common football terms.
-_NOT_NAMES = {"Law", "Laws", "Game", "IFAB", "VAR", "FC", "AFC", "Football", "Referee", "English", "Spanish", "French", "German"}
+_NOT_NAMES = {"Law", "Laws", "Game", "IFAB", "VAR", "FC", "AFC", "Football", "Referee", "English", "Spanish", "French", "German",
+              # words from the titles of the Laws, which are capitalised when a Law is named
+              "Misconduct", "Fouls", "Penalty", "Kick", "Kicks", "Offside", "Advantage", "Corner", "Throw", "Goal", "Players", "Free"}
 _CAPITALISED = re.compile(r"(?<![\w'’])([A-Z][a-z]+)(?![\w])")
 _INTERNAL = re.compile(r"\b[a-z]+[A-Z][A-Za-z]*\b|\b[epstr]_[a-z0-9_]{2,}\b|\b(?:geometryRef|statRef)\b")
 

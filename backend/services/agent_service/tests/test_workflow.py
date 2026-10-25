@@ -168,3 +168,18 @@ def test_prefetch_gives_the_analyst_the_statistics():
     ctx = context(cutoff=4_000_000, intent="recap", agent="analyst")
     tools = [step["tool"] for step in prefetch(ToolDispatcher(ctx, DATASET), ctx)]
     assert "get_match_statistics" in tools and "get_event_evidence" in tools
+
+
+def test_ids_a_tool_returned_count_as_evidence_including_the_match_and_geometry():
+    ctx = context(cutoff=4_000_000, intent="decision", agent="referee", event="e_m_rvr_hrb_01167")
+    dispatcher = ToolDispatcher(ctx, DATASET)
+    dispatcher.call("get_match_state", {})
+    dispatcher.call("get_decision_geometry", {"event_id": "e_m_rvr_hrb_01167"})
+    assert "m_rvr_hrb" in dispatcher.ledger.known_ids  # a brief fact may cite the match it is about
+    assert any(ref.startswith("geometry.") for ref in dispatcher.ledger.geometries)
+
+
+def test_words_from_law_titles_are_not_mistaken_for_names():
+    from next_whistle_shared.validation.evidence_validator import _unknown_names
+
+    assert not _unknown_names("The Law on Fouls and Misconduct and the Penalty Kick applies.", set())

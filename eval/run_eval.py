@@ -117,6 +117,7 @@ async def main_async(args) -> int:
     if args.limit:
         step = max(1, len(cases) // args.limit)
         cases = cases[::step][: args.limit]
+    cases = cases[args.skip:]
     live = args.mode == "foundry"
     price_in, price_out = float(os.getenv("PRICE_INPUT_PER_MTOK", "0")), float(os.getenv("PRICE_OUTPUT_PER_MTOK", "0"))
     if live:
@@ -194,6 +195,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=["fake", "foundry"], default="fake")
     parser.add_argument("--limit", type=int, default=0, help="run an even sample of this many cases")
     parser.add_argument("--filter", default="", help="only cases whose id contains this text")
+    parser.add_argument("--skip", type=int, default=0, help="skip this many cases from the start (to continue a stopped run)")
     parser.add_argument("--max-usd", type=float, default=0.0)
     parser.add_argument("--confirm-spend", action="store_true")
     parser.add_argument("--critic", action="store_true")

@@ -16,7 +16,7 @@ from .rule_search import RuleIndex
 from .tool_schemas import TOOL_ARGUMENT_MODELS
 
 MAX_RESULT_CHARS = 6000
-_ID_PATTERN = re.compile(r"\b(?:e|s|r)_[a-z0-9_]{3,}\b")
+_ID_PATTERN = re.compile(r"\b(?:e|s|r|m|t|p)_[a-z0-9_]{3,}\b")  # events, snapshots, rules, the match, teams and players
 MAX_TAG_RULES = 3  # the corpus is ordered with the curated incident rules first
 
 
