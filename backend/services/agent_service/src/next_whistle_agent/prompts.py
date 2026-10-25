@@ -59,13 +59,14 @@ def storyteller_instructions(context: BoundContext) -> str:
 
 def allowed_numbers(brief: EvidenceBrief) -> str:
     """The only numbers the Storyteller may state, each with the reference its number claim must cite."""
-    lines = [f"- statRef {stat.stat_ref} = {stat.value}  (cite as statRef)" for stat in brief.stats]
+    lines = [f"- {stat.stat_ref} = {stat.value}" for stat in brief.stats]
     geometry = (brief.ruling.geometry or {}) if brief.ruling else {}
     if geometry.get("geometryRef") and geometry.get("marginM") is not None:
-        lines.append(f"- geometryRef {geometry['geometryRef']} = {geometry['marginM']} (the attacker's margin beyond the line, in metres; cite as geometryRef)")
+        lines.append(f"- geometryRef {geometry['geometryRef']} = {geometry['marginM']} (the attacker's margin beyond the line, in metres)")
     if not lines:
         return "Numbers you may state: NONE. Write no digits at all; describe anything numeric in words."
-    return "Numbers you may state (any other number is invalid; each one needs a number claim citing its reference):\n" + "\n".join(lines)
+    return ("Numbers you may state (any other number is invalid; each one needs a number claim whose reference is the code in front of its value). "
+            "Never write those codes or field names in the answer text:\n" + "\n".join(lines))
 
 
 _STAT_PRIORITY = ["goals", "shots_on_target", "shots", "possession_pct"]

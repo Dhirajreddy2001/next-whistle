@@ -344,7 +344,7 @@ def test_the_storyteller_is_told_exactly_which_numbers_it_may_state():
     from next_whistle_agent.prompts import allowed_numbers
 
     explain_brief, _, _ = fresh_brief("pro")
-    assert "statRef team.shots" in allowed_numbers(explain_brief) and "NONE" not in allowed_numbers(explain_brief)
+    assert "- team.shots" in allowed_numbers(explain_brief) and "NONE" not in allowed_numbers(explain_brief)
     bare = explain_brief.model_copy(update={"stats": []})
     assert "NONE" in allowed_numbers(bare) and "no digits" in allowed_numbers(bare)
     referee_brief = run(request("referee_question", question="Why?", level="pro"))[0].response.evidence_brief
