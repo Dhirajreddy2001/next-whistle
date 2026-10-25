@@ -38,6 +38,10 @@ def build(tmp_path: Path, agent=None, **overrides):
     return TestClient(create_app(settings, agent_client=agent or StubAgent()))
 
 
+def remaining(client) -> int:
+    return asyncio.run(client.app.state.ops.remaining_units(10**10))
+
+
 def session(client) -> dict:
     response = client.post("/api/sessions")
     assert response.status_code == 201, response.text
@@ -117,7 +121,7 @@ def test_allowance_is_reserved_settled_and_exhaustion_is_refused(tmp_path):
     with build(tmp_path, agent, allowance_budget_units=41_000, allowance_reserve_units=40_000) as client:
         headers = session(client)
         assert explain(client, headers, EVENTS[0]).status_code == 200
-        assert client.app.state.ops.remaining_units(10**10) == 41_000 - 1_800  # settled to actual use, not the reservation
+        assert remaining(client) == 41_000 - 1_800  # settled to actual use, not the reservation
         refused = explain(client, headers, EVENTS[1])
     assert refused.status_code == 429 and refused.json()["code"] == "allowance_exhausted"
     assert agent.calls == 1
@@ -132,7 +136,7 @@ def test_a_failed_generation_releases_its_reservation(tmp_path):
         headers = session(client)
         response = explain(client, headers)  # Core serves the factual fallback
         assert response.status_code == 200 and response.json()["status"] == "fallback"
-        assert client.app.state.ops.remaining_units(10**10) == 100_000
+        assert remaining(client) == 100_000
 
 
 def test_kill_switch_serves_templates_without_calling_the_agent_or_using_limits(tmp_path):
@@ -180,7 +184,7 @@ def test_busy_server_answers_503_with_retry_after(tmp_path):
     assert sorted(response.status_code for response in responses) == [200, 503]
     busy = next(response for response in responses if response.status_code == 503)
     assert busy.json()["code"] == "busy" and int(busy.headers["retry-after"]) >= 1
-    assert client.app.state.ops.remaining_units(10**10) > 0  # the refused request released its reservation
+    assert remaining(client) > 0  # the refused request released its reservation
 
 
 # ---- idempotency and cache ---------------------------------------------------------------------------------------

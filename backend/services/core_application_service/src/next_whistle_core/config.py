@@ -16,6 +16,11 @@ class Settings:
     agent_service_url: str = "http://127.0.0.1:8088"
     agent_timeout_seconds: float = 8.0
     environment: str = "local"
+    store_backend: str = "sqlite"  # "sqlite" for local work, "cosmos" in production
+    cosmos_endpoint: str | None = None
+    cosmos_database: str = "nextwhistle"
+    cosmos_container: str = "state"
+    cosmos_key: str | None = None  # secret; leave unset to use a managed identity
     generation_enabled: bool = True
     limit_session_hour: int = 8
     limit_session_day: int = 20
@@ -53,6 +58,11 @@ class Settings:
             agent_service_url=os.getenv("AGENT_SERVICE_URL", "http://127.0.0.1:8088").rstrip("/"),
             agent_timeout_seconds=float(os.getenv("AGENT_TIMEOUT_SECONDS", "8")),
             environment=os.getenv("APP_ENV", "local").lower(),
+            store_backend=os.getenv("STORE_BACKEND", "sqlite").lower(),
+            cosmos_endpoint=os.getenv("COSMOS_ENDPOINT"),
+            cosmos_database=os.getenv("COSMOS_DATABASE", "nextwhistle"),
+            cosmos_container=os.getenv("COSMOS_CONTAINER", "state"),
+            cosmos_key=os.getenv("COSMOS_KEY"),
             generation_enabled=os.getenv("GENERATION_ENABLED", "true").lower() != "false",
             limit_session_hour=int(os.getenv("LIMIT_SESSION_HOUR", "8")),
             limit_session_day=int(os.getenv("LIMIT_SESSION_DAY", "20")),

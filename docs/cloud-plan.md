@@ -27,10 +27,11 @@ Do not deploy until an active Azure subscription is visible in `az account list`
 | Azure Container App | Hosts the FastAPI Core Application Service | 0.5 vCPU/1 GiB initially, HTTP ingress, `minReplicas=0` normally, `maxReplicas=1`; consider `minReplicas=1` only during judging after measuring cost |
 | Microsoft Foundry resource and project | Owns model deployments, hosted agent versions, traces, and evaluations | Pay-as-you-go models, minimal quota, no optional Code Interpreter or File Search |
 | Foundry Hosted Agent | Runs the Agent Service built with Microsoft Agent Framework | Deploy from a source ZIP; start with the smallest tested CPU/memory tier and a two-minute session idle timeout |
-| Azure Storage account | Stores private datasets, approved rules, generated cache, and the persistent usage ledger | Standard general-purpose v2, locally redundant storage, hot tier, public blob access disabled |
+| Azure Storage account | Stores private datasets, approved rules, and pre-generated narrative cards; the usage ledger, answer cache and sessions live in Cosmos DB instead of Blob | Standard general-purpose v2, locally redundant storage, hot tier, public blob access disabled |
 | Blob containers | Separate data by retention and permission | `datasets`, `rules`, `cache`, `usage`, and `temporary`; lifecycle deletion applies only to `temporary` objects older than seven days |
 | Log Analytics workspace | Receives Container Apps logs | Shortest suitable retention, restrained log levels, and a small daily ingestion cap |
 | Application Insights | API, workflow, dependency, and failure telemetry | Workspace-based; sample routine requests and never log prompts containing secrets or full anonymous tokens |
+| Azure Cosmos DB for NoSQL (free tier) | Persistent sessions, rate limits, spend allowance, idempotency records and answer cache for the Core Service | Free tier: first 1,000 RU/s and 25 GB at no charge; one free account per subscription, enabled at creation. Shared database throughput at 400 RU/s; alert above 1,000 RU/s |
 | Azure Cost Management budget | Warns before the contest ceiling is reached | **USD 20 hard project ceiling**, scoped to the contest resource group, with notifications at USD 5, 10, 15, 18, and 19.50 |
 | User-assigned or system-assigned managed identities | Removes service credentials from application configuration | Grant only the Blob and Foundry data-plane roles each service needs |
 

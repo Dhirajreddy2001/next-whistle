@@ -41,3 +41,34 @@ Core protects the model budget and the service with these layers. Limits are enf
 - **Headers:** `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, a restrictive `Content-Security-Policy` and `Permissions-Policy` on every API response. The static site's CSP is in `frontend/public/staticwebapp.config.json`; narrow its `connect-src` to your exact API origin.
 
 These limits live in SQLite, which is right for one replica (the planned `maxReplicas` is 1). Volumetric network floods belong to the platform edge (Azure Front Door or Container Apps ingress), not application code.
+
+## State store: SQLite locally, Cosmos DB in production
+
+Sessions, rate limits, the spend allowance, idempotency records and the answer cache sit behind one async store interface.
+
+- **Local and tests:** `STORE_BACKEND=sqlite` (default) keeps everything in `.local/sessions.sqlite3`.
+- **Production:** `STORE_BACKEND=cosmos`. Container disks are wiped on restart, which would reset the spend allowance, so production state must be external. The free tier of Azure Cosmos DB for NoSQL (1,000 RU/s and 25 GB for the life of the account, one free account per subscription, chosen when the account is created) covers this workload at no cost, with no compute-seconds cap.
+
+| Variable | Meaning |
+| --- | --- |
+| `STORE_BACKEND` | `sqlite` or `cosmos` |
+| `COSMOS_ENDPOINT` | `https://<account>.documents.azure.com:443/` |
+| `COSMOS_DATABASE`, `COSMOS_CONTAINER` | default `nextwhistle` and `state` |
+| `COSMOS_KEY` | account key (a secret; keep it in Azure secrets). Leave unset to use a managed identity |
+
+One container (partition key `/pk`, item TTL on) holds every record type; Cosmos TTL expires sessions, rate buckets, idempotency records and cached answers by itself. The spend allowance is one document updated with an ETag check, so concurrent requests cannot overspend it. Rate limits use per-minute (or per-hour) counter documents incremented atomically; a burst can overshoot a limit by a request or two, but never the allowance.
+
+Setup, to run once when you are ready (these commands create billable-capable Azure resources, so pick the subscription and resource group first; they have not been run):
+
+```
+az cosmosdb create --name <account> --resource-group <rg> --kind GlobalDocumentDB \
+  --enable-free-tier true --default-consistency-level Session \
+  --locations regionName=<region> failoverPriority=0 isZoneRedundant=False
+export COSMOS_ENDPOINT=$(az cosmosdb show -n <account> -g <rg> --query documentEndpoint -o tsv)
+export COSMOS_KEY=$(az cosmosdb keys list -n <account> -g <rg> --query primaryMasterKey -o tsv)
+STORE_BACKEND=cosmos python -m next_whistle_core.store.cosmos     # creates the database (400 RU/s shared) and container
+```
+
+For a managed identity instead of a key, assign the data-plane role `az cosmosdb sql role assignment create -a <account> -g <rg> -n "Cosmos DB Built-in Data Contributor" -p <principal-id> -s "/"` and leave `COSMOS_KEY` unset. The 400 RU/s database throughput is inside the 1,000 RU/s free allowance; anything above 1,000 RU/s across the account is billed.
+
+The Cosmos logic is covered by the same behaviour tests as SQLite, run against an in-memory table with ETag semantics. The thin SDK layer is tested against a stub that raises the real SDK exceptions. It has not been run against a live account or the emulator.

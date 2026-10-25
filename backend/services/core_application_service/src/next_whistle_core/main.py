@@ -32,8 +32,7 @@ from next_whistle_core.services.generation import (
 )
 from next_whistle_core.store.datasets import Dataset, MatchData, load_dataset
 from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter, client_ip, hash_ip
-from next_whistle_core.store.ops import OpsStore
-from next_whistle_core.store.sessions import SQLiteSessionStore
+from next_whistle_core.store.factory import open_stores
 
 ACCESS_TOKEN_SECONDS = 15 * 60
 REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60
@@ -100,14 +99,15 @@ def create_app(
     async def lifespan(app: FastAPI):
         app.state.dataset = load_dataset(settings.dataset_path)
         app.state.catalog = MatchCatalog.model_validate(app.state.dataset.catalog)
-        app.state.sessions = SQLiteSessionStore(settings.session_db_path)
         app.state.session_signing_key = load_signing_key(settings)
         app.state.ip_hash_key = (settings.ip_hash_key or hashlib.sha256(app.state.session_signing_key + b"|ip").hexdigest()).encode()
-        app.state.ops = OpsStore(settings.session_db_path, settings.allowance_budget_units)
+        app.state.sessions, app.state.ops, closers = await open_stores(settings)
         app.state.gate = GenerationGate(settings.gen_concurrency, settings.gen_queue)
         app.state.read_limiter = SlidingWindowLimiter()
         app.state.agent_client = agent_client or AgentServiceClient(settings.agent_service_url, settings.agent_timeout_seconds)
         yield
+        for close in closers:
+            await close()
         app.state.catalog = None
         app.state.dataset = None
 
@@ -217,12 +217,12 @@ def create_app(
     @app.post("/api/sessions", status_code=201)
     async def create_session(request: Request):
         now = int(time.time())
-        allowed, wait = request.app.state.ops.consume("session_issue", ip_key(request), settings.limit_ip_sessions_hour, 3600, now)
+        allowed, wait = await request.app.state.ops.consume("session_issue", ip_key(request), settings.limit_ip_sessions_hour, 3600, now)
         if not allowed:
             raise ApiError(429, "Too many sessions from this network. Try again later.", "rate_limited", retry_after(wait))
         session_id = f"s_{uuid4().hex}"
         refresh_token = secrets.token_urlsafe(48)
-        request.app.state.sessions.create(session_id, hash_refresh_token(refresh_token), now, now + REFRESH_TOKEN_SECONDS)
+        await request.app.state.sessions.create(session_id, hash_refresh_token(refresh_token), now, now + REFRESH_TOKEN_SECONDS)
         result = session_tokens(session_id, refresh_token, now, request)
         result["limits"] = {"per_hour": settings.limit_session_hour, "per_day": settings.limit_session_day}
         return camelize(result)
@@ -231,25 +231,25 @@ def create_app(
     async def refresh_session(body: RefreshSessionRequest, request: Request):
         now = int(time.time())
         refresh_token = secrets.token_urlsafe(48)
-        session_id = request.app.state.sessions.rotate(
+        session_id = await request.app.state.sessions.rotate(
             hash_refresh_token(body.refresh_token), hash_refresh_token(refresh_token), now, now + REFRESH_TOKEN_SECONDS,
         )
         if session_id is None:
             raise HTTPException(401, "Invalid or expired refresh token")
         return camelize(session_tokens(session_id, refresh_token, now, request))
 
-    def authenticated_session(request: Request) -> str:
+    async def authenticated_session(request: Request) -> str:
         header = request.headers.get("authorization", "")
         scheme, _, token = header.partition(" ")
         now = int(time.time())
         session_id = read_access_token(token, now, request.app.state.session_signing_key) if scheme.lower() == "bearer" else None
-        if session_id is None or not request.app.state.sessions.is_active(session_id, now):
+        if session_id is None or not await request.app.state.sessions.is_active(session_id, now):
             raise HTTPException(401, "Invalid or expired session")
         return session_id
 
     @app.delete("/api/sessions/current", status_code=204)
     async def revoke_session(request: Request):
-        request.app.state.sessions.revoke(authenticated_session(request))
+        await request.app.state.sessions.revoke(await authenticated_session(request))
         return Response(status_code=204)
 
     def match_data(request: Request, match_id: str) -> MatchData:
@@ -370,13 +370,13 @@ def create_app(
         usage = getattr(result, "usage", None)
         return (usage.input_tokens + usage.output_tokens * settings.output_weight) if usage else 0
 
-    def check_generation_limits(request: Request, session_id: str, weight: int) -> None:
+    async def check_generation_limits(request: Request, session_id: str, weight: int) -> None:
         """Per-IP then per-session limits; a refusal carries Retry-After so clients can back off."""
         now = int(time.time())
-        allowed, wait = request.app.state.ops.consume("generation_ip", ip_key(request), settings.limit_ip_hour, 3600, now, weight)
+        allowed, wait = await request.app.state.ops.consume("generation_ip", ip_key(request), settings.limit_ip_hour, 3600, now, weight)
         if not allowed:
             raise ApiError(429, "Too many generations from this network. Try again later.", "rate_limited", retry_after(wait))
-        allowed, wait = request.app.state.sessions.reserve_generation(session_id, now, settings.limit_session_hour, settings.limit_session_day, weight)
+        allowed, wait = await request.app.state.sessions.reserve_generation(session_id, now, settings.limit_session_hour, settings.limit_session_day, weight)
         if not allowed:
             raise ApiError(429, "Generation limit reached for this session", "rate_limited", retry_after(wait))
 
@@ -390,7 +390,7 @@ def create_app(
             if not IDEMPOTENCY_KEY.match(idempotency_key):
                 raise ApiError(400, "Idempotency-Key must be 8-64 letters, digits, dashes or underscores", "invalid_idempotency_key")
             request_hash = hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
-            state, stored = ops.idempotency_begin(idempotency_key, session_id, request_hash, now)
+            state, stored = await ops.idempotency_begin(idempotency_key, session_id, request_hash, now)
             if state == "conflict":
                 raise ApiError(422, "This Idempotency-Key was already used for a different request", "idempotency_conflict")
             if state == "in_progress":
@@ -401,40 +401,40 @@ def create_app(
             payload = await generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now)
         except BaseException:
             if idempotency_key is not None:
-                ops.idempotency_fail(idempotency_key)
+                await ops.idempotency_fail(idempotency_key)
             raise
         if idempotency_key is not None:
-            ops.idempotency_done(idempotency_key, payload)
+            await ops.idempotency_done(idempotency_key, payload)
         return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
     async def generate_once(request, session_id, cutoff_ms, weight, produce, uses_model, cache_key, now) -> dict:
         ops = request.app.state.ops
         if cache_key is not None:
-            hit = ops.cache_get(cache_key, cutoff_ms, now)
+            hit = await ops.cache_get(cache_key, cutoff_ms, now)
             if hit is not None:
                 return {**hit, "requestId": request.state.request_id, "cached": True}  # cache hits cost nothing
         if not settings.generation_enabled:
             answer, _ = await produce(False)
             return {**answer, "generationEnabled": False}
-        check_generation_limits(request, session_id, weight)
+        await check_generation_limits(request, session_id, weight)
         if not uses_model:
             answer, _ = await produce(False)
             return answer
         request_id = request.state.request_id
-        if not ops.reserve(request_id, settings.allowance_reserve_units, now):
+        if not await ops.reserve(request_id, settings.allowance_reserve_units, now):
             raise ApiError(429, "The shared AI allowance is used up for now. Recorded facts are still available.", "allowance_exhausted", retry_after(3600))
         try:
             async with request.app.state.gate.slot():
                 answer, units = await produce(True)
         except Busy:
-            ops.release(request_id)
+            await ops.release(request_id)
             raise ApiError(503, "The assistant is busy. Please try again in a moment.", "busy", retry_after(5)) from None
         except BaseException:
-            ops.release(request_id)
+            await ops.release(request_id)
             raise
-        ops.settle(request_id, units)
+        await ops.settle(request_id, units)
         if cache_key is not None and answer.get("status") == "ok" and answer.get("source") != "template":
-            ops.cache_put(cache_key, cutoff_ms, answer, now)
+            await ops.cache_put(cache_key, cutoff_ms, answer, now)
         return answer
 
     def cache_key(kind: str, request: Request, match_id: str, event_id: str | None, level: str, language: str, extra: str = "") -> str:
@@ -443,7 +443,7 @@ def create_app(
 
     @app.post("/api/matches/{match_id}/explanations")
     async def explanation(body: GenerationRequest, request: Request, match_id: str):
-        session_id = authenticated_session(request)
+        session_id = await authenticated_session(request)
         data = match_data(request, match_id)
         cutoff_ms = checked_cutoff(data, body.cutoff_ms)
         if body.intent not in {"explain", "compare", "recap", "decision"}:
@@ -473,7 +473,7 @@ def create_app(
 
     @app.post("/api/matches/{match_id}/referee/questions")
     async def referee_question(body: RefereeQuestionRequest, request: Request, match_id: str):
-        session_id = authenticated_session(request)
+        session_id = await authenticated_session(request)
         data = match_data(request, match_id)
         cutoff_ms = checked_cutoff(data, body.cutoff_ms)
         event = None
