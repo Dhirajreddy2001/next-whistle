@@ -82,7 +82,7 @@ def test_questions_about_the_moment_on_screen_still_use_the_full_agent(tmp_path)
     agent = LawAgent()
     with build(tmp_path, agent) as client:
         headers = session(client)
-        body = ask(client, headers, "Why was this offside?", eventId="e_m_rvr_hrb_01290")
+        body = ask(client, headers, "Why was this offside?", eventId="e_m_rvr_hrb_01825")
     assert body["scope"] == "in_scope"
     assert all(not p.rule_excerpts for p in agent.payloads)  # that one is a decision question, not a rule explainer request
 

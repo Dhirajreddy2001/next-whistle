@@ -34,9 +34,9 @@ class Style:
 
 
 STYLES = {
-    "possession": Style({"build_up": 6, "recycle": 4, "through_ball": 1.6, "wing_play": 1.8, "switch_play": 1.2, "long_ball": .3, "counter": 1}, .93, .66, .88, 1.0, .45, 6.0, 20, 1.35),
-    "counter": Style({"build_up": 3, "recycle": 2.5, "through_ball": 1.4, "wing_play": 1.8, "switch_play": .8, "long_ball": 1.4, "counter": 4}, .91, .60, .85, .88, .30, -7.0, 22, 1.0),
-    "direct": Style({"build_up": 3, "recycle": 2, "through_ball": 1, "wing_play": 2.2, "switch_play": .8, "long_ball": 3, "counter": 2}, .90, .60, .85, .92, .60, 3.0, 24, .85),
+    "possession": Style({"build_up": 6, "recycle": 4, "through_ball": 1.6, "wing_play": 1.8, "switch_play": 1.2, "long_ball": .3, "counter": 1}, .93, .66, .88, 1.0, .45, 6.0, 20, 1.0),
+    "counter": Style({"build_up": 3, "recycle": 2.5, "through_ball": 1.4, "wing_play": 1.8, "switch_play": .8, "long_ball": 1.4, "counter": 4}, .91, .60, .85, .88, .30, -7.0, 22, .75),
+    "direct": Style({"build_up": 3, "recycle": 2, "through_ball": 1, "wing_play": 2.2, "switch_play": .8, "long_ball": 3, "counter": 2}, .90, .60, .85, .92, .60, 3.0, 24, .65),
 }
 TEAM_STYLE = {"t_rvr": "possession", "t_hrb": "counter", "t_ash": "direct"}
 
@@ -218,7 +218,7 @@ class OpenPlay:
             fwd, _ = self.frame()
             end = (clamp(start[0] + 4 * fwd, 2, 103), start[1])
             distance = math.dist(start, end)
-        if self.interrupted(int(clamp(distance / 17, .4, 2.7) * 1000) + (3000 if clear_on_fail else 1200)):
+        if self.interrupted(int(clamp(distance / 19, .4, 2.7) * 1000) + (3000 if clear_on_fail else 1200)):
             return False
         target = receiver if receiver is not None else self.receiver(end)
         if receiver is None:  # the ball goes to where the receiver is, or a little ahead of him when it is played into space
@@ -238,9 +238,9 @@ class OpenPlay:
             winner = self.nearest_slot(1 - self.side, end, chasing)
             end = self.shape_point(1 - self.side, winner, end)
         self.emit("pass", self.side, self.holder, start, end, target=target, outcome="complete" if success else None, quals=quals)
-        flight = int(clamp(math.dist(start, end) / 17, .4, 2.7) * 1000)
+        flight = int(clamp(math.dist(start, end) / 19, .4, 2.7) * 1000)
         if success:
-            self.t += flight + self.hold(1.9, 3.8, fast)
+            self.t += flight + self.hold(1.0, 2.2, fast)
             self.holder, self.ball = target, end
             return True
         self.t += flight
@@ -263,7 +263,7 @@ class OpenPlay:
         base = style.carry_ok - self.pressure(u) - .08 * max(0.0, (u - 75) / 30)
         success = self.rng.random() < clamp(base, .3, .95)
         self.emit("carry", self.side, self.holder, start, end, outcome="complete" if success else None, quals=quals)
-        self.t += int((distance / self.rng.uniform(3.8, 5.2) + .3) * 1000 * (.7 if fast else 1.0))
+        self.t += int((distance / self.rng.uniform(5.0, 6.6) + .3) * 1000 * (.7 if fast else 1.0))
         if success:
             self.ball = end
             return True
@@ -313,7 +313,7 @@ class OpenPlay:
         out_v = clamp(dv + self.rng.choice([-1, 1]) * self.rng.uniform(14, 26), 3, 65)
         end = self.xy(clamp(du + self.rng.uniform(16, 26), 8, 100), out_v, defending)
         self.emit("clearance", defending, slot, spot, end, outcome="cleared")
-        self.t += int(clamp(math.dist(spot, end) / 17, .6, 2.0) * 1000)
+        self.t += int(clamp(math.dist(spot, end) / 19, .6, 2.0) * 1000)
         if self.rng.random() < .3:
             self.t += self.hold(2.0, 3.5)
             self.ball = end
@@ -335,7 +335,7 @@ class OpenPlay:
         self.holder, self.ball = taker, flag
         success = self.rng.random() < .55
         self.emit("pass", self.side, taker, flag, end, target=target, outcome="complete" if success else None, quals=("corner", "set_piece"))
-        self.t += int(clamp(math.dist(flag, end) / 17, .8, 2.0) * 1000)
+        self.t += int(clamp(math.dist(flag, end) / 19, .8, 2.0) * 1000)
         if success:
             self.holder, self.ball = target, end
             self.t += self.hold(.4, .9)
@@ -356,8 +356,8 @@ class OpenPlay:
     def t_build_up(self) -> None:
         for _ in range(self.rng.randint(3, 6)):
             u, v = self.uv(self.ball)
-            if u > 18 and self.rng.random() < .22:
-                moved = self.carry(self.rng.uniform(5, 10), self.rng.uniform(-4, 4))
+            if u > 18 and self.rng.random() < .4:
+                moved = self.carry(self.rng.uniform(8, 16), self.rng.uniform(-5, 5))
             else:
                 moved = self.pass_to(u + (self.rng.uniform(-4, 11) if u > 18 else self.rng.uniform(4, 12)), v + self.rng.uniform(-16, 16))
             if not moved:
@@ -477,7 +477,7 @@ class OpenPlay:
             if receiver is None or receiver == self.holder:
                 receiver = self.receiver(end)
             self.emit("pass", self.side, self.holder, self.ball, end, target=receiver, outcome="complete")
-            self.t += int(clamp(math.dist(self.ball, end) / 17, .4, 2.7) * 1000) + self.hold(.4, 1.0, True)
+            self.t += int(clamp(math.dist(self.ball, end) / 19, .4, 2.7) * 1000) + self.hold(.4, 1.0, True)
             self.holder, self.ball = receiver, end
         if self.t == before:
             self.t += 300

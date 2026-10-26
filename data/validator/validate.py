@@ -32,7 +32,7 @@ def validate(root: Path) -> list[str]:
             if sha(root / entry["files"][name]) != expected: errors.append(f"{entry['match_id']} {name} checksum mismatch")
         match, events, snapshots, clips, animation = (load(folder / f"{name}.json") for name in ("match", "events", "snapshots", "clips", "animation"))
         tracking = load(root / entry["files"]["tracking"])
-        if not 1500 <= len(events) <= 2500: errors.append(f"{entry['match_id']} event count {len(events)}")
+        if not 1500 <= len(events) <= 3500: errors.append(f"{entry['match_id']} event count {len(events)}")
         if not 20 <= len(snapshots) <= 40: errors.append(f"{entry['match_id']} snapshot count {len(snapshots)}")
         ids = {e["event_id"] for e in events}; player_ids = {p["player_id"] for t in (match["home"], match["away"]) for p in t["squad"]}; snapshot_ids = {s["snapshot_id"] for s in snapshots}
         starters = {p["player_id"] for t in (match["home"], match["away"]) for p in t["squad"] if p["starter"]}

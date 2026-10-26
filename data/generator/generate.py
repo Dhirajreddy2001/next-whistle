@@ -26,7 +26,7 @@ BASE_TRACKING_HZ = 2
 CLIP_TRACKING_HZ = 20
 TRACKING_CHUNK_MS = 60_000
 CLIP_KINDS = {"goal", "goal_disallowed", "offside", "penalty_goal", "penalty_saved", "penalty_miss", "tactical_foul_yellow", "red_card", "second_yellow", "free_kick_goal"}
-PASS_SPEED_MPS, SHOT_SPEED_MPS = 17.0, 24.0
+PASS_SPEED_MPS, SHOT_SPEED_MPS = 19.0, 24.0
 MAX_BALL_STEP_M = 1.5  # per 20 Hz simulation tick, about 30 m/s
 
 
