@@ -1,0 +1,2978 @@
+[
+  {
+    "snapshot_id": "s_m_hrb_ash_00001",
+    "match_ms": 0,
+    "available_ms": 0,
+    "ball": {
+      "x": 52.5,
+      "y": 34
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.68,
+        "y": 34.32
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 22.38,
+        "y": 8.79
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.38,
+        "y": 28.12
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.14,
+        "y": 43.68
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 21.43,
+        "y": 57.67
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.76,
+        "y": 13.07
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.32,
+        "y": 33.6
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.35,
+        "y": 53.77
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.23,
+        "y": 10.41
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.42,
+        "y": 33.69
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 65.51,
+        "y": 54.4
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.35,
+        "y": 33.78
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.0,
+        "y": 10.57
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 83.59,
+        "y": 28.61
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 83.94,
+        "y": 44.32
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.07,
+        "y": 56.45
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 63.75,
+        "y": 15.81
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 61.86,
+        "y": 35.99
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 62.06,
+        "y": 52.91
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 39.94,
+        "y": 13.32
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.22,
+        "y": 35.7
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 40.27,
+        "y": 56.83
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00001"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00002",
+    "match_ms": 481112,
+    "available_ms": 481112,
+    "ball": {
+      "x": 68.13,
+      "y": 29.82
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.55,
+        "y": 35.54
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 22.0,
+        "y": 8.87
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.39,
+        "y": 27.93
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.86,
+        "y": 43.76
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.71,
+        "y": 58.85
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.34,
+        "y": 13.58
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 43.45,
+        "y": 33.23
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.95,
+        "y": 53.49
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.67,
+        "y": 10.09
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.65,
+        "y": 34.32
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.99,
+        "y": 54.27
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.79,
+        "y": 32.16
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.56,
+        "y": 9.61
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.23,
+        "y": 28.92
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.07,
+        "y": 45.24
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.52,
+        "y": 57.23
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 63.97,
+        "y": 14.95
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.27,
+        "y": 32.41
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.5,
+        "y": 54.21
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.18,
+        "y": 12.62
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.0,
+        "y": 35.52
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.61,
+        "y": 56.15
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00199"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00003",
+    "match_ms": 960227,
+    "available_ms": 960227,
+    "ball": {
+      "x": 57.91,
+      "y": 46.38
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 6.3,
+        "y": 32.29
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.66,
+        "y": 11.28
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.87,
+        "y": 27.44
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.05,
+        "y": 45.2
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 23.23,
+        "y": 57.82
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.31,
+        "y": 14.28
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.9,
+        "y": 33.88
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.36,
+        "y": 51.59
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.29,
+        "y": 12.77
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.43,
+        "y": 34.21
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.69,
+        "y": 54.71
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.01,
+        "y": 33.71
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 82.12,
+        "y": 9.85
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.48,
+        "y": 28.64
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.48,
+        "y": 45.83
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.22,
+        "y": 57.11
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 63.25,
+        "y": 15.69
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 61.18,
+        "y": 32.71
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.37,
+        "y": 54.47
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 39.57,
+        "y": 13.21
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.45,
+        "y": 33.89
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.99,
+        "y": 56.05
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00397"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00004",
+    "match_ms": 1101000,
+    "available_ms": 1101000,
+    "ball": {
+      "x": 55,
+      "y": 30
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.56,
+        "y": 34.15
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.17,
+        "y": 11.44
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.42,
+        "y": 28.51
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.92,
+        "y": 44.5
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 20.72,
+        "y": 58.79
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.97,
+        "y": 14.42
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.1,
+        "y": 34.85
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 42.64,
+        "y": 54.35
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.81,
+        "y": 13.29
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.42,
+        "y": 32.05
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.53,
+        "y": 55.56
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.37,
+        "y": 35.93
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 83.62,
+        "y": 8.7
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 83.74,
+        "y": 27.35
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.65,
+        "y": 42.58
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 81.87,
+        "y": 59.91
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.6,
+        "y": 13.88
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 60.39,
+        "y": 33.89
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.59,
+        "y": 52.64
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 39.31,
+        "y": 13.15
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.35,
+        "y": 33.91
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 40.08,
+        "y": 57.11
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00451"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00005",
+    "match_ms": 1439049,
+    "available_ms": 1439049,
+    "ball": {
+      "x": 10.9,
+      "y": 30.54
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.03,
+        "y": 34.03
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.41,
+        "y": 11.71
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 23.52,
+        "y": 27.22
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.72,
+        "y": 44.19
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 20.08,
+        "y": 59.09
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.03,
+        "y": 15.8
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 43.08,
+        "y": 32.89
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.63,
+        "y": 54.92
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.42,
+        "y": 12.02
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.2,
+        "y": 33.62
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 65.51,
+        "y": 57.37
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.96,
+        "y": 35.3
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.71,
+        "y": 10.93
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.07,
+        "y": 25.26
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.24,
+        "y": 45.35
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.72,
+        "y": 59.41
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 62.08,
+        "y": 16.91
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 60.58,
+        "y": 33.95
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 62.09,
+        "y": 54.85
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.18,
+        "y": 12.24
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.89,
+        "y": 34.59
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 40.84,
+        "y": 56.77
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00588"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00006",
+    "match_ms": 1500900,
+    "available_ms": 1500900,
+    "ball": {
+      "x": 5,
+      "y": 32.5
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 4.28,
+        "y": 33.3
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.64,
+        "y": 9.39
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.02,
+        "y": 25.58
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 20.45,
+        "y": 44.11
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 23.7,
+        "y": 57.62
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.46,
+        "y": 14.02
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 43.37,
+        "y": 32.07
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.77,
+        "y": 51.47
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.97,
+        "y": 10.48
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.03,
+        "y": 34.3
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.88,
+        "y": 56.85
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.16,
+        "y": 34.17
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.38,
+        "y": 10.25
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.06,
+        "y": 25.79
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 81.3,
+        "y": 45.41
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 81.36,
+        "y": 58.08
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.5,
+        "y": 13.26
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.32,
+        "y": 34.77
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.25,
+        "y": 51.27
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.73,
+        "y": 12.36
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.3,
+        "y": 35.55
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 38.14,
+        "y": 57.29
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00611"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00007",
+    "match_ms": 1874001,
+    "available_ms": 1874001,
+    "ball": {
+      "x": 5,
+      "y": 34
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 4.77,
+        "y": 33.22
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.7,
+        "y": 10.09
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 22.29,
+        "y": 27.38
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 20.65,
+        "y": 43.7
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 20.37,
+        "y": 58.19
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.4,
+        "y": 15.37
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.4,
+        "y": 35.85
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 44.6,
+        "y": 54.81
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.67,
+        "y": 10.86
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 67.97,
+        "y": 33.84
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.92,
+        "y": 57.14
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.28,
+        "y": 33.79
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.35,
+        "y": 10.94
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.31,
+        "y": 26.9
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.07,
+        "y": 45.3
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.47,
+        "y": 59.7
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.1,
+        "y": 15.13
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 62.7,
+        "y": 32.98
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.52,
+        "y": 52.57
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.84,
+        "y": 12.48
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 38.48,
+        "y": 34.83
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.48,
+        "y": 56.94
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00768"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00008",
+    "match_ms": 1920639,
+    "available_ms": 1920639,
+    "ball": {
+      "x": 49.27,
+      "y": 17.73
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 4.02,
+        "y": 32.28
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.17,
+        "y": 9.65
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.54,
+        "y": 28.98
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.34,
+        "y": 42.05
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.52,
+        "y": 56.29
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.66,
+        "y": 16.12
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.03,
+        "y": 34.61
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 43.29,
+        "y": 51.98
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.24,
+        "y": 11.88
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.05,
+        "y": 32.83
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 65.1,
+        "y": 55.55
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.65,
+        "y": 33.65
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 83.19,
+        "y": 8.83
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.92,
+        "y": 25.61
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.43,
+        "y": 43.66
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.99,
+        "y": 56.29
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.94,
+        "y": 16.45
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.91,
+        "y": 35.43
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.02,
+        "y": 53.25
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 40.01,
+        "y": 11.96
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 38.3,
+        "y": 32.96
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.35,
+        "y": 55.31
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00789"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00009",
+    "match_ms": 2292000,
+    "available_ms": 2292000,
+    "ball": {
+      "x": 66.0,
+      "y": 34
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.06,
+        "y": 34.43
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.06,
+        "y": 10.67
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 23.76,
+        "y": 26.37
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 21.44,
+        "y": 45.23
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 21.17,
+        "y": 56.38
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.43,
+        "y": 16.14
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.08,
+        "y": 35.51
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.18,
+        "y": 54.36
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 88.08,
+        "y": 13.56
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.17,
+        "y": 35.29
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.77,
+        "y": 57.03
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 103.0,
+        "y": 32.82
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 88.0,
+        "y": 8.54
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.0,
+        "y": 28.07
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.0,
+        "y": 43.57
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 80.0,
+        "y": 59.8
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 78.0,
+        "y": 16.3
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 76.0,
+        "y": 34.24
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 74.0,
+        "y": 52.5
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 72.0,
+        "y": 12.52
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 70.0,
+        "y": 33.49
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 68.0,
+        "y": 55.64
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00939"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00010",
+    "match_ms": 2400641,
+    "available_ms": 2400641,
+    "ball": {
+      "x": 34.06,
+      "y": 66
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.54,
+        "y": 34.59
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 22.53,
+        "y": 11.79
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.53,
+        "y": 26.29
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 21.79,
+        "y": 45.19
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.83,
+        "y": 58.33
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.57,
+        "y": 16.06
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 43.47,
+        "y": 34.82
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 43.81,
+        "y": 51.57
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 63.27,
+        "y": 12.78
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 67.07,
+        "y": 32.5
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.56,
+        "y": 55.34
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.01,
+        "y": 32.25
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.5,
+        "y": 10.1
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.97,
+        "y": 28.89
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.02,
+        "y": 45.03
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.68,
+        "y": 56.75
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.07,
+        "y": 14.25
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 60.47,
+        "y": 33.3
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.79,
+        "y": 53.48
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 40.99,
+        "y": 11.67
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.31,
+        "y": 33.96
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 40.44,
+        "y": 54.52
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_00982"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00011",
+    "match_ms": 2880047,
+    "available_ms": 2880047,
+    "ball": {
+      "x": 94.0,
+      "y": 45.71
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 6.72,
+        "y": 32.36
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.99,
+        "y": 8.99
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 22.47,
+        "y": 25.79
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.79,
+        "y": 42.75
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.03,
+        "y": 59.74
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.84,
+        "y": 15.12
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 42.85,
+        "y": 33.27
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 44.91,
+        "y": 54.14
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.13,
+        "y": 11.71
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.19,
+        "y": 33.96
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.02,
+        "y": 55.85
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.31,
+        "y": 34.9
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.99,
+        "y": 8.42
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.68,
+        "y": 26.78
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 83.87,
+        "y": 45.45
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.62,
+        "y": 57.33
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.26,
+        "y": 13.02
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 60.74,
+        "y": 32.42
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.53,
+        "y": 52.85
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.11,
+        "y": 13.44
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.04,
+        "y": 34.38
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.65,
+        "y": 56.26
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01166"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00012",
+    "match_ms": 3051000,
+    "available_ms": 3051000,
+    "ball": {
+      "x": 55,
+      "y": 30
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.17,
+        "y": 32.61
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 22.51,
+        "y": 10.46
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.29,
+        "y": 27.29
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.78,
+        "y": 42.49
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 23.38,
+        "y": 58.21
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 42.36,
+        "y": 13.6
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.1,
+        "y": 34.98
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.44,
+        "y": 54.99
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.89,
+        "y": 10.68
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.54,
+        "y": 33.96
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.36,
+        "y": 54.16
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.72,
+        "y": 34.03
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 82.19,
+        "y": 8.65
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.92,
+        "y": 26.34
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 83.78,
+        "y": 43.78
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.66,
+        "y": 56.18
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 62.47,
+        "y": 14.9
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.89,
+        "y": 35.2
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.31,
+        "y": 53.43
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.67,
+        "y": 11.76
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.22,
+        "y": 33.23
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.93,
+        "y": 57.71
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01241"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00013",
+    "match_ms": 3359434,
+    "available_ms": 3359434,
+    "ball": {
+      "x": 64.85,
+      "y": 63.06
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 6.66,
+        "y": 34.48
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.92,
+        "y": 9.2
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.96,
+        "y": 28.8
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.67,
+        "y": 43.46
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.42,
+        "y": 56.07
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.17,
+        "y": 14.84
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.01,
+        "y": 32.78
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 42.96,
+        "y": 53.16
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.7,
+        "y": 10.68
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.78,
+        "y": 35.04
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.21,
+        "y": 55.67
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.21,
+        "y": 35.14
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.27,
+        "y": 9.65
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 83.18,
+        "y": 25.44
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 81.11,
+        "y": 42.62
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 83.8,
+        "y": 57.33
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.36,
+        "y": 15.0
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 62.1,
+        "y": 34.84
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.08,
+        "y": 54.91
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.37,
+        "y": 11.01
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.43,
+        "y": 34.28
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.92,
+        "y": 55.01
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01362"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00014",
+    "match_ms": 3601000,
+    "available_ms": 3601000,
+    "ball": {
+      "x": 55,
+      "y": 30
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.44,
+        "y": 32.57
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.76,
+        "y": 11.42
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.38,
+        "y": 25.85
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 20.95,
+        "y": 44.95
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 21.97,
+        "y": 57.96
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.13,
+        "y": 16.93
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.92,
+        "y": 35.65
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.05,
+        "y": 54.4
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.28,
+        "y": 11.46
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.01,
+        "y": 33.35
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.5,
+        "y": 55.43
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.72,
+        "y": 33.8
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.78,
+        "y": 8.39
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.55,
+        "y": 26.96
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.13,
+        "y": 44.14
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.86,
+        "y": 57.15
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.78,
+        "y": 16.15
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 61.68,
+        "y": 32.94
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.1,
+        "y": 52.58
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.92,
+        "y": 11.95
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.82,
+        "y": 32.46
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 38.97,
+        "y": 57.93
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01451"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00015",
+    "match_ms": 3601500,
+    "available_ms": 3601500,
+    "ball": {
+      "x": 55,
+      "y": 30
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 3.12,
+        "y": 34.61
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.05,
+        "y": 9.67
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 23.8,
+        "y": 25.71
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.75,
+        "y": 43.37
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 20.65,
+        "y": 57.94
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.4,
+        "y": 16.56
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.12,
+        "y": 32.07
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 43.3,
+        "y": 54.95
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.06,
+        "y": 10.54
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.29,
+        "y": 35.17
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.68,
+        "y": 54.67
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.29,
+        "y": 34.36
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.27,
+        "y": 10.31
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.49,
+        "y": 27.59
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.13,
+        "y": 44.68
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 84.8,
+        "y": 57.56
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.23,
+        "y": 16.27
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 60.71,
+        "y": 33.47
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 62.01,
+        "y": 52.66
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 40.14,
+        "y": 13.77
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.01,
+        "y": 34.33
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.47,
+        "y": 55.93
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01452"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00016",
+    "match_ms": 3840466,
+    "available_ms": 3840466,
+    "ball": {
+      "x": 100,
+      "y": 1.0
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.78,
+        "y": 33.25
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.94,
+        "y": 9.11
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 23.69,
+        "y": 25.66
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.97,
+        "y": 43.3
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.51,
+        "y": 57.02
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.75,
+        "y": 14.29
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.51,
+        "y": 35.69
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 43.19,
+        "y": 53.57
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.4,
+        "y": 12.65
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.95,
+        "y": 35.62
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.52,
+        "y": 56.97
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.97,
+        "y": 34.24
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.0,
+        "y": 10.5
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.1,
+        "y": 26.0
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.21,
+        "y": 45.73
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 83.83,
+        "y": 58.06
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 62.91,
+        "y": 16.81
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 61.94,
+        "y": 32.51
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.88,
+        "y": 51.16
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.34,
+        "y": 13.28
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.56,
+        "y": 32.28
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 40.43,
+        "y": 55.55
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01556"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00017",
+    "match_ms": 4321230,
+    "available_ms": 4321230,
+    "ball": {
+      "x": 35.31,
+      "y": 29.85
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 6.41,
+        "y": 34.54
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.31,
+        "y": 11.52
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.87,
+        "y": 28.45
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.32,
+        "y": 44.91
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.59,
+        "y": 57.97
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.37,
+        "y": 14.54
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.01,
+        "y": 34.68
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.63,
+        "y": 53.72
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.82,
+        "y": 13.75
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 67.05,
+        "y": 32.9
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.66,
+        "y": 56.05
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.42,
+        "y": 35.45
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.21,
+        "y": 10.52
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 83.28,
+        "y": 25.73
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.71,
+        "y": 45.34
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.13,
+        "y": 56.52
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.58,
+        "y": 13.28
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 62.37,
+        "y": 34.04
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.59,
+        "y": 54.04
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 39.7,
+        "y": 11.86
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.21,
+        "y": 34.02
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 38.87,
+        "y": 55.67
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01760"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00018",
+    "match_ms": 4339000,
+    "available_ms": 4339000,
+    "ball": {
+      "x": 60,
+      "y": 36
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 3.13,
+        "y": 34.79
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.48,
+        "y": 8.27
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.14,
+        "y": 28.5
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 20.35,
+        "y": 42.58
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.79,
+        "y": 57.06
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 41.57,
+        "y": 15.87
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.65,
+        "y": 33.28
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 42.34,
+        "y": 54.86
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.42,
+        "y": 10.5
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.31,
+        "y": 35.2
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.99,
+        "y": 55.64
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.14,
+        "y": 34.42
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 84.31,
+        "y": 8.16
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.85,
+        "y": 26.38
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 83.15,
+        "y": 42.73
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.63,
+        "y": 57.76
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.23,
+        "y": 13.98
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 61.08,
+        "y": 35.1
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.18,
+        "y": 51.19
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 39.77,
+        "y": 13.07
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.16,
+        "y": 32.01
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.93,
+        "y": 56.81
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01768"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00019",
+    "match_ms": 4600900,
+    "available_ms": 4600900,
+    "ball": {
+      "x": 5,
+      "y": 32.5
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 3.48,
+        "y": 33.78
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.97,
+        "y": 8.65
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 21.95,
+        "y": 28.81
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 21.61,
+        "y": 45.1
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 20.37,
+        "y": 56.52
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.04,
+        "y": 14.58
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.77,
+        "y": 35.06
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 44.9,
+        "y": 52.31
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.36,
+        "y": 10.88
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.56,
+        "y": 33.58
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.06,
+        "y": 56.59
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 99.33,
+        "y": 32.41
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.48,
+        "y": 9.21
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.3,
+        "y": 25.92
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.0,
+        "y": 42.74
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 83.34,
+        "y": 57.33
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.2,
+        "y": 17.0
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.04,
+        "y": 34.04
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 63.91,
+        "y": 51.87
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.16,
+        "y": 13.87
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 38.98,
+        "y": 33.12
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 38.92,
+        "y": 55.02
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01873"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00020",
+    "match_ms": 4798626,
+    "available_ms": 4798626,
+    "ball": {
+      "x": 25.47,
+      "y": 66
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 4.95,
+        "y": 34.32
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.64,
+        "y": 9.43
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.54,
+        "y": 26.14
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.55,
+        "y": 43.48
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.26,
+        "y": 58.79
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.14,
+        "y": 16.54
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 42.3,
+        "y": 35.02
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 43.33,
+        "y": 54.24
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 66.7,
+        "y": 12.47
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 69.38,
+        "y": 35.57
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 65.09,
+        "y": 56.27
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 100.25,
+        "y": 34.49
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.91,
+        "y": 9.32
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.26,
+        "y": 25.41
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 82.84,
+        "y": 43.77
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.51,
+        "y": 57.19
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.13,
+        "y": 16.52
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.82,
+        "y": 32.77
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 60.95,
+        "y": 53.12
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.71,
+        "y": 11.17
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.66,
+        "y": 35.9
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 38.42,
+        "y": 55.52
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01951"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00021",
+    "match_ms": 4871000,
+    "available_ms": 4871000,
+    "ball": {
+      "x": 11,
+      "y": 38
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 3.2,
+        "y": 34.02
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 23.34,
+        "y": 10.88
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 23.64,
+        "y": 28.7
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 23.49,
+        "y": 43.79
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 21.75,
+        "y": 59.29
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.05,
+        "y": 14.51
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.65,
+        "y": 34.49
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.01,
+        "y": 52.03
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 64.3,
+        "y": 11.7
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 68.56,
+        "y": 34.41
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 65.46,
+        "y": 55.13
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.17,
+        "y": 34.92
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 83.79,
+        "y": 8.55
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 81.09,
+        "y": 28.12
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.03,
+        "y": 43.41
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 83.93,
+        "y": 59.86
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 61.42,
+        "y": 15.64
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.8,
+        "y": 33.69
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 62.56,
+        "y": 51.91
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.37,
+        "y": 12.2
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 35.14,
+        "y": 34.97
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.92,
+        "y": 57.11
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_01985"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00022",
+    "match_ms": 5216001,
+    "available_ms": 5216001,
+    "ball": {
+      "x": 5,
+      "y": 34
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 4.26,
+        "y": 32.95
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.13,
+        "y": 9.79
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 22.36,
+        "y": 25.76
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.46,
+        "y": 44.06
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.62,
+        "y": 59.87
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 43.38,
+        "y": 14.54
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 43.27,
+        "y": 35.82
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 44.06,
+        "y": 54.54
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.21,
+        "y": 13.32
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 67.14,
+        "y": 33.19
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 66.7,
+        "y": 56.94
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 101.99,
+        "y": 32.61
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.44,
+        "y": 11.69
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 84.72,
+        "y": 26.78
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 84.31,
+        "y": 44.12
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.82,
+        "y": 56.73
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.7,
+        "y": 13.55
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 63.36,
+        "y": 32.35
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.4,
+        "y": 54.52
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 41.81,
+        "y": 10.96
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 36.95,
+        "y": 32.82
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 39.71,
+        "y": 55.53
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_02122"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00023",
+    "match_ms": 5279047,
+    "available_ms": 5279047,
+    "ball": {
+      "x": 87.76,
+      "y": 11.9
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 6.74,
+        "y": 32.42
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 21.43,
+        "y": 10.23
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.41,
+        "y": 26.55
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 21.29,
+        "y": 45.35
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 22.73,
+        "y": 57.26
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 42.08,
+        "y": 16.44
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 44.35,
+        "y": 33.65
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 44.21,
+        "y": 53.79
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.88,
+        "y": 13.52
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.97,
+        "y": 32.3
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 64.02,
+        "y": 56.2
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 99.86,
+        "y": 34.09
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 81.75,
+        "y": 8.02
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.64,
+        "y": 27.4
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 81.52,
+        "y": 42.5
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 83.23,
+        "y": 57.87
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.87,
+        "y": 15.65
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 62.37,
+        "y": 34.17
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.34,
+        "y": 51.41
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 40.12,
+        "y": 12.57
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 38.81,
+        "y": 35.3
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.92,
+        "y": 56.76
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_02149"
+    ]
+  },
+  {
+    "snapshot_id": "s_m_hrb_ash_00024",
+    "match_ms": 5451000,
+    "available_ms": 5451000,
+    "ball": {
+      "x": 55,
+      "y": 30
+    },
+    "players": [
+      {
+        "player_id": "p_hrb_01",
+        "x": 5.31,
+        "y": 34.46
+      },
+      {
+        "player_id": "p_hrb_02",
+        "x": 20.04,
+        "y": 9.15
+      },
+      {
+        "player_id": "p_hrb_03",
+        "x": 20.75,
+        "y": 26.29
+      },
+      {
+        "player_id": "p_hrb_04",
+        "x": 22.4,
+        "y": 42.76
+      },
+      {
+        "player_id": "p_hrb_05",
+        "x": 23.08,
+        "y": 59.86
+      },
+      {
+        "player_id": "p_hrb_06",
+        "x": 44.59,
+        "y": 15.32
+      },
+      {
+        "player_id": "p_hrb_07",
+        "x": 41.14,
+        "y": 34.23
+      },
+      {
+        "player_id": "p_hrb_08",
+        "x": 41.31,
+        "y": 51.46
+      },
+      {
+        "player_id": "p_hrb_09",
+        "x": 65.45,
+        "y": 13.19
+      },
+      {
+        "player_id": "p_hrb_10",
+        "x": 66.46,
+        "y": 34.29
+      },
+      {
+        "player_id": "p_hrb_11",
+        "x": 63.93,
+        "y": 56.58
+      },
+      {
+        "player_id": "p_ash_01",
+        "x": 98.28,
+        "y": 34.53
+      },
+      {
+        "player_id": "p_ash_02",
+        "x": 83.47,
+        "y": 11.29
+      },
+      {
+        "player_id": "p_ash_03",
+        "x": 82.4,
+        "y": 25.51
+      },
+      {
+        "player_id": "p_ash_04",
+        "x": 81.11,
+        "y": 43.45
+      },
+      {
+        "player_id": "p_ash_05",
+        "x": 82.14,
+        "y": 59.28
+      },
+      {
+        "player_id": "p_ash_06",
+        "x": 60.19,
+        "y": 16.85
+      },
+      {
+        "player_id": "p_ash_07",
+        "x": 62.21,
+        "y": 33.79
+      },
+      {
+        "player_id": "p_ash_08",
+        "x": 61.8,
+        "y": 53.1
+      },
+      {
+        "player_id": "p_ash_09",
+        "x": 38.53,
+        "y": 10.44
+      },
+      {
+        "player_id": "p_ash_10",
+        "x": 37.6,
+        "y": 34.75
+      },
+      {
+        "player_id": "p_ash_11",
+        "x": 41.48,
+        "y": 54.89
+      }
+    ],
+    "source_event_ids": [
+      "e_m_hrb_ash_02218"
+    ]
+  }
+]

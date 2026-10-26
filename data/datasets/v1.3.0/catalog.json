@@ -1,0 +1,51 @@
+{
+  "dataset_version": "1.3.0",
+  "matches": [
+    {
+      "match_id": "m_rvr_hrb",
+      "label": "Veldmoor FC v Tarnhaven Town",
+      "kickoff_date": "2026-08-16",
+      "home": {
+        "team_id": "t_rvr",
+        "name": "Veldmoor FC",
+        "short_name": "VLD",
+        "colors": [
+          "#bbf174",
+          "#142c24"
+        ]
+      },
+      "away": {
+        "team_id": "t_hrb",
+        "name": "Tarnhaven Town",
+        "short_name": "TRN",
+        "colors": [
+          "#89bfff",
+          "#162639"
+        ]
+      }
+    },
+    {
+      "match_id": "m_hrb_ash",
+      "label": "Tarnhaven Town v Quillstone United",
+      "kickoff_date": "2026-08-23",
+      "home": {
+        "team_id": "t_hrb",
+        "name": "Tarnhaven Town",
+        "short_name": "TRN",
+        "colors": [
+          "#89bfff",
+          "#162639"
+        ]
+      },
+      "away": {
+        "team_id": "t_ash",
+        "name": "Quillstone United",
+        "short_name": "QLS",
+        "colors": [
+          "#ffb49b",
+          "#3d211c"
+        ]
+      }
+    }
+  ]
+}

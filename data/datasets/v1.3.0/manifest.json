@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "dataset_version": "1.3.0",
+  "rules_version": "1.2.0",
+  "rule_edition": "2026/27",
+  "generated_at": "2026-10-22T00:00:00Z",
+  "generator_seed": 4242,
+  "synthetic": true,
+  "history": {
+    "file": "history/matches.json",
+    "sha256": "8dac590e546ee546f9b2c342c00d0ce92a7a074017d7f053816a31e1dd278832"
+  },
+  "matches": [
+    {
+      "match_id": "m_hrb_ash",
+      "kickoff_date": "2026-08-23",
+      "label": "Tarnhaven Town v Quillstone United",
+      "files": {
+        "match": "m_hrb_ash/match.json",
+        "events": "m_hrb_ash/events.json",
+        "snapshots": "m_hrb_ash/snapshots.json",
+        "clips": "m_hrb_ash/clips.json",
+        "animation": "m_hrb_ash/animation.json",
+        "tracking": "m_hrb_ash/tracking/manifest.json"
+      },
+      "sha256": {
+        "match": "2daefba8d549314201de8c5b20635ef5f40417ae3585ad58083ef53667671e2e",
+        "events": "fc932627db4c83c90ff2d1bc6bd089eee3714cbf92424c76a6cca2e8995d09a5",
+        "snapshots": "1cfc3f336ec0b4f9a428e94e1fbb07ad9768f4d983ff2d088445136d781e417c",
+        "clips": "c0be12f9f4f0ca69d602603906c72c5107257ed22c853498c02bbcd03c282c78",
+        "animation": "145a1ef4d6feef32ede6f0f1e6c82361298ac5c0bfacdc72783e265e0c29aaea",
+        "tracking": "e1d27e0abcf7c948aea640a09dd8176f72ba48fc337afbf6e14fc6ab5a57d9d4"
+      }
+    },
+    {
+      "match_id": "m_rvr_hrb",
+      "kickoff_date": "2026-08-16",
+      "label": "Veldmoor FC v Tarnhaven Town",
+      "files": {
+        "match": "m_rvr_hrb/match.json",
+        "events": "m_rvr_hrb/events.json",
+        "snapshots": "m_rvr_hrb/snapshots.json",
+        "clips": "m_rvr_hrb/clips.json",
+        "animation": "m_rvr_hrb/animation.json",
+        "tracking": "m_rvr_hrb/tracking/manifest.json"
+      },
+      "sha256": {
+        "match": "2f414772582e5e6374d59a0de9defe9a5ac08d93a0703b86bd0d6e0d404c2f13",
+        "events": "2c4e93a330650ffd8bb1a27a14e4be9bb6fa46ba3773874caad628c2409ea553",
+        "snapshots": "e9071c30a97ee5ce62d5add43894cf6d1303d9f8ea8ac2f08f0a535b19608a24",
+        "clips": "c75a63e8d1b393560b10779756ba20791de8196a4cddaa30fe88639c6f0ce54b",
+        "animation": "382937a976c2ab5e81feae24c32062eb31da155728a331a24f64cab30c805e3f",
+        "tracking": "89d72554aac1ce40c87ba0e13966cca06092c8c202fc1a3bf2185d24f2475f81"
+      }
+    }
+  ]
+}

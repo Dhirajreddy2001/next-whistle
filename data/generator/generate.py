@@ -11,9 +11,14 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+try:
+    from . import movement, phases
+except ImportError:  # run as a script
+    import movement, phases
+
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = Path(__file__).with_name("scenarios")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 RULES_VERSION = "1.2.0"
 TRACKING_SCHEMA_VERSION = 1
 SIMULATION_HZ = 20
@@ -21,14 +26,8 @@ BASE_TRACKING_HZ = 2
 CLIP_TRACKING_HZ = 20
 TRACKING_CHUNK_MS = 60_000
 CLIP_KINDS = {"goal", "goal_disallowed", "offside", "penalty_goal", "penalty_saved", "penalty_miss", "tactical_foul_yellow", "red_card", "second_yellow", "free_kick_goal"}
-MARKER_KINDS = {"kickoff", "half_time", "full_time"}
 PASS_SPEED_MPS, SHOT_SPEED_MPS = 17.0, 24.0
 MAX_BALL_STEP_M = 1.5  # per 20 Hz simulation tick, about 30 m/s
-
-
-def window_ms(kind: str) -> int:
-    """Open play is cleared around a scripted moment; match-state markers need only a short gap."""
-    return 2000 if kind in MARKER_KINDS else 12000
 
 
 def travel_ms(event: dict, gap: int) -> int:
@@ -38,7 +37,7 @@ def travel_ms(event: dict, gap: int) -> int:
     end = event.get("end") or event["start"]
     distance = math.hypot(end["x"] - event["start"]["x"], end["y"] - event["start"]["y"])
     speed = PASS_SPEED_MPS if event["type"] == "pass" else SHOT_SPEED_MPS
-    return int(min(gap, max(350, min(1800, distance / speed * 1000))))
+    return int(min(gap, max(350, min(2700, distance / speed * 1000))))
 
 
 BALL_NEUTRAL_TYPES = {"substitution", "card_yellow", "card_red", "foul", "var_check", "period_end", "pressure"}
@@ -119,6 +118,7 @@ def scripted_events(scenario: dict, home: dict, away: dict, duration: int) -> li
     opponent = {"home": away, "away": home}
     for moment in scenario["moments"]:
         side, at, kind, key = moment["team"], moment["at_ms"], moment["kind"], moment["id"]
+        first_new = len(result)
         acting, defending = by_side[side], opponent[side]
         players = {p["shirt"]: p for p in acting["squad"]}
         defenders = {p["shirt"]: p for p in defending["squad"]}
@@ -138,8 +138,8 @@ def scripted_events(scenario: dict, home: dict, away: dict, duration: int) -> li
         elif kind == "offside":
             attacker, passer = players[moment["scorer_shirt"]], players[moment["assist_shirt"]]
             pass_key = f"{key}_pass"
-            result.append(base_event(pass_key, at - 1800, "pass", acting["team_id"], passer["player_id"], {"x": 62, "y": 31}, target_player_id=attacker["player_id"], end={"x": 84, "y": 34}, outcome="complete", qualifiers=["through_ball"]))
-            result.append(base_event(key, at, "offside", acting["team_id"], attacker["player_id"], {"x": 84, "y": 34}, available_ms=at + moment["review_delay_ms"], outcome="awarded", related_event_ids=[pass_key], decision={"kind": "offside", "decision_type": "offside", "recorded_ruling": "offside", "rule_ids": ["r_law11_offside"], "authored_margin_m": moment["offside_margin_m"], "geometry_snapshot_id": None}))
+            result.append(base_event(pass_key, at - 1800, "pass", acting["team_id"], passer["player_id"], {"x": 62 if direction_ltr else 43, "y": 31}, target_player_id=attacker["player_id"], end={"x": 84 if direction_ltr else 21, "y": 34}, outcome="complete", qualifiers=["through_ball"]))
+            result.append(base_event(key, at, "offside", acting["team_id"], attacker["player_id"], {"x": 84 if direction_ltr else 21, "y": 34}, available_ms=at + moment["review_delay_ms"], outcome="awarded", related_event_ids=[pass_key], decision={"kind": "offside", "decision_type": "offside", "recorded_ruling": "offside", "rule_ids": ["r_law11_offside"], "authored_margin_m": moment["offside_margin_m"], "geometry_snapshot_id": None}))
         elif kind == "tactical_foul_yellow":
             offender, target = players[moment["offender_shirt"]], defenders[moment["target_shirt"]]
             foul_key = f"{key}_foul"
@@ -228,6 +228,8 @@ def scripted_events(scenario: dict, home: dict, away: dict, duration: int) -> li
                 result += [base_event(f"{key}_end", at - 1, "period_end", home["team_id"], starter["player_id"], centre), base_event(f"{key}_start", at + 1, "period_start", home["team_id"], starter["player_id"], centre)]
             else:
                 result.append(base_event(key, at - 1, "period_end", home["team_id"], starter["player_id"], centre))
+        for event in result[first_new:]:
+            event["_moment"] = key
     return result
 
 
@@ -270,14 +272,14 @@ def _ball_at(events: list[dict], index: int, at_ms: int) -> tuple[float, float, 
     return round(x, 2), round(y, 2), round(max(0.0, height), 2)
 
 
-def next_involvement(involvement: dict[str, list[tuple[int, dict]]], cursor: dict[str, int], player_id: str, at_ms: int) -> dict | None:
-    """Next event the player takes part in that starts after at_ms (players run to the spot ahead of time)."""
+def next_involvement(involvement: dict[str, list[tuple[int, dict, str]]], cursor: dict[str, int], player_id: str, at_ms: int) -> tuple[int, dict, str] | None:
+    """Next event the player takes part in (as actor or pass target) after at_ms, so players run to the spot ahead of time."""
     rows = involvement.get(player_id, [])
     index = cursor.get(player_id, 0)
     while index < len(rows) and rows[index][0] <= at_ms:
         index += 1
     cursor[player_id] = index
-    return rows[index][1] if index < len(rows) else None
+    return rows[index] if index < len(rows) else None
 
 
 def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict], folder: Path) -> dict:
@@ -306,11 +308,17 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
     flight_start = (52.5, 34.0)
     last_ball = (52.5, 34.0)
     flight_cache: dict[str, int] = {}
-    involvement: dict[str, list[tuple[int, dict]]] = {}
+    involvement: dict[str, list[tuple[int, dict, str]]] = {}
+    possession_tags: dict[int, set[str]] = {}
+    possession_start: dict[int, int] = {}
     for event in events:
-        for pid in {event.get("player_id"), event.get("target_player_id")} - {None}:
-            involvement.setdefault(pid, []).append((event["match_ms"], event))
+        for pid, role in ((event.get("player_id"), "actor"), (event.get("target_player_id"), "target")):
+            if pid:
+                involvement.setdefault(pid, []).append((event["match_ms"], event, role))
+        possession_tags.setdefault(event["possession_id"], set()).update(event["qualifiers"])
+        possession_start[event["possession_id"]] = min(possession_start.get(event["possession_id"], event["match_ms"]), event["match_ms"])
     involvement_cursor = {pid: 0 for pid in involvement}
+    team_styles = [phases.STYLES[phases.TEAM_STYLE[home["team_id"]]], phases.STYLES[phases.TEAM_STYLE[away["team_id"]]]]
     for tick, at_ms in enumerate(range(0, duration + 1, step_ms)):
         while event_index + 1 < len(events) and events[event_index + 1]["match_ms"] <= at_ms:
             event_index += 1
@@ -340,33 +348,53 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
                 aim = (receiver[0], receiver[1]) if ball_current["type"] == "pass" and receiver and ball_current.get("outcome") == "complete" else ((ball_current.get("end") or ball_current["start"])["x"], (ball_current.get("end") or ball_current["start"])["y"])
                 reach = math.dist(aim, last_ball)
                 speed = PASS_SPEED_MPS if ball_current["type"] == "pass" else SHOT_SPEED_MPS
-                flight_cache[ball_current["event_id"]] = int(min(max(1, event_gap_ms), max(350, min(1800, reach / speed * 1000))))
+                flight_cache[ball_current["event_id"]] = int(min(max(1, event_gap_ms), max(350, min(2700, reach / speed * 1000))))
             flight_ms = flight_cache[ball_current["event_id"]]
         ball_in_flight = bool(ball_current and ball_current["type"] in {"pass", "shot"} and at_ms - ball_current["match_ms"] < flight_ms)
+        attack_side = 0 if possession_team == home["team_id"] else 1
+        frames = [(1, 0.0) if (side == 0) == (period == 1) else (-1, 105.0) for side in (0, 1)]
+        possession_key = ball_current["possession_id"] if ball_current else 0
+        counter_phase = "counter" in possession_tags.get(possession_key, ()) and at_ms - possession_start.get(possession_key, at_ms) < 9000
+        closing = sorted(range(1, 11), key=lambda slot: math.hypot(states[player_order[(1 - attack_side) * 11 + slot]][0] - ball_x, states[player_order[(1 - attack_side) * 11 + slot]][1] - ball_y))
+        press_rank = {slot: rank for rank, slot in enumerate(closing[:2])}
         for index, player in enumerate(players):
             team_is_home = index < 11
-            team_id = team_for_player[player["player_id"]]
-            base_x, base_y = _formation(team_is_home, period)[index if team_is_home else index - 11]
-            in_possession = team_id == possession_team
-            target_x = base_x + (ball_x - 52.5) * (.34 if in_possession else .20)
-            target_y = base_y + (ball_y - 34) * (.23 if in_possession else .14)
+            side, slot = (0, index) if team_is_home else (1, index - 11)
+            fwd, own = frames[side]
+            style = team_styles[side]
+            urgency, target = movement.JOG, None
             if ball_current and ball_current["type"] in {"kickoff", "period_start"} and ball_current.get("player_id") == player["player_id"]:
-                target_x, target_y = 52.5, 34.0
+                target = (52.5, 34.0)
             elif current and current.get("player_id") == player["player_id"] and at_ms - current["match_ms"] <= 1400:
-                target_x, target_y = ball_x, ball_y
-            elif (upcoming_event := next_involvement(involvement, involvement_cursor, player["player_id"], at_ms)) and upcoming_event["match_ms"] - at_ms <= 4500:
-                target_x, target_y = upcoming_event["start"]["x"], upcoming_event["start"]["y"]
-            elif current and current.get("target_player_id") == player["player_id"] and current.get("end"):
-                target_x, target_y = current["end"]["x"], current["end"]["y"]
-
-            target_x, target_y = min(103, max(2, target_x)), min(66, max(2, target_y))
+                target = (ball_x, ball_y)
+            else:
+                upcoming = next_involvement(involvement, involvement_cursor, player["player_id"], at_ms)
+                if upcoming and upcoming[0] - at_ms <= (4500 if upcoming[2] == "actor" else 3200):
+                    spot = upcoming[1]["start"] if upcoming[2] == "actor" or not upcoming[1].get("end") else upcoming[1]["end"]
+                    target = (spot["x"], spot["y"])
+                    urgency = movement.SPRINT if math.hypot(target[0] - states[player["player_id"]][0], target[1] - states[player["player_id"]][1]) > 10 else movement.RUN
+                elif current and current.get("target_player_id") == player["player_id"] and current.get("end"):
+                    target = (current["end"]["x"], current["end"]["y"])
+            if target is None:
+                ball_u, ball_v = (ball_x - own) * fwd, ball_y
+                if side == attack_side:
+                    target_u, target_v, urgency = movement.with_ball(slot, ball_u, ball_v, style.line, counter_phase)
+                else:
+                    target_u, target_v, urgency = movement.without_ball(slot, ball_u, ball_v, style.line, style.press)
+                    rank = press_rank.get(slot)
+                    if rank is not None and math.hypot(states[player["player_id"]][0] - ball_x, states[player["player_id"]][1] - ball_y) <= movement.presser_distance(style.press, rank):
+                        target, urgency = (ball_x - fwd * (1.3 if rank == 0 else 6.0), ball_y), (movement.SPRINT if rank == 0 else movement.RUN)
+                if target is None:
+                    sway_u, sway_v = movement.sway(slot, at_ms)
+                    target = (own + fwd * (target_u + sway_u), target_v + sway_v)
+            target_x, target_y = min(103, max(2, target[0])), min(66, max(2, target[1]))
             x, y, vx, vy = states[player["player_id"]]
             dx, dy = target_x - x, target_y - y
             distance = math.hypot(dx, dy)
             profile = player["movement_profile"]
             fatigue = 1 - (at_ms / duration) * (1 - profile["stamina"]) * .38
             max_speed = profile["max_speed_mps"] * fatigue
-            desired_speed = min(max_speed, distance * 1.35)
+            desired_speed = min(max_speed * urgency, distance * 1.35)
             desired_vx = dx / distance * desired_speed if distance else 0.0
             desired_vy = dy / distance * desired_speed if distance else 0.0
             max_delta = profile["acceleration_mps2"] / SIMULATION_HZ
@@ -494,130 +522,20 @@ def make_animation(rng: random.Random, home: dict, away: dict, clips: list[dict]
     return {"schema_version": 1, "model_id": "nw_humanoid_v1", "poses": ["idle", "jog", "sprint", "receive", "shoot", "challenge"], "clips": clip_tracks}
 
 
-def _anchor(team_is_home: bool, period: int, index: int, ball: tuple[float, float], in_possession: bool) -> tuple[float, float]:
-    base_x, base_y = _formation(team_is_home, period)[index]
-    return base_x + (ball[0] - 52.5) * (.34 if in_possession else .20), base_y + (ball[1] - 34) * (.23 if in_possession else .14)
-
-
-def chain_events(rng: random.Random, scenario: dict, home: dict, away: dict, scripted: list[dict], duration: int) -> list[dict]:
-    """Ball-continuous open play: each event starts where the previous one left the ball, performed by a nearby player."""
-    teams = (home, away)
-    ball_scripted = sorted((e for e in scripted if e["type"] not in BALL_NEUTRAL_TYPES), key=lambda e: e["match_ms"])
-    windows = [(m["at_ms"] - window_ms(m["kind"]), m["at_ms"] + window_ms(m["kind"])) for m in scenario["moments"]]
-    result: list[dict] = []
-    ball, side, period, possession, restart_keeper = (52.5, 34.0), 0, 1, 1, False
-    scripted_cursor = 0
-    holder: int | None = None
-    for i in range(1760):
-        at = min(duration - 2, int((i + 1) * duration / 1762) + rng.randint(-500, 500))
-        new_period = 1 if at <= scenario["period_lengths_ms"][0] else 2
-        if new_period != period:
-            period, ball, side, restart_keeper, holder = new_period, (52.5, 34.0), 1, False, None
-        while scripted_cursor < len(ball_scripted) and ball_scripted[scripted_cursor]["match_ms"] <= at:
-            last = ball_scripted[scripted_cursor]
-            scripted_cursor += 1
-            spot = last.get("end") or last["start"]
-            ball = (52.5, 34.0) if last["type"] == "goal" else (spot["x"], spot["y"])
-            acted_home = last["team_id"] == home["team_id"]
-            side = (1 if acted_home else 0) if last["type"] in {"shot", "goal", "goal_disallowed", "offside"} else (0 if acted_home else 1)
-            restart_keeper, holder = False, None
-        if any(low <= at <= high for low, high in windows):
-            continue
-        acting, defending = teams[side], teams[1 - side]
-        ltr = (side == 0) == (period == 1)
-        goal_x = 105.0 if ltr else 0.0
-        forward = 1 if ltr else -1
-        # Lead into the next scripted moment so the ball is already in its area.
-        upcoming = next((e for e in ball_scripted[scripted_cursor:] if e["match_ms"] > at), None)
-        steer = upcoming if upcoming and upcoming["match_ms"] - at < 30000 else None
-        if steer:
-            side_home = steer["team_id"] == home["team_id"]
-            if (side == 0) != side_home:
-                side, holder = (0 if side_home else 1), None
-                acting, defending = teams[side], teams[1 - side]
-                ltr = (side == 0) == (period == 1)
-                goal_x, forward = (105.0 if ltr else 0.0), (1 if ltr else -1)
-        def nearest(squad_side: int, spot: tuple[float, float], pool: range, possession_flag: bool) -> int:
-            ranked = sorted(pool, key=lambda idx: math.dist(_anchor(squad_side == 0, period, idx, spot, possession_flag), spot))
-            return ranked[0] if rng.random() < .7 else ranked[min(1, len(ranked) - 1)]
-        if restart_keeper:
-            actor_index, ball, restart_keeper = 0, (105.0 - goal_x + 6.0 * forward, 34.0), False
-        elif holder is not None:
-            actor_index = holder
-        else:
-            actor_index = nearest(side, ball, range(1, 11), True)
-        actor = acting["squad"][actor_index]
-        start = {"x": round(ball[0], 2), "y": round(ball[1], 2)}
-        to_goal = abs(goal_x - ball[0])
-        roll = rng.random()
-        kind = "shot" if to_goal < 24 and abs(ball[1] - 34) < 16 and roll < .16 and not steer else "pass" if roll < .70 else "carry" if roll < .88 else "pressure"
-        end = outcome = target = None
-        next_ball = ball
-        next_holder: int | None = actor_index
-        flip = False
-        if kind == "pass":
-            candidates = [idx for idx in range(1, 11) if idx != actor_index]
-            def reach(idx: int) -> float:
-                ax, ay = _anchor(side == 0, period, idx, ball, True)
-                gap = math.dist((ax, ay), ball)
-                forward_gain = (ax - ball[0]) * forward
-                return 0.0 if gap < 5 or gap > 16 else 1.0 + max(0.0, forward_gain) / 8
-            weights = [reach(idx) for idx in candidates]
-            if sum(weights) == 0:
-                kind = "carry"
-            else:
-                pick = rng.choices(candidates, weights=weights)[0]
-                ax, ay = _anchor(side == 0, period, pick, ball, True)
-                if steer:
-                    pull = (steer["start"]["x"] - ball[0], steer["start"]["y"] - ball[1])
-                    length = math.hypot(*pull) or 1.0
-                    step = min(16.0, length)
-                    ax, ay = ball[0] + pull[0] / length * step, ball[1] + pull[1] / length * step
-                ax, ay = min(103.0, max(2.0, ax)), min(66.0, max(2.0, ay))
-                end = {"x": round(ax, 2), "y": round(ay, 2)}
-                target = acting["squad"][pick]
-                complete = rng.random() < (.84 if side == 0 else .8) or bool(steer)
-                outcome = "complete" if complete else None
-                next_ball, flip = (ax, ay), not complete
-                next_holder = pick if complete else None
-        if kind == "carry":
-            dx = forward * rng.uniform(2, 10) + rng.uniform(-2, 2)
-            if steer:
-                dx = max(-8.0, min(8.0, steer["start"]["x"] - ball[0]))
-            ex, ey = min(103.0, max(2.0, ball[0] + dx)), min(66.0, max(2.0, ball[1] + rng.uniform(-6, 6)))
-            end = {"x": round(ex, 2), "y": round(ey, 2)}
-            next_ball = (ex, ey)
-            flip = rng.random() < .1
-        elif kind == "shot":
-            on_target = rng.random() < .4
-            end = {"x": goal_x, "y": round(34 + (rng.uniform(-3, 3) if on_target else rng.choice([-1, 1]) * rng.uniform(5, 9)), 2)}
-            outcome = "on_target" if on_target else "off_target"
-            flip, restart_keeper, next_holder = True, True, None
-        elif kind == "pressure":
-            defender = defending["squad"][nearest(1 - side, ball, range(1, 11), False)]
-            actor = defender
-        result.append(base_event(f"filler_{i:04d}", at, kind, (acting if kind != "pressure" else defending)["team_id"], actor["player_id"], start, period=period, target_player_id=target["player_id"] if target else None, end=end, outcome=outcome, possession_id=possession))
-        ball, holder = next_ball, next_holder
-        if flip:
-            side, possession = 1 - side, possession + 1
-            if kind != "shot":
-                receiver = nearest(side, ball, range(1, 11), True)
-                holder = receiver
-                kind_after = "interception" if kind == "pass" else "tackle"
-                at_after = min(duration - 2, at + 700)
-                result.append(base_event(f"filler_{i:04d}_win", at_after, kind_after, teams[side]["team_id"], teams[side]["squad"][receiver]["player_id"], {"x": round(ball[0], 2), "y": round(ball[1], 2)}, period=period, outcome="won", possession_id=possession))
-    return result
-
-
 def generate_match(scenario: dict, out: Path) -> dict:
     rng = random.Random(scenario["seed"])
     home, away = team(scenario["home"]), team(scenario["away"])
     duration = sum(scenario["period_lengths_ms"])
     events: list[dict] = []
     scripted = scripted_events(scenario, home, away, duration)
-    events.extend(chain_events(rng, scenario, home, away, scripted, duration))
-    for moment in scenario["moments"]:
-        events = [e for e in events if abs(e["match_ms"] - moment["at_ms"]) > window_ms(moment["kind"])]
+    windows = phases.moment_windows(scripted, home["team_id"], BALL_NEUTRAL_TYPES)
+    open_play, window_possession = phases.OpenPlay(rng, scenario, (home, away), windows, duration, base_event).run()
+    clashes = [e["_key"] for e in open_play if any(w["low"] < e["match_ms"] < w["high"] for w in windows)]
+    assert not clashes, f"open play overlaps a scripted moment: {clashes[:3]}"
+    events.extend(open_play)
+    for event in scripted:  # a scripted moment belongs to the possession that was steered into it
+        window = next((w for w in windows if w["low"] <= event["match_ms"] <= w["high"]), None)
+        event["possession_id"] = window_possession.get(window["id"], 0) if window else 0
     events.extend(scripted)
     for event in events:
         event["period"] = 1 if event["match_ms"] <= scenario["period_lengths_ms"][0] else 2
@@ -632,7 +550,7 @@ def generate_match(scenario: dict, out: Path) -> dict:
         if event.get("decision", {}).get("reverses_event_id"):
             event["decision"]["reverses_event_id"] = key_to_id[event["decision"]["reverses_event_id"]]
 
-    anchors = [e for e in events if e.get("decision") or e["type"] in KEY_EVENT_TYPES]
+    anchors = [e for e in events if e.get("decision") or (e["type"] in KEY_EVENT_TYPES and "_moment" in e)]
     anchors += [min(events, key=lambda e, t=t: abs(e["match_ms"] - t)) for t in range(0, duration, max(1, duration // 12))]
     snapshots = []
     seen = set()
@@ -679,9 +597,11 @@ def generate_match(scenario: dict, out: Path) -> dict:
     match = {"match_id": scenario["match_id"], "kickoff_date": scenario["kickoff_date"], "home": home, "away": away, "periods": [{"period": 1, "start_match_ms": 0, "end_match_ms": scenario["period_lengths_ms"][0], "home_attack_direction": "ltr"}, {"period": 2, "start_match_ms": scenario["period_lengths_ms"][0], "end_match_ms": duration, "home_attack_direction": "rtl"}], "venue": scenario["venue"], "final_state_hash": final_hash}
     clips = []
     for moment in (m for m in scenario["moments"] if m.get("clip", m["kind"] in CLIP_KINDS)):
-        related = [e["event_id"] for e in events if abs(e["match_ms"] - moment["at_ms"]) <= 12000]
+        related = [e["event_id"] for e in events if e.get("_moment") == moment["id"]]
         clip_id = f"clip_{scenario['match_id']}_{moment['id']}"
         clips.append({"clip_id": clip_id, "kind": moment["kind"], "from_ms": max(0, moment["at_ms"] - 12000), "to_ms": min(duration, moment["at_ms"] + 10000), "focus_event_ids": related, "render_mode": "svg_replay", "animation_file": "animation.json", "animation_track_id": f"anim_{clip_id}", "copyright": "original_synthetic"})
+    for event in events:
+        event.pop("_moment", None)
     folder = out / scenario["match_id"]
     animation = make_animation(rng, home, away, clips, events, scenario["period_lengths_ms"][0])
     make_full_tracking(scenario, home, away, events, folder)

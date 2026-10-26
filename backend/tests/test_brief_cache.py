@@ -10,7 +10,7 @@ from app.config import Settings
 from app.main import create_app
 from next_whistle_shared.contracts.agent import AgentResponse, EvidenceBrief, EvidenceFact, Significance, TokenUsage
 
-EVENT = "e_m_rvr_hrb_01167"
+EVENT = "e_m_rvr_hrb_01374"
 SUGGESTED = "q_off_why"
 T = 4_600_000
 

@@ -1,4 +1,4 @@
-"""Read-only loader for the pinned v1.2.0 synthetic evidence dataset."""
+"""Read-only loader for the pinned v1.3.0 synthetic evidence dataset."""
 
 from __future__ import annotations
 
@@ -35,8 +35,8 @@ def load_evidence_dataset(dataset_path: Path, rules_path: Path | None = None) ->
     root = dataset_path.resolve()
     manifest = _read_json(root / "manifest.json")
     version = manifest.get("dataset_version")
-    if version != "1.2.0":
-        raise ValueError(f"Evidence tools require dataset v1.2.0, got {version!r}")
+    if version != "1.3.0":
+        raise ValueError(f"Evidence tools require dataset v1.3.0, got {version!r}")
     rules_version = manifest["rules_version"]
     if rules_path is None:
         repository_root = root.parents[2]

@@ -102,7 +102,7 @@ def validate(root: Path) -> list[str]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.2.0"); args = parser.parse_args()
+    parser = argparse.ArgumentParser(); parser.add_argument("root", type=Path, nargs="?", default=ROOT / "data" / "datasets" / "v1.3.0"); args = parser.parse_args()
     failures = validate(args.root)
     if failures: raise SystemExit("\n".join(failures))
     print(f"valid dataset: {args.root}")

@@ -40,7 +40,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         root = Path(__file__).resolve().parents[5]
-        dataset = Path(os.getenv("DATASET_PATH", str(root / "data/datasets/v1.2.0")))
+        dataset = Path(os.getenv("DATASET_PATH", str(root / "data/datasets/v1.3.0")))
         default = dataset / "catalog.json"
         return cls(
             catalog_path=Path(os.getenv("CATALOG_PATH", str(default))),

@@ -7,7 +7,7 @@ SQUADS = {"p_1": {"name": "Nia Cole"}, "t_1": {"name": "Tarnhaven Town"}}
 
 def validator():
     context = BoundContext(
-        request_id="req_v", match_id="m_rvr_hrb", dataset_version="1.2.0", rules_version="1.2.0", cutoff_ms=4_600_000,
+        request_id="req_v", match_id="m_rvr_hrb", dataset_version="1.3.0", rules_version="1.2.0", cutoff_ms=4_600_000,
         evidence_cutoff_ms=4_600_000, intent="explain", agent="storyteller",
     )
     return EvidenceValidator(context, EvidenceLedger(), SQUADS)
@@ -62,6 +62,6 @@ def test_sentence_starting_words_are_not_names_but_a_surname_in_a_sentence_is_ch
 
 def test_internal_field_names_and_ids_never_reach_the_viewer():
     assert issues_all("The withinUncertainty flag is false.") == ["V19"]
-    assert issues_all("See e_m_rvr_hrb_01167 for the details.") == ["V19"]
+    assert issues_all("See e_m_rvr_hrb_01374 for the details.") == ["V19"]
     assert issues_all("Checked marginM and geometryRef.") == ["V19"]
     assert issues_all("The margin was too close to call.") == []

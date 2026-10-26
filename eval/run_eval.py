@@ -40,14 +40,14 @@ def make_request(case: dict) -> AgentRequest:
         from next_whistle_shared.contracts.agent import RuleExcerpt
         rule = next(r for r in _RULES if r["rule_id"] == case["rule_id"])
         return AgentRequest(
-            request_id=f"req_{abs(hash(case['case_id'])) % 10**9}", intent="referee_question", match_id=case["match_id"], dataset_version="1.2.0",
+            request_id=f"req_{abs(hash(case['case_id'])) % 10**9}", intent="referee_question", match_id=case["match_id"], dataset_version="1.3.0",
             cutoff_ms=case["cutoff_ms"], evidence_cutoff_ms=case["cutoff_ms"], question_text=case["question_text"],
             viewer=AgentViewer(level=case["level"], language=case["language"]),
             rule_excerpts=[RuleExcerpt(rule_id=rule["rule_id"], law_number=rule["law_number"], title=rule["law_title"], summary=rule["summary"], plain=rule.get("plain"))],
         )
     return AgentRequest(
         request_id=f"req_{abs(hash(case['case_id'])) % 10**9}", intent=case["intent"], match_id=case["match_id"],
-        dataset_version="1.2.0", cutoff_ms=case["cutoff_ms"], evidence_cutoff_ms=case["cutoff_ms"], event_id=case.get("event_id"),
+        dataset_version="1.3.0", cutoff_ms=case["cutoff_ms"], evidence_cutoff_ms=case["cutoff_ms"], event_id=case.get("event_id"),
         question_text=case.get("question_text"), viewer=AgentViewer(level=case["level"], language=case["language"]),
     )
 

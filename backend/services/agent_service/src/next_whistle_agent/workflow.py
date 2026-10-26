@@ -148,7 +148,7 @@ def _fallback(payload: AgentRequest, message: str) -> AgentResponse:
 
 def _load_dataset() -> EvidenceDataset:
     configured = os.getenv("AGENT_DATASET_PATH")
-    root = Path(configured) if configured else Path(__file__).resolve().parents[5] / "data" / "datasets" / "v1.2.0"
+    root = Path(configured) if configured else Path(__file__).resolve().parents[5] / "data" / "datasets" / "v1.3.0"
     return load_evidence_dataset(root)
 
 
