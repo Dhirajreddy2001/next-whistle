@@ -15,8 +15,8 @@ from next_whistle_shared.contracts.agent import AgentRequest, AgentViewer, Bound
 from next_whistle_shared.evidence.dispatcher import ToolDispatcher
 
 DATASET = _load_dataset()
-DISALLOWED = "e_m_rvr_hrb_01374"  # offside, margin 0.6 m
-BORDERLINE = "e_m_hrb_ash_00939"  # offside, margin 0.08 m (inside measurement uncertainty)
+DISALLOWED = "e_m_rvr_hrb_01290"  # offside, margin 0.6 m
+BORDERLINE = "e_m_hrb_ash_00882"  # offside, margin 0.08 m (inside measurement uncertainty)
 
 
 def request(intent="explain", event=DISALLOWED, level="beginner", match="m_rvr_hrb", cutoff=4_600_000, language="en", question=None):
@@ -218,7 +218,7 @@ def test_a_cached_brief_the_answer_cannot_stand_on_falls_back_to_one_full_run():
     ({"brief_cutoff_ms": None}, "together"),
     ({"brief_cutoff_ms": 9_999_999}, "newer than the viewer"),
     ({"question_text": "Why?"}, "Free-text"),
-    ({"event_id": "e_m_rvr_hrb_00679"}, "different request"),
+    ({"event_id": "e_m_rvr_hrb_00633"}, "different request"),
     ({"intent": "recap", "event_id": None}, "different request"),
 ])
 def test_cached_brief_contract_rejects_unsafe_combinations(change, message):

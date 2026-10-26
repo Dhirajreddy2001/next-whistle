@@ -5,9 +5,9 @@
     "from_ms": 1409000,
     "to_ms": 1431000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_00530",
-      "e_m_rvr_hrb_00531",
-      "e_m_rvr_hrb_00532"
+      "e_m_rvr_hrb_00502",
+      "e_m_rvr_hrb_00503",
+      "e_m_rvr_hrb_00504"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -20,8 +20,8 @@
     "from_ms": 1788000,
     "to_ms": 1810000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_00678",
-      "e_m_rvr_hrb_00679"
+      "e_m_rvr_hrb_00632",
+      "e_m_rvr_hrb_00633"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -34,8 +34,8 @@
     "from_ms": 3408000,
     "to_ms": 3430000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01278",
-      "e_m_rvr_hrb_01279"
+      "e_m_rvr_hrb_01204",
+      "e_m_rvr_hrb_01205"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -48,10 +48,10 @@
     "from_ms": 3653000,
     "to_ms": 3675000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01371",
-      "e_m_rvr_hrb_01372",
-      "e_m_rvr_hrb_01373",
-      "e_m_rvr_hrb_01374"
+      "e_m_rvr_hrb_01287",
+      "e_m_rvr_hrb_01288",
+      "e_m_rvr_hrb_01289",
+      "e_m_rvr_hrb_01290"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -64,8 +64,8 @@
     "from_ms": 4218000,
     "to_ms": 4240000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01592",
-      "e_m_rvr_hrb_01593"
+      "e_m_rvr_hrb_01496",
+      "e_m_rvr_hrb_01497"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -78,9 +78,9 @@
     "from_ms": 4448000,
     "to_ms": 4470000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01682",
-      "e_m_rvr_hrb_01683",
-      "e_m_rvr_hrb_01684"
+      "e_m_rvr_hrb_01581",
+      "e_m_rvr_hrb_01582",
+      "e_m_rvr_hrb_01583"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -93,9 +93,9 @@
     "from_ms": 4848000,
     "to_ms": 4870000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01830",
-      "e_m_rvr_hrb_01831",
-      "e_m_rvr_hrb_01832"
+      "e_m_rvr_hrb_01722",
+      "e_m_rvr_hrb_01723",
+      "e_m_rvr_hrb_01724"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -108,9 +108,9 @@
     "from_ms": 5098000,
     "to_ms": 5120000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01924",
-      "e_m_rvr_hrb_01925",
-      "e_m_rvr_hrb_01926"
+      "e_m_rvr_hrb_01809",
+      "e_m_rvr_hrb_01810",
+      "e_m_rvr_hrb_01811"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",

@@ -15,7 +15,7 @@ from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter
 from next_whistle_core.store.ops import OpsStore
 from next_whistle_shared.contracts.agent import AgentResponse, TokenUsage
 
-EVENTS = ["e_m_rvr_hrb_01374", "e_m_rvr_hrb_00679", "e_m_rvr_hrb_01323"]
+EVENTS = ["e_m_rvr_hrb_01290", "e_m_rvr_hrb_00633", "e_m_rvr_hrb_01246"]
 CUTOFF = 4_600_000
 KEY = "test-signing-key-that-is-long-enough"
 
@@ -284,11 +284,11 @@ def test_definition_questions_reach_the_rule_explainer_even_with_a_decision_sele
     with build(tmp_path, agent, limit_session_hour=100, limit_ip_hour=100) as client:
         headers = session(client)
         for text in ("what is offside", "yeah but I don't know what offside means explain", "What does offside mean?"):
-            body = ask(client, headers, text, eventId="e_m_rvr_hrb_01374", level="beginner").json()
+            body = ask(client, headers, text, eventId="e_m_rvr_hrb_01290", level="beginner").json()
             assert body["scope"] == "general_law" and body["ruleRefs"][0]["lawNumber"] == 11 and body["source"] == "fake"
-        about_this = ask(client, headers, "Why was this offside?", eventId="e_m_rvr_hrb_01374").json()
+        about_this = ask(client, headers, "Why was this offside?", eventId="e_m_rvr_hrb_01290").json()
         assert about_this["scope"] == "in_scope"  # questions about the selected moment still reach the full agent
-        position = ask(client, headers, "Was the attacker beyond the defender?", eventId="e_m_rvr_hrb_01374").json()
+        position = ask(client, headers, "Was the attacker beyond the defender?", eventId="e_m_rvr_hrb_01290").json()
         assert position["scope"] == "in_scope"
     offline = ConnectionError("agent down")
 

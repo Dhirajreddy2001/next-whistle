@@ -9,11 +9,9 @@ from __future__ import annotations
 
 import math
 
-try:
-    from .phases import ROLE_U, ROLE_V
-except ImportError:  # run as a script
-    from phases import ROLE_U, ROLE_V
-
+# The 4-3-3 shape in the attacking frame: depth is metres from the team's own goal line, width is the pitch y.
+ROLE_U = (5, 22, 22, 22, 22, 43, 43, 43, 65, 68, 65)
+ROLE_V = (34, 10, 27, 44, 58, 15, 34, 53, 12, 34, 56)
 JOG, RUN, SPRINT = .55, .8, 1.0  # fractions of a player's top speed
 
 
@@ -37,7 +35,7 @@ def with_ball(slot: int, ball_u: float, ball_v: float, line: float, counter: boo
         ahead = 24 if slot >= 8 else 10
         return min(100, ball_u + ahead), 34 + (base_v - 34) * (1.0 if slot >= 8 else .7), SPRINT
     if slot <= 4:
-        target_u = base_u + (ball_u - 52.5) * .36 + line * .4
+        target_u = base_u + (ball_u - 52.5) * .55 + line * .4
         target_v = base_v + (ball_v - 34) * .2
         if ball_u > 28:
             target_u = min(target_u, ball_u - 7)

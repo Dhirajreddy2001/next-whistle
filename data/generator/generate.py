@@ -421,10 +421,14 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
                 carrier_is_home = team_for_player[carrier_id] == home["team_id"]
                 attacks_right = carrier_is_home == (period == 1)
                 offset_x, offset_y = (.7 if attacks_right else -.7), 0.0
-            ball_x = min(105, max(0, carrier_x + offset_x))
-            ball_y = min(68, max(0, carrier_y + offset_y))
-            ball_z = 0.0
-            ball_phase = "controlled"
+            goal_x = min(105, max(0, carrier_x + offset_x))
+            goal_y = min(68, max(0, carrier_y + offset_y))
+            gap = math.hypot(goal_x - last_ball[0], goal_y - last_ball[1])
+            if gap > MAX_BALL_STEP_M and tick:  # the ball rolls to the new carrier instead of jumping to him
+                ball_x, ball_y = last_ball[0] + (goal_x - last_ball[0]) * MAX_BALL_STEP_M / gap, last_ball[1] + (goal_y - last_ball[1]) * MAX_BALL_STEP_M / gap
+                ball_z, ball_phase = .15, "flight"
+            else:
+                ball_x, ball_y, ball_z, ball_phase = goal_x, goal_y, 0.0, "controlled"
         elif ball_in_flight and ball_current:
             if flight_event_id != ball_current["event_id"]:
                 flight_event_id = ball_current["event_id"]

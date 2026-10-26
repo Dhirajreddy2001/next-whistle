@@ -20,7 +20,7 @@ def context(*, cutoff=4_000_000, match="m_rvr_hrb", intent="explain", agent="ana
 
 
 def test_event_is_visible_at_cutoff_equality():
-    event_id = "e_m_rvr_hrb_00679"
+    event_id = "e_m_rvr_hrb_00633"
     before = ToolDispatcher(context(cutoff=1_805_999, event=event_id), DATASET).call(
         "get_event_evidence", {"event_id": event_id}
     )
@@ -33,7 +33,7 @@ def test_event_is_visible_at_cutoff_equality():
 
 
 def test_var_delay_boundary_changes_score_only_when_decision_is_visible():
-    event_id = "e_m_rvr_hrb_01374"
+    event_id = "e_m_rvr_hrb_01290"
     before = ToolDispatcher(context(cutoff=3_759_999), DATASET).call("get_match_state", {})
     at_boundary = ToolDispatcher(context(cutoff=3_760_000), DATASET).call("get_match_state", {})
     assert before.ok and at_boundary.ok
@@ -48,9 +48,9 @@ def test_tool_allow_list_denies_cross_role_tools():
     analyst = ToolDispatcher(context(agent="analyst"), DATASET)
     storyteller = ToolDispatcher(context(agent="storyteller"), DATASET)
     referee = ToolDispatcher(context(intent="decision", agent="referee"), DATASET)
-    assert analyst.call("get_decision_geometry", {"event_id": "e_m_rvr_hrb_01374"}).error.code == "unknown_tool"
+    assert analyst.call("get_decision_geometry", {"event_id": "e_m_rvr_hrb_01290"}).error.code == "unknown_tool"
     assert storyteller.call("get_match_state", {}).error.code == "unknown_tool"
-    assert referee.call("find_similar_events", {"event_id": "e_m_rvr_hrb_01374"}).error.code == "unknown_tool"
+    assert referee.call("find_similar_events", {"event_id": "e_m_rvr_hrb_01290"}).error.code == "unknown_tool"
 
 
 def test_tool_schemas_are_strict_and_exclude_bound_context_fields():
@@ -72,8 +72,8 @@ def test_dispatcher_enforces_agent_call_limit():
 def test_model_supplied_match_or_cutoff_cannot_widen_bound_context():
     dispatcher = ToolDispatcher(context(cutoff=3_000_000), DATASET)
     bad_match = dispatcher.call("get_event_evidence", {"event_id": "e_m_hrb_ash_00001", "match_id": "m_hrb_ash"})
-    bad_cutoff = dispatcher.call("get_event_evidence", {"event_id": "e_m_rvr_hrb_01374", "cutoff_ms": 4_000_000})
-    future_event = dispatcher.call("get_event_evidence", {"event_id": "e_m_rvr_hrb_01374"})
+    bad_cutoff = dispatcher.call("get_event_evidence", {"event_id": "e_m_rvr_hrb_01290", "cutoff_ms": 4_000_000})
+    future_event = dispatcher.call("get_event_evidence", {"event_id": "e_m_rvr_hrb_01290"})
     assert not bad_match.ok and bad_match.error.code == "invalid_arguments"
     assert not bad_cutoff.ok and bad_cutoff.error.code == "invalid_arguments"
     assert not future_event.ok and future_event.error.code == "not_visible"
@@ -83,7 +83,7 @@ def test_model_supplied_match_or_cutoff_cannot_widen_bound_context():
 def test_referee_and_analyst_fake_workflow_returns_structured_response():
     request = AgentRequest(
         request_id="req_workflow", intent="decision", match_id="m_rvr_hrb", dataset_version="1.3.0",
-        cutoff_ms=3_760_000, evidence_cutoff_ms=3_760_000, event_id="e_m_rvr_hrb_01374",
+        cutoff_ms=3_760_000, evidence_cutoff_ms=3_760_000, event_id="e_m_rvr_hrb_01290",
     )
     response = run_fake_workflow(request, DATASET)
     assert response.source == "fake"
@@ -95,12 +95,12 @@ def test_referee_and_analyst_fake_workflow_returns_structured_response():
 def test_fake_analyst_workflow_uses_bound_evidence_tools():
     request = AgentRequest(
         request_id="req_analyst", intent="explain", match_id="m_rvr_hrb", dataset_version="1.3.0",
-        cutoff_ms=1_806_000, evidence_cutoff_ms=1_806_000, event_id="e_m_rvr_hrb_00679",
+        cutoff_ms=1_806_000, evidence_cutoff_ms=1_806_000, event_id="e_m_rvr_hrb_00633",
     )
     response = run_fake_workflow(request, DATASET)
     assert response.source == "fake"
     assert response.explanation is not None
-    assert response.evidence_brief.facts[0].evidence_ids == ["e_m_rvr_hrb_00679"]
+    assert response.evidence_brief.facts[0].evidence_ids == ["e_m_rvr_hrb_00633"]
 
 
 def test_legacy_flat_brief_remains_supported():
@@ -140,7 +140,7 @@ def test_referee_can_search_rules_and_ledger_records_returned_rules():
 def test_prefetch_gathers_standard_evidence_through_the_bound_dispatcher():
     from next_whistle_agent.prefetch import prefetch
 
-    event_id = "e_m_rvr_hrb_01374"  # a recorded offside decision
+    event_id = "e_m_rvr_hrb_01290"  # a recorded offside decision
     ctx = context(cutoff=4_000_000, intent="decision", agent="referee", event=event_id)
     dispatcher = ToolDispatcher(ctx, DATASET)
     transcript = prefetch(dispatcher, ctx)
@@ -159,7 +159,7 @@ def test_prefetch_recap_uses_the_last_visible_event_and_never_goes_past_the_cuto
     dispatcher = ToolDispatcher(ctx, DATASET)
     prefetch(dispatcher, ctx)
     assert all(e["available_ms"] <= 1_805_999 for e in dispatcher.ledger.visible_events.values())
-    assert "e_m_rvr_hrb_00679" not in dispatcher.ledger.evidence_ids  # available exactly at 1_806_000
+    assert "e_m_rvr_hrb_00633" not in dispatcher.ledger.evidence_ids  # available exactly at 1_806_000
 
 
 def test_prefetch_gives_the_analyst_the_statistics():
@@ -171,10 +171,10 @@ def test_prefetch_gives_the_analyst_the_statistics():
 
 
 def test_ids_a_tool_returned_count_as_evidence_including_the_match_and_geometry():
-    ctx = context(cutoff=4_000_000, intent="decision", agent="referee", event="e_m_rvr_hrb_01374")
+    ctx = context(cutoff=4_000_000, intent="decision", agent="referee", event="e_m_rvr_hrb_01290")
     dispatcher = ToolDispatcher(ctx, DATASET)
     dispatcher.call("get_match_state", {})
-    dispatcher.call("get_decision_geometry", {"event_id": "e_m_rvr_hrb_01374"})
+    dispatcher.call("get_decision_geometry", {"event_id": "e_m_rvr_hrb_01290"})
     assert "m_rvr_hrb" in dispatcher.ledger.known_ids  # a brief fact may cite the match it is about
     assert any(ref.startswith("geometry.") for ref in dispatcher.ledger.geometries)
 

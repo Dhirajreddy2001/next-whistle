@@ -11,9 +11,11 @@ import math
 import random
 from dataclasses import dataclass
 
-# The 4-3-3 shape in the attacking frame: depth is metres from the team's own goal line, width is the pitch y.
-ROLE_U = (5, 22, 22, 22, 22, 43, 43, 43, 65, 68, 65)
-ROLE_V = (34, 10, 27, 44, 58, 15, 34, 53, 12, 34, 56)
+try:
+    from .movement import with_ball, without_ball
+except ImportError:  # run as a script
+    from movement import with_ball, without_ball
+
 MARGIN_MS = 1500  # open play stops this long before the first and after the last event of a scripted moment
 STEP_MS = 2400  # one steering pass or carry, used to decide when to start steering towards a scripted moment
 
@@ -124,16 +126,29 @@ class OpenPlay:
         fwd, own = self.frame(side)
         return own + fwd * u, v
 
-    def nearest_slot(self, side: int, spot: tuple[float, float], exclude: int | None = None) -> int:
-        bu, bv = self.uv(spot, side)
-        low = 0 if bu < 14 else 1
-        def gap(i: int) -> float:
-            return math.hypot(ROLE_U[i] + (bu - 52.5) * .45 - bu, (ROLE_V[i] + (bv - 34) * .25 - bv) * .8)
-        ranked = sorted((i for i in range(low, 11) if i != exclude), key=gap)
-        return ranked[0] if self.rng.random() < .72 else ranked[min(1, len(ranked) - 1)]
+    def shape_point(self, side: int, slot: int, ball: tuple[float, float]) -> tuple[float, float]:
+        """Where a player normally stands with the ball at the given spot: the positioning the tracking simulation also uses,
+        so the people the events name are really there."""
+        bu, bv = self.uv(ball, side)
+        style = self.styles[side]
+        if side == self.side:
+            tu, tv, _ = with_ball(slot, bu, bv, style.line, False)
+        else:
+            tu, tv, _ = without_ball(slot, bu, bv, style.line, style.press)
+        return self.xy(tu, tv, side)
 
-    def receiver(self, u: float, v: float) -> int:
-        ranked = sorted((i for i in range(1, 11) if i != self.holder), key=lambda i: (ROLE_U[i] - u * .88) ** 2 + (.6 * (ROLE_V[i] - v)) ** 2)
+    def closest(self, side: int, spot: tuple[float, float], count: int, exclude: frozenset[int] = frozenset()) -> list[int]:
+        low = 0 if self.uv(spot, side)[0] < 14 else 1
+        return sorted((i for i in range(low, 11) if i not in exclude), key=lambda i: math.dist(self.shape_point(side, i, spot), spot))[:count]
+
+    def nearest_slot(self, side: int, spot: tuple[float, float], exclude: int | frozenset[int] | None = None) -> int:
+        skip = frozenset([exclude]) if isinstance(exclude, int) else (exclude or frozenset())
+        ranked = self.closest(side, spot, 2, skip)
+        return ranked[0] if self.rng.random() < .72 else ranked[-1]
+
+    def receiver(self, desired: tuple[float, float]) -> int:
+        """The teammate who is best placed to take a pass played to the desired spot."""
+        ranked = sorted((i for i in range(1, 11) if i != self.holder), key=lambda i: math.dist(self.shape_point(self.side, i, self.ball), desired))
         return ranked[0] if self.rng.random() < .7 else ranked[1]
 
     # ----- timing ---------------------------------------------------------------------------------------------------
@@ -169,10 +184,10 @@ class OpenPlay:
         self.poss_events += 1
         return key
 
-    def turnover(self, spot: tuple[float, float], kind: str) -> None:
+    def turnover(self, spot: tuple[float, float], kind: str, winner: int | None = None) -> None:
         """The other team wins the ball at spot (an interception, or a tackle after a lost carry)."""
+        winner = winner if winner is not None else self.nearest_slot(1 - self.side, spot)
         self.side, self.possession, self.poss_events = 1 - self.side, self.possession + 1, 0
-        winner = self.nearest_slot(self.side, spot)
         self.emit(kind, self.side, winner, spot, outcome="won")
         self.holder, self.ball = winner, spot
         self.transition_until = self.t + 7000
@@ -205,12 +220,25 @@ class OpenPlay:
             distance = math.dist(start, end)
         if self.interrupted(int(clamp(distance / 17, .4, 2.7) * 1000) + (3000 if clear_on_fail else 1200)):
             return False
-        target = receiver if receiver is not None else self.receiver(*self.uv(end))
+        target = receiver if receiver is not None else self.receiver(end)
+        if receiver is None:  # the ball goes to where the receiver is, or a little ahead of him when it is played into space
+            shape = self.shape_point(self.side, target, start)
+            gap = math.dist(shape, end)
+            ahead = bool(set(quals) & {"through_ball", "cross", "long_ball", "switch_of_play", "counter"})
+            reach = min(gap, 10.0) if ahead else 0.0
+            end = (shape[0] + (end[0] - shape[0]) * reach / gap, shape[1] + (end[1] - shape[1]) * reach / gap) if gap else shape
+            end = (clamp(end[0], 2, 103), clamp(end[1], 2, 66))
+            distance = math.dist(start, end)
         base = ok if ok is not None else (style.long_ok if distance >= 30 else style.pass_ok)
         base -= self.pressure(self.uv(start)[0]) + .16 * max(0.0, (self.uv(end)[0] - 70) / 35)
         success = force or (self.poss_events <= 45 and self.rng.random() < clamp(base, .2, .97))
+        winner = None
+        if not success and not clear_on_fail:  # a lost pass is cut out by a defender who is really there
+            chasing = frozenset(self.closest(1 - self.side, start, 2)) | {0}  # the players closing the ball carrier down cannot also cut out the pass
+            winner = self.nearest_slot(1 - self.side, end, chasing)
+            end = self.shape_point(1 - self.side, winner, end)
         self.emit("pass", self.side, self.holder, start, end, target=target, outcome="complete" if success else None, quals=quals)
-        flight = int(clamp(distance / 17, .4, 2.7) * 1000)
+        flight = int(clamp(math.dist(start, end) / 17, .4, 2.7) * 1000)
         if success:
             self.t += flight + self.hold(1.9, 3.8, fast)
             self.holder, self.ball = target, end
@@ -219,7 +247,7 @@ class OpenPlay:
         if clear_on_fail:
             self.clear(end)
         else:
-            self.turnover(end, "interception")
+            self.turnover(end, "interception", winner)
         return False
 
     def carry(self, du: float, dv: float = 0.0, *, quals: tuple[str, ...] = (), fast: bool = False) -> bool:
@@ -239,7 +267,7 @@ class OpenPlay:
         if success:
             self.ball = end
             return True
-        self.turnover(end, "tackle")
+        self.turnover(end, "tackle", self.closest(1 - self.side, start, 1)[0])
         return False
 
     def shot(self, quals: tuple[str, ...] = (), body: str | None = None, bonus: float = 0.0) -> None:
@@ -303,7 +331,7 @@ class OpenPlay:
         flag = self.xy(105, 1.0 if v < 34 else 67.0)
         taker = (7 if v < 34 else 5) if self.rng.random() < .5 else (10 if v < 34 else 8)
         end = self.xy(self.rng.uniform(95, 99), 34 + self.rng.uniform(-7, 7))
-        target = self.receiver(*self.uv(end))
+        target = self.receiver(end)
         self.holder, self.ball = taker, flag
         success = self.rng.random() < .55
         self.emit("pass", self.side, taker, flag, end, target=target, outcome="complete" if success else None, quals=("corner", "set_piece"))
@@ -447,7 +475,7 @@ class OpenPlay:
             self.ball = end
         else:
             if receiver is None or receiver == self.holder:
-                receiver = self.receiver(*self.uv(end))
+                receiver = self.receiver(end)
             self.emit("pass", self.side, self.holder, self.ball, end, target=receiver, outcome="complete")
             self.t += int(clamp(math.dist(self.ball, end) / 17, .4, 2.7) * 1000) + self.hold(.4, 1.0, True)
             self.holder, self.ball = receiver, end
