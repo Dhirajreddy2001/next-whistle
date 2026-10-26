@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
+from next_whistle_core.services.narration import referee_fallback_text
 from next_whistle_core.store.datasets import MatchData
 from next_whistle_shared.contracts.agent import AgentEvidenceBrief, AgentRequest, AgentResponse, AgentViewer, QuestionTurn, RuleExcerpt
 
@@ -113,19 +114,10 @@ def supported_question(data: MatchData, event_id: str, question_id: str, languag
     return question["text"].get(language) or question["text"]["en"]
 
 
-def referee_fallback(data: MatchData, event: dict, language: str) -> tuple[str, list[dict]]:
+def referee_fallback(data: MatchData, event: dict, language: str, level: str = "beginner") -> tuple[str, list[dict]]:
     decision = event["decision"]
-    root = project_root()
-    rules = json.loads((root / "data/rules/v1.2.0/rules.json").read_text(encoding="utf-8"))
+    rules = json.loads((project_root() / "data/rules/v1.2.0/rules.json").read_text(encoding="utf-8"))
     tags = {decision["decision_type"], *event.get("qualifiers", [])}
     rule = next((row for row in rules if tags.intersection(row.get("incident_tags", []))), None)
-    recorded = decision["recorded_ruling"].replace("_", " ")
-    if language.startswith("es"):
-        answer = f"La decisión registrada fue: {recorded}. La geometría y los datos disponibles se limitan a la evidencia sintética del partido."
-    else:
-        answer = f"The recorded decision was {recorded}. The available geometry and details are limited to this synthetic match's supplied evidence."
-    refs = []
-    if rule:
-        refs.append({"ruleId": rule["rule_id"], "lawNumber": rule["law_number"], "title": rule["law_title"], "sourceUrl": rule["source_url"]})
-        answer += f" The relevant principle is summarized in IFAB Law {rule['law_number']}: {rule['summary']}"
-    return answer, refs
+    refs = [{"ruleId": rule["rule_id"], "lawNumber": rule["law_number"], "title": rule["law_title"], "sourceUrl": rule["source_url"]}] if rule else []
+    return referee_fallback_text(data, event, language, rule, level), refs

@@ -26,6 +26,7 @@ from next_whistle_core.security import hash_refresh_token, issue_access_token, r
 from next_whistle_core.services.replay import player_summary, state_at, team_stats, visible_events
 from next_whistle_core.services.agent_client import AgentServiceClient
 from next_whistle_core.services.ask import answer_without_model, load_rule_index
+from next_whistle_core.services.narration import explain_fallback
 from next_whistle_shared.ask import sanitize_question
 from next_whistle_core.services.generation import (
     build_agent_request, build_law_request, fallback_response, project_root, referee_fallback, supported_question,
@@ -489,7 +490,7 @@ def create_app(
             data=data, cutoff_ms=cutoff_ms, event_id=body.event_id,
             language=body.language, level=body.level,
         )
-        fallback_answer = f"{payload.evidence_brief.headline}: {payload.evidence_brief.summary}"
+        fallback_answer = explain_fallback(data, cutoff_ms, body.language, next((row for row in data.events if row["event_id"] == body.event_id), None) if body.event_id else None)
         brief_cache_key = brief_key(body.intent, request, match_id, body.event_id, None)
 
         async def produce(use_agent: bool):
@@ -573,7 +574,7 @@ def create_app(
             language=body.language, level=body.level,
             history=[{"question": turn.question, "answer_headline": turn.answer_headline} for turn in body.history],
         )
-        fallback_text, rule_refs = referee_fallback(data, event, body.language)
+        fallback_text, rule_refs = referee_fallback(data, event, body.language, body.level)
         # Only suggested questions share a brief; free-text questions shape the analysis, so they never do.
         brief_cache_key = None if body.question_text else brief_key("referee_question", request, match_id, body.event_id, body.question_id)
 
