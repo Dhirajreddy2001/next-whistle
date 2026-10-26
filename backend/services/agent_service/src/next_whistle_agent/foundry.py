@@ -22,7 +22,7 @@ from .runner import RunContext, T, Usage
 from .scripted import InvalidOutput, RunnerError
 
 TOOL_TEMPERATURE, WRITER_TEMPERATURE = 0.2, 0.5
-CALL_TIMEOUT_SECONDS = float(os.getenv("MODEL_CALL_TIMEOUT_SECONDS", "45"))  # one stalled model call must not hold a request forever
+CALL_TIMEOUT_SECONDS = float(os.getenv("MODEL_CALL_TIMEOUT_SECONDS", "60"))  # one stalled model call must not hold a request forever
 TOKEN_CAPS = {"analyst": 14_000, "referee": 12_000, "storyteller": 3_000, "critic": 2_500}
 
 
