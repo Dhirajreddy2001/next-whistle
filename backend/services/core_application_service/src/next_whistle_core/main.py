@@ -309,6 +309,19 @@ def create_app(
         rows = visible_events(data, cutoff_ms)
         return camelize({"dataset_version": request.app.state.dataset.version, "cutoff_ms": cutoff_ms, "events": rows})
 
+    @app.get("/api/matches/{match_id}/clips")
+    async def clips(request: Request, match_id: str, cutoff_ms: int = Query(alias="cutoffMs")):
+        """Replay windows for key moments. A clip is listed only once every event it shows is available at the cutoff."""
+        data = match_data(request, match_id)
+        cutoff_ms = checked_cutoff(data, cutoff_ms)
+        available = {event["event_id"]: event["available_ms"] for event in data.events}
+        rows = json.loads((data.folder / "clips.json").read_text(encoding="utf-8"))
+        shown = [
+            {"clip_id": row["clip_id"], "kind": row["kind"], "from_ms": row["from_ms"], "to_ms": row["to_ms"], "focus_event_ids": row["focus_event_ids"]}
+            for row in rows if all(available.get(event_id, cutoff_ms + 1) <= cutoff_ms for event_id in row["focus_event_ids"])
+        ]
+        return camelize({"dataset_version": request.app.state.dataset.version, "cutoff_ms": cutoff_ms, "clips": shown})
+
     @app.get("/api/matches/{match_id}/stats")
     async def stats(request: Request, match_id: str, cutoff_ms: int = Query(alias="cutoffMs")):
         data = match_data(request, match_id)

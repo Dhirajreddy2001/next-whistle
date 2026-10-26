@@ -7,13 +7,12 @@ const clamp = (value: number, low: number, high: number) => Math.max(low, Math.m
 export const DELAY_MS = 750;
 
 /**
- * Where everyone is drawn at clockMs: between the two stored frames either side of (clock - DELAY_MS). Players move along
- * a smooth curve using their stored velocities, the ball in a straight line. Nothing is projected past the newest frame,
- * so the ball is never drawn somewhere it has not been, and it never waits for a frame that is late.
+ * Where everyone is at time `at`: between the two stored frames either side of it. Players move along a smooth curve using
+ * their stored velocities, the ball in a straight line. Nothing is projected past the newest frame, so the ball is never
+ * drawn somewhere it has not been, and it never waits for a frame that is late.
  */
-export function sampleTracking(frames: Frame[], order: string[], clockMs: number): TrackingSample | null {
+export function interpolate(frames: Frame[], order: string[], at: number): TrackingSample | null {
   if (!frames.length) return null;
-  const at = clockMs - DELAY_MS;
   let index = frames.length - 1;
   while (index > 0 && frames[index][0] > at) index--;
   const from = frames[index];
@@ -35,3 +34,6 @@ export function sampleTracking(frames: Frame[], order: string[], clockMs: number
     : [from[1], from[2]];
   return { positions, ball: [clamp(ball[0], 0, 105), clamp(ball[1], 0, 68)] };
 }
+
+/** The live picture: drawn DELAY_MS behind the clock. */
+export const sampleTracking = (frames: Frame[], order: string[], clockMs: number) => interpolate(frames, order, clockMs - DELAY_MS);

@@ -264,3 +264,14 @@ def test_free_text_validation_rejects_bad_requests(client):
     assert _ask(client, headers, "Why offside?", "e_m_rvr_hrb_01825", history=too_many).status_code == 400
     assert client.post(ASK, headers=headers, json={"cutoffMs": 4_600_000, "questionId": "q_off_why"}).status_code == 400
     assert _ask(client, headers, "x" * 301).status_code == 400
+
+
+def test_a_clip_is_listed_only_when_every_event_it_shows_is_available(client):
+    review = next(e for e in client.get("/api/matches/m_rvr_hrb/timeline", params={"cutoffMs": 5_000_000}).json()["events"] if e["type"] == "goal_disallowed")
+    before = client.get("/api/matches/m_rvr_hrb/clips", params={"cutoffMs": review["availableMs"] - 1}).json()["clips"]
+    after = client.get("/api/matches/m_rvr_hrb/clips", params={"cutoffMs": review["availableMs"]}).json()["clips"]
+    assert not any(review["eventId"] in clip["focusEventIds"] for clip in before)
+    clip = next(clip for clip in after if review["eventId"] in clip["focusEventIds"])
+    assert clip["kind"] == "goal_disallowed" and clip["fromMs"] < review["matchMs"] < clip["toMs"]
+    assert set(clip) == {"clipId", "kind", "fromMs", "toMs", "focusEventIds"}
+    assert client.get("/api/matches/m_rvr_hrb/clips", params={"cutoffMs": 0}).json()["clips"] == []

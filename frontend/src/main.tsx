@@ -5,6 +5,7 @@ import { AskPanel } from './AskPanel';
 import { useProgress } from './useProgress';
 import './style.css';
 import { sampleTracking, type Frame, type TrackingSample } from './tracking';
+import { ClipReplay, EventIcon, type Clip } from './Clip';
 
 type Team = { teamId: string; name: string; shortName: string; colors: string[] };
 type Match = { matchId: string; label: string; kickoffDate: string; home: Team; away: Team };
@@ -250,6 +251,19 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
   const [explanation, setExplanation] = useState<GenerationUiState>(emptyGenerationState);
   const [refereeAnswers, setRefereeAnswers] = useState<Record<string, GenerationUiState>>({});
   const moments = events.filter(e => e.kind !== 'break' || e.type === 'period_end' || e.type === 'period_start').slice().reverse();
+  const [clips, setClips] = useState<Clip[]>([]);
+  const clockNow = useRef(clock); clockNow.current = clock;
+  useEffect(() => {
+    if (panel !== 'timeline') return;
+    let live = true;
+    const load = () => fetch(url(`/api/matches/${matchId}/clips?cutoffMs=${Math.floor(clockNow.current)}`)).then(r => r.ok ? r.json() : null).then(v => { if (live && v) setClips(v.clips ?? []); }).catch(() => undefined);
+    load(); const timer = window.setInterval(load, 5000);
+    return () => { live = false; window.clearInterval(timer); };
+  }, [panel, matchId]);
+  // each clip is shown on the last of its events that appears in the timeline
+  const clipFor = new Map<string, Clip>();
+  for (const clip of clips) { const last = [...clip.focusEventIds].reverse().find(id => moments.some(e => e.eventId === id)); if (last) clipFor.set(last, clip); }
+  const sides = Object.fromEntries(data.players.map(player => [player.playerId, player.teamId === data.match.home.teamId ? 'home' : 'away'] as const));
   const explainLatest = async () => {
     const event = moments.find(row => row.kind !== 'break');
     setExplanation({ busy: true, result: null, error: '' });
@@ -290,7 +304,7 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
       decision={askDecision ? { eventId: askDecision.eventId, title: askDecision.title, minute: askDecision.minute } : null}
       suggestions={(REFEREE_QUESTIONS[askDecision?.decision?.decisionType ?? ''] ?? []).map(question => ({ id: question.id, text: languageCode(language) === 'es' ? question.es : question.en }))}
       onShowDecision={eventId => { const target = events.find(row => row.eventId === eventId); if (target) { seek(target.matchMs, target); go('decisions'); } }} />}
-    {panel === 'timeline' && <section className="timeline-panel"><div className="panel-heading"><h2>Match timeline</h2><span>{moments.length} moments</span></div><ol className="v-timeline"><li className="v-now"><span className="v-dot" /><span>Now · {formatClock(clock)}</span></li>{moments.map(e => <li key={e.eventId} className={`v-item ${e.kind}`}><span className="v-dot" /><button className={`v-card ${selected === e.eventId ? 'selected' : ''}`} onClick={() => seek(e.matchMs, e)}><span className="v-meta"><time>{e.minute}</time><em>{typeLabel(e.type)}</em></span><strong>{e.title}</strong><span className="v-detail">{e.detail}</span><span className="clip-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none" /></svg>Video clip · coming soon</span></button></li>)}</ol></section>}
+    {panel === 'timeline' && <section className="timeline-panel"><div className="panel-heading"><h2>Match timeline</h2><span>{moments.length} moments</span></div><ol className="v-timeline"><li className="v-now"><span className="v-dot" /><span>Now · {formatClock(clock)}</span></li>{moments.map(e => <li key={e.eventId} className={`v-item ${e.kind}`}><span className="v-dot"><EventIcon type={e.type} /></span><button className={`v-card ${selected === e.eventId ? 'selected' : ''}`} onClick={() => seek(e.matchMs, e)}><span className="v-meta"><time>{e.minute}</time><em>{typeLabel(e.type)}</em></span><strong>{e.title}</strong><span className="v-detail">{e.detail}</span></button>{clipFor.get(e.eventId) && <ClipReplay matchId={matchId} clip={clipFor.get(e.eventId)!} sides={sides} highlight={e.playerId} markMs={e.matchMs} clock={clock} />}</li>)}</ol></section>}
   </div></section>;
 }
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
