@@ -286,7 +286,7 @@ class OpenPlay:
         start = self.ball
         shot_key = self.emit("shot", self.side, self.holder, start, (goal_x, y), outcome="on_target" if on_target else "off_target",
                              quals=quals, body=body or self.rng.choice(["right_foot", "right_foot", "left_foot"]))
-        self.t += int(clamp(distance / 24, .4, 1.5) * 1000)
+        self.t += int(clamp(distance / 17, .7, 1.7) * 1000)
         shooting, defending = self.side, 1 - self.side
         self.side, self.possession, self.poss_events = defending, self.possession + 1, 0
         if on_target:
@@ -392,7 +392,7 @@ class OpenPlay:
         if self.rng.random() < .5 and not self.pass_to(u + self.rng.uniform(2, 8), 34 + self.rng.uniform(-9, 9)):
             return
         u, v = self.uv(self.ball)
-        if not self.pass_to(min(u + self.rng.uniform(14, 24), 94), 34 + self.rng.uniform(-13, 13), quals=("through_ball",), ok=style.pass_ok - .18):
+        if not self.pass_to(min(u + self.rng.uniform(14, 24), 87), 34 + self.rng.uniform(-13, 13), quals=("through_ball",), ok=style.pass_ok - .18):
             return
         if self.rng.random() < .35 and not self.carry(self.rng.uniform(3, 8), self.rng.uniform(-3, 3)):
             return
@@ -422,10 +422,10 @@ class OpenPlay:
         u, v = self.uv(self.ball)
         if not self.pass_to(u + self.rng.uniform(18, 30), 34 + self.rng.uniform(-22, 22), quals=("counter",), ok=style.pass_ok - .12, fast=True):
             return
-        if self.rng.random() < .6 and not self.carry(self.rng.uniform(8, 15), self.rng.uniform(-6, 6), quals=("counter",), fast=True):
+        if self.rng.random() < .6 and not self.carry(min(self.rng.uniform(8, 15), max(3.0, 84 - self.uv(self.ball)[0])), self.rng.uniform(-6, 6), quals=("counter",), fast=True):
             return
         u, v = self.uv(self.ball)
-        if u < 82 and self.rng.random() < .6 and not self.pass_to(u + self.rng.uniform(8, 16), 34 + self.rng.uniform(-14, 14), quals=("counter",), fast=True):
+        if u < 82 and self.rng.random() < .6 and not self.pass_to(min(u + self.rng.uniform(8, 16), 88), 34 + self.rng.uniform(-14, 14), quals=("counter",), fast=True):
             return
         self.finish(.35, quals=("counter",), bonus=.08)
 

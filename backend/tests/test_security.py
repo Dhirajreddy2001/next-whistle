@@ -15,7 +15,7 @@ from next_whistle_core.limits import Busy, GenerationGate, SlidingWindowLimiter
 from next_whistle_core.store.ops import OpsStore
 from next_whistle_shared.contracts.agent import AgentResponse, TokenUsage
 
-EVENTS = ["e_m_rvr_hrb_01825", "e_m_rvr_hrb_00879", "e_m_rvr_hrb_01752"]
+EVENTS = ["e_m_rvr_hrb_01825", "e_m_rvr_hrb_00893", "e_m_rvr_hrb_01775"]
 CUTOFF = 4_600_000
 KEY = "test-signing-key-that-is-long-enough"
 

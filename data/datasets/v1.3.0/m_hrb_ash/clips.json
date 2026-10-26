@@ -5,9 +5,9 @@
     "from_ms": 1862000,
     "to_ms": 1884000,
     "focus_event_ids": [
-      "e_m_hrb_ash_00971",
-      "e_m_hrb_ash_00972",
-      "e_m_hrb_ash_00973"
+      "e_m_hrb_ash_00959",
+      "e_m_hrb_ash_00960",
+      "e_m_hrb_ash_00961"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -20,8 +20,8 @@
     "from_ms": 2280000,
     "to_ms": 2302000,
     "focus_event_ids": [
-      "e_m_hrb_ash_01197",
-      "e_m_hrb_ash_01198"
+      "e_m_hrb_ash_01162",
+      "e_m_hrb_ash_01163"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -34,11 +34,11 @@
     "from_ms": 3588000,
     "to_ms": 3610000,
     "focus_event_ids": [
-      "e_m_hrb_ash_01579",
-      "e_m_hrb_ash_01580",
-      "e_m_hrb_ash_01875",
-      "e_m_hrb_ash_01876",
-      "e_m_hrb_ash_01877"
+      "e_m_hrb_ash_01556",
+      "e_m_hrb_ash_01557",
+      "e_m_hrb_ash_01829",
+      "e_m_hrb_ash_01830",
+      "e_m_hrb_ash_01831"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -51,8 +51,8 @@
     "from_ms": 4326000,
     "to_ms": 4348000,
     "focus_event_ids": [
-      "e_m_hrb_ash_02246",
-      "e_m_hrb_ash_02247"
+      "e_m_hrb_ash_02208",
+      "e_m_hrb_ash_02209"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -65,8 +65,8 @@
     "from_ms": 4868000,
     "to_ms": 4890000,
     "focus_event_ids": [
-      "e_m_hrb_ash_02533",
-      "e_m_hrb_ash_02534"
+      "e_m_hrb_ash_02475",
+      "e_m_hrb_ash_02476"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -79,9 +79,9 @@
     "from_ms": 5204000,
     "to_ms": 5226000,
     "focus_event_ids": [
-      "e_m_hrb_ash_02720",
-      "e_m_hrb_ash_02721",
-      "e_m_hrb_ash_02722"
+      "e_m_hrb_ash_02651",
+      "e_m_hrb_ash_02652",
+      "e_m_hrb_ash_02653"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -94,8 +94,8 @@
     "from_ms": 5438000,
     "to_ms": 5460000,
     "focus_event_ids": [
-      "e_m_hrb_ash_02841",
-      "e_m_hrb_ash_02842"
+      "e_m_hrb_ash_02764",
+      "e_m_hrb_ash_02765"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",

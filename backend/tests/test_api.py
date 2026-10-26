@@ -60,7 +60,7 @@ def test_tracking_is_chunked_and_cacheable(client):
     manifest = client.get("/api/matches/m_rvr_hrb/tracking/manifest")
     chunk = client.get("/api/matches/m_rvr_hrb/tracking/chunks/0")
     assert manifest.status_code == 200
-    assert manifest.json()["base_sample_rate_hz"] == 2
+    assert manifest.json()["base_sample_rate_hz"] == 4
     assert chunk.status_code == 200
     assert chunk.json()["frames"][0][0] == 0
     assert "immutable" in chunk.headers["cache-control"]
@@ -151,7 +151,7 @@ def test_referee_rejects_question_for_another_decision_type(client):
     response = client.post(
         "/api/matches/m_rvr_hrb/referee/questions",
         headers=_session_headers(client),
-        json={"cutoffMs": 1_806_000, "eventId": "e_m_rvr_hrb_00879", "questionId": "q_pen_why"},
+        json={"cutoffMs": 1_806_000, "eventId": "e_m_rvr_hrb_00893", "questionId": "q_pen_why"},
     )
     assert response.status_code == 422
 
@@ -160,7 +160,7 @@ def test_explanation_uses_cutoff_window_and_returns_factual_fallback(client):
     response = client.post(
         "/api/matches/m_rvr_hrb/explanations",
         headers=_session_headers(client),
-        json={"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00879", "intent": "explain"},
+        json={"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00893", "intent": "explain"},
     )
     assert response.status_code == 200
     body = response.json()
@@ -173,7 +173,7 @@ def test_explanation_uses_cutoff_window_and_returns_factual_fallback(client):
 def test_generation_limits_are_enforced_per_anonymous_session(client):
     headers = _session_headers(client)
     path = "/api/matches/m_rvr_hrb/explanations"
-    body = {"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00879", "intent": "explain"}
+    body = {"cutoffMs": 2_000_000, "eventId": "e_m_rvr_hrb_00893", "intent": "explain"}
     statuses = [client.post(path, headers=headers, json=body).status_code for _ in range(9)]
     assert statuses == [200] * 8 + [429]
 

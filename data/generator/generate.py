@@ -22,11 +22,12 @@ VERSION = "1.3.0"
 RULES_VERSION = "1.2.0"
 TRACKING_SCHEMA_VERSION = 1
 SIMULATION_HZ = 20
-BASE_TRACKING_HZ = 2
+BASE_TRACKING_HZ = 4
 CLIP_TRACKING_HZ = 20
 TRACKING_CHUNK_MS = 60_000
 CLIP_KINDS = {"goal", "goal_disallowed", "offside", "penalty_goal", "penalty_saved", "penalty_miss", "tactical_foul_yellow", "red_card", "second_yellow", "free_kick_goal"}
-PASS_SPEED_MPS, SHOT_SPEED_MPS = 19.0, 24.0
+PASS_SPEED_MPS, SHOT_SPEED_MPS = 19.0, 17.0
+SEPARATION_M = 1.5
 MAX_BALL_STEP_M = 1.5  # per 20 Hz simulation tick, about 30 m/s
 
 
@@ -318,6 +319,7 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
         possession_tags.setdefault(event["possession_id"], set()).update(event["qualifiers"])
         possession_start[event["possession_id"]] = min(possession_start.get(event["possession_id"], event["match_ms"]), event["match_ms"])
     involvement_cursor = {pid: 0 for pid in involvement}
+    squad_states = [states[pid] for pid in player_order]
     team_styles = [phases.STYLES[phases.TEAM_STYLE[home["team_id"]]], phases.STYLES[phases.TEAM_STYLE[away["team_id"]]]]
     for tick, at_ms in enumerate(range(0, duration + 1, step_ms)):
         while event_index + 1 < len(events) and events[event_index + 1]["match_ms"] <= at_ms:
@@ -383,7 +385,7 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
                     target_u, target_v, urgency = movement.without_ball(slot, ball_u, ball_v, style.line, style.press)
                     rank = press_rank.get(slot)
                     if rank is not None and math.hypot(states[player["player_id"]][0] - ball_x, states[player["player_id"]][1] - ball_y) <= movement.presser_distance(style.press, rank):
-                        target, urgency = (ball_x - fwd * (1.3 if rank == 0 else 6.0), ball_y), (movement.SPRINT if rank == 0 else movement.RUN)
+                        target, urgency = (ball_x - fwd * (3.2 if rank == 0 else 7.0), ball_y), (movement.SPRINT if rank == 0 else movement.RUN)
                 if target is None:
                     sway_u, sway_v = movement.sway(slot, at_ms)
                     target = (own + fwd * (target_u + sway_u), target_v + sway_v)
@@ -405,6 +407,18 @@ def make_full_tracking(scenario: dict, home: dict, away: dict, events: list[dict
             x = min(105, max(0, x + vx / SIMULATION_HZ))
             y = min(68, max(0, y + vy / SIMULATION_HZ))
             states[player["player_id"]] = [x, y, vx, vy]
+
+        for first in range(21):  # nobody stands on top of anybody else: players keep at least SEPARATION_M apart
+            a = squad_states[first]
+            for second in range(first + 1, 22):
+                b = squad_states[second]
+                dx, dy = b[0] - a[0], b[1] - a[1]
+                if -SEPARATION_M < dx < SEPARATION_M and -SEPARATION_M < dy < SEPARATION_M:
+                    gap = math.hypot(dx, dy)
+                    if gap < SEPARATION_M:
+                        push = (SEPARATION_M - gap) / 2 / (gap or 1.0)
+                        dx, dy = (dx * push, dy * push) if gap else (SEPARATION_M / 2, 0.0)
+                        a[0], a[1], b[0], b[1] = a[0] - dx, a[1] - dy, b[0] + dx, b[1] + dy
 
         carrier_id = None
         if ball_current and not ball_in_flight:

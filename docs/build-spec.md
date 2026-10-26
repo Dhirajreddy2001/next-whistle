@@ -170,7 +170,7 @@ Development uses the Vite `/api` proxy. Production uses `VITE_API_BASE_URL` poin
 
 The browser clock advances through `requestAnimationFrame` using elapsed wall time multiplied by 1× or 4×. Clamp it to match bounds and pause when the tab is hidden if elapsed time would create a visible jump. Render only records with `availableMs <= clockMs`, including timeline markers and corrected decisions. Seeking before an incident removes that incident, its derived score/statistics, cues, cards, decisions, and active generated context.
 
-The pitch loads bounded one-minute tracking chunks and uses cubic Hermite interpolation between stored 2 Hz keyframes for smooth presentation. Interpolated positions are replay visuals, not factual decision geometry. Evidence overlays use only supplied snapshots with `availableMs <= clockMs`; never infer missing evidence coordinates. Visual annotations must have text equivalents. Evidence chips highlight supplied entities and may seek backward to the evidence time.
+The pitch loads bounded one-minute tracking chunks and uses cubic Hermite interpolation between stored 4 Hz keyframes for smooth presentation. Interpolated positions are replay visuals, not factual decision geometry. Evidence overlays use only supplied snapshots with `availableMs <= clockMs`; never infer missing evidence coordinates. Visual annotations must have text equivalents. Evidence chips highlight supplied entities and may seek backward to the evidence time.
 
 ### Resilience and accessibility
 

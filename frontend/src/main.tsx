@@ -117,7 +117,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
         const rows = (await response.json()).frames as Frame[];
         if (rows.length) {
           trackingCursor.current = rows[rows.length - 1][0];
-          setTrackingFrames(current => [...current, ...rows].slice(-2));
+          setTrackingFrames(current => [...current, ...rows].slice(-16));
         }
       } catch { /* Tracking can recover on the next poll; match events and stats remain available. */ }
       finally { busy = false; }

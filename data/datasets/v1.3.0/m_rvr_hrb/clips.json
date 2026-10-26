@@ -5,9 +5,9 @@
     "from_ms": 1409000,
     "to_ms": 1431000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_00692",
-      "e_m_rvr_hrb_00693",
-      "e_m_rvr_hrb_00694"
+      "e_m_rvr_hrb_00699",
+      "e_m_rvr_hrb_00700",
+      "e_m_rvr_hrb_00701"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -20,8 +20,8 @@
     "from_ms": 1788000,
     "to_ms": 1810000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_00878",
-      "e_m_rvr_hrb_00879"
+      "e_m_rvr_hrb_00892",
+      "e_m_rvr_hrb_00893"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -34,8 +34,8 @@
     "from_ms": 3408000,
     "to_ms": 3430000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_01698",
-      "e_m_rvr_hrb_01699"
+      "e_m_rvr_hrb_01713",
+      "e_m_rvr_hrb_01714"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -64,8 +64,8 @@
     "from_ms": 4218000,
     "to_ms": 4240000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_02105",
-      "e_m_rvr_hrb_02106"
+      "e_m_rvr_hrb_02095",
+      "e_m_rvr_hrb_02096"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -78,9 +78,9 @@
     "from_ms": 4448000,
     "to_ms": 4470000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_02222",
-      "e_m_rvr_hrb_02223",
-      "e_m_rvr_hrb_02224"
+      "e_m_rvr_hrb_02206",
+      "e_m_rvr_hrb_02207",
+      "e_m_rvr_hrb_02208"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -93,9 +93,9 @@
     "from_ms": 4848000,
     "to_ms": 4870000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_02428",
-      "e_m_rvr_hrb_02429",
-      "e_m_rvr_hrb_02430"
+      "e_m_rvr_hrb_02407",
+      "e_m_rvr_hrb_02408",
+      "e_m_rvr_hrb_02409"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",
@@ -108,9 +108,9 @@
     "from_ms": 5098000,
     "to_ms": 5120000,
     "focus_event_ids": [
-      "e_m_rvr_hrb_02550",
-      "e_m_rvr_hrb_02551",
-      "e_m_rvr_hrb_02552"
+      "e_m_rvr_hrb_02526",
+      "e_m_rvr_hrb_02527",
+      "e_m_rvr_hrb_02528"
     ],
     "render_mode": "svg_replay",
     "animation_file": "animation.json",

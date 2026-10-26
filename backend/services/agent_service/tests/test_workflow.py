@@ -20,7 +20,7 @@ def context(*, cutoff=4_000_000, match="m_rvr_hrb", intent="explain", agent="ana
 
 
 def test_event_is_visible_at_cutoff_equality():
-    event_id = "e_m_rvr_hrb_00879"
+    event_id = "e_m_rvr_hrb_00893"
     before = ToolDispatcher(context(cutoff=1_805_999, event=event_id), DATASET).call(
         "get_event_evidence", {"event_id": event_id}
     )
@@ -95,12 +95,12 @@ def test_referee_and_analyst_fake_workflow_returns_structured_response():
 def test_fake_analyst_workflow_uses_bound_evidence_tools():
     request = AgentRequest(
         request_id="req_analyst", intent="explain", match_id="m_rvr_hrb", dataset_version="1.3.0",
-        cutoff_ms=1_806_000, evidence_cutoff_ms=1_806_000, event_id="e_m_rvr_hrb_00879",
+        cutoff_ms=1_806_000, evidence_cutoff_ms=1_806_000, event_id="e_m_rvr_hrb_00893",
     )
     response = run_fake_workflow(request, DATASET)
     assert response.source == "fake"
     assert response.explanation is not None
-    assert response.evidence_brief.facts[0].evidence_ids == ["e_m_rvr_hrb_00879"]
+    assert response.evidence_brief.facts[0].evidence_ids == ["e_m_rvr_hrb_00893"]
 
 
 def test_legacy_flat_brief_remains_supported():
@@ -159,7 +159,7 @@ def test_prefetch_recap_uses_the_last_visible_event_and_never_goes_past_the_cuto
     dispatcher = ToolDispatcher(ctx, DATASET)
     prefetch(dispatcher, ctx)
     assert all(e["available_ms"] <= 1_805_999 for e in dispatcher.ledger.visible_events.values())
-    assert "e_m_rvr_hrb_00879" not in dispatcher.ledger.evidence_ids  # available exactly at 1_806_000
+    assert "e_m_rvr_hrb_00893" not in dispatcher.ledger.evidence_ids  # available exactly at 1_806_000
 
 
 def test_prefetch_gives_the_analyst_the_statistics():

@@ -72,7 +72,7 @@ def validate(root: Path) -> list[str]:
             for player_track in track["player_tracks"]:
                 if any(len(sample) != 7 or not 0 <= sample[1] <= 105 or not 0 <= sample[2] <= 68 for sample in player_track["samples"]): errors.append(f"{clip['clip_id']} invalid player animation sample")
             if any(len(sample) != 4 or not 0 <= sample[1] <= 105 or not 0 <= sample[2] <= 68 or sample[3] < 0 for sample in track["ball_track"]): errors.append(f"{clip['clip_id']} invalid ball animation sample")
-        if tracking.get("source") != "authoritative_synthetic_simulation" or tracking.get("simulation_hz") != 20 or tracking.get("base_sample_rate_hz") != 2: errors.append(f"{entry['match_id']} invalid tracking manifest")
+        if tracking.get("source") != "authoritative_synthetic_simulation" or tracking.get("simulation_hz") != 20 or tracking.get("base_sample_rate_hz") != 4: errors.append(f"{entry['match_id']} invalid tracking manifest")
         if set(tracking.get("player_order", [])) != starters: errors.append(f"{entry['match_id']} tracking must cover 22 starters")
         last_time = -1
         grounded_frames = 0; controlled_frames = 0
