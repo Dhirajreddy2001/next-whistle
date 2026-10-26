@@ -5,6 +5,7 @@ const STAGES: [number, string][] = [
   [4, 'Checking the facts and the rules…'],
   [12, 'Writing your answer…'],
   [25, 'Almost there, double-checking the answer…'],
+  [45, 'This one is taking longer than usual, hang on…'],
 ];
 
 /** A message that follows a long wait, so a slow answer never looks like a frozen one. */

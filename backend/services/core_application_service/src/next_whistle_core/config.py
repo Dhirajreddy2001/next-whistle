@@ -14,7 +14,7 @@ class Settings:
     session_db_path: Path = Path(".local/sessions.sqlite3")
     session_signing_key: str | None = None
     agent_service_url: str = "http://127.0.0.1:8088"
-    agent_timeout_seconds: float = 8.0
+    agent_timeout_seconds: float = 60.0
     environment: str = "local"
     store_backend: str = "sqlite"  # "sqlite" for local work, "cosmos" in production
     cosmos_endpoint: str | None = None
@@ -56,7 +56,7 @@ class Settings:
             session_db_path=Path(os.getenv("SESSION_DB_PATH", str(root / ".local/sessions.sqlite3"))),
             session_signing_key=os.getenv("SESSION_SIGNING_KEY"),
             agent_service_url=os.getenv("AGENT_SERVICE_URL", "http://127.0.0.1:8088").rstrip("/"),
-            agent_timeout_seconds=float(os.getenv("AGENT_TIMEOUT_SECONDS", "8")),
+            agent_timeout_seconds=float(os.getenv("AGENT_TIMEOUT_SECONDS", "60")),
             environment=os.getenv("APP_ENV", "local").lower(),
             store_backend=os.getenv("STORE_BACKEND", "sqlite").lower(),
             cosmos_endpoint=os.getenv("COSMOS_ENDPOINT"),
