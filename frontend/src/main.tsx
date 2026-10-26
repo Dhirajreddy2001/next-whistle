@@ -4,6 +4,7 @@ import { requestExplanation, requestRefereeAnswer, type GenerationResult } from 
 import { AskPanel } from './AskPanel';
 import { useProgress } from './useProgress';
 import './style.css';
+import { sampleTracking, type Frame, type TrackingSample } from './tracking';
 
 type Team = { teamId: string; name: string; shortName: string; colors: string[] };
 type Match = { matchId: string; label: string; kickoffDate: string; home: Team; away: Team };
@@ -13,8 +14,6 @@ const lawLabels = (ruleIds?: string[]) => [...new Set((ruleIds ?? []).map(id => 
 
 type Event = { eventId: string; matchMs: number; availableMs: number; type: string; teamId?: string; playerId?: string; outcome?: string; start?: { x: number; y: number }; decision?: { decisionType: string; recordedRuling: string; reversesEventId?: string; ruleIds?: string[] } };
 type TeamStats = { teamId: string; shots: number; shotsOnTarget: number; passes: number; passesCompleted: number; passCompletionPct: number | null; possessionPct: number; goals: number; yellowCards: number; redCards: number };
-type Frame = [number, number, number, number, number, number[], 'controlled' | 'flight' | 'dead'];
-type TrackingSample = { positions: Record<string, [number, number]>; ball: [number, number] };
 type DatasetView = { match: Match; players: Player[]; events: Event[]; stats: TeamStats[]; cutoffMs: number; error: string | null };
 type UiEvent = Event & { title: string; detail: string; minute: string; kind: 'goal' | 'card' | 'break' | 'review' };
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
@@ -37,18 +36,6 @@ const defaults: Prefs = { perspective: 'Neutral', level: 'beginner', language: '
 function readPrefs(): Prefs { try { return { ...defaults, ...JSON.parse(localStorage.getItem(prefsKey) ?? '{}') }; } catch { return defaults; } }
 try { document.documentElement.dataset.theme = readPrefs().theme; } catch { /* theme falls back to the stylesheet default */ }
 function formatClock(ms: number) { const seconds = Math.floor(ms / 1000); return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`; }
-function sampleTracking(frames: Frame[], order: string[], clockMs: number): TrackingSample | null {
-  if (!frames.length) return null;
-  const last = frames[frames.length - 1]; const previous = frames.length > 1 ? frames[frames.length - 2] : last;
-  const dt = Math.max(0, Math.min(.5, (clockMs - last[0]) / 1000));
-  const positions = Object.fromEntries(order.map((id, index) => {
-    const offset = index * 4; const x = last[5][offset] + last[5][offset + 2] * dt; const y = last[5][offset + 1] + last[5][offset + 3] * dt;
-    return [id, [Math.max(0, Math.min(105, x)), Math.max(0, Math.min(68, y))] as [number, number]];
-  }));
-  const span = Math.max(.001, (last[0] - previous[0]) / 1000);
-  const ball = [last[1] + (last[1] - previous[1]) / span * dt, last[2] + (last[2] - previous[2]) / span * dt] as [number, number];
-  return { positions, ball: [Math.max(0, Math.min(105, ball[0])), Math.max(0, Math.min(68, ball[1]))] };
-}
 function badgeClass(teamId: string) { return teamId.replace(/^t_/, ''); }
 function TeamBadge({ team }: { team: Team }) { return <span className={`team-badge ${badgeClass(team.teamId)}`} style={{ background: team.colors[0], color: team.colors[1] }} aria-label={team.name}>{team.shortName}</span>; }
 function Mark() { return <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>; }
@@ -139,7 +126,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
       if (!active) return;
       setTrackingOrder(manifest.player_order ?? []);
       void run(manifest);
-      timer = window.setInterval(() => void run(manifest), 500);
+      timer = window.setInterval(() => void run(manifest), 250);
     }).catch(() => undefined);
     return () => { active = false; window.clearInterval(timer); };
   }, [match?.matchId]);
