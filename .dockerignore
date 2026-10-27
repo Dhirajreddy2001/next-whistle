@@ -1,0 +1,16 @@
+.git
+.local
+**/.venv*
+**/__pycache__
+**/.pytest_cache
+**/node_modules
+frontend
+docs
+eval
+checkpoints
+.better-design
+data/datasets/v1.0.0
+data/datasets/v1.1.0
+data/datasets/v1.2.0
+backend/**/tests
+backend/tests
