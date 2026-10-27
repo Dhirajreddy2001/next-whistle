@@ -14,11 +14,8 @@ param namePrefix string = 'nextwhistle'
 @description('Core API image, pinned by digest after the first build, e.g. ghcr.io/<owner>/next-whistle-core@sha256:...')
 param coreImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
-@description('Production origin of the frontend, for CORS. Set after the Static Web App exists.')
-param allowedOrigin string = 'http://localhost:5173'
-
-@description('Hosted Agent endpoint the Core calls. Set after the agent is deployed.')
-param agentServiceUrl string = 'http://127.0.0.1:8088'
+@description('Agent Service image, pinned by digest after the first build, e.g. ghcr.io/<owner>/next-whistle-agent@sha256:...')
+param agentImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
 @secure()
 @description('Anonymous-session signing key, at least 32 characters.')
@@ -224,6 +221,45 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = if (deploy
   }
 }
 
+// The agent is reachable only from inside the environment (internal ingress), so it needs no login of its own.
+resource agent 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
+  name: 'ca-${namePrefix}-agent'
+  location: location
+  tags: tags
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${identity.id}': {} }
+  }
+  properties: {
+    managedEnvironmentId: environment.id
+    configuration: {
+      ingress: { external: false, targetPort: 8088, transport: 'auto', allowInsecure: false }
+    }
+    template: {
+      containers: [
+        {
+          name: 'agent'
+          image: agentImage
+          resources: { cpu: json('0.5'), memory: '1Gi' }
+          env: [
+            { name: 'AGENT_MODE', value: 'foundry' }
+            { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId }
+            { name: 'FOUNDRY_OPENAI_BASE_URL', value: 'https://${foundryName}.services.ai.azure.com/openai/v1' }
+            { name: 'MODEL_TOOLS', value: 'deepseek' }
+            { name: 'MODEL_SMALL', value: 'deepseek' }
+            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
+          ]
+        }
+      ]
+      scale: {
+        minReplicas: 0
+        maxReplicas: 1
+        rules: [ { name: 'http', http: { metadata: { concurrentRequests: '10' } } } ]
+      }
+    }
+  }
+}
+
 resource core 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
   name: 'ca-${namePrefix}-core'
   location: location
@@ -254,8 +290,8 @@ resource core 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
             { name: 'COSMOS_ENDPOINT', value: cosmos.properties.documentEndpoint }
             { name: 'COSMOS_DATABASE', value: 'nextwhistle' }
             { name: 'COSMOS_CONTAINER', value: 'state' }
-            { name: 'ALLOWED_ORIGINS', value: allowedOrigin }
-            { name: 'AGENT_SERVICE_URL', value: agentServiceUrl }
+            { name: 'ALLOWED_ORIGINS', value: 'https://${site!.properties.defaultHostname}' }
+            { name: 'AGENT_SERVICE_URL', value: 'https://${agent!.properties.configuration.ingress.fqdn}' }
             { name: 'TRUST_PROXY', value: 'true' }
             { name: 'SESSION_SIGNING_KEY', secretRef: 'session-signing-key' }
             { name: 'IP_HASH_KEY', secretRef: 'ip-hash-key' }
@@ -302,6 +338,7 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 output identityClientId string = identity.properties.clientId
 output coreUrl string = deployApp ? 'https://${core.?properties.configuration.ingress.fqdn}' : ''
 output staticSiteHost string = deployApp ? '${site.?properties.defaultHostname}' : ''
+output agentInternalUrl string = deployApp ? 'https://${agent.?properties.configuration.ingress.fqdn}' : ''
 output cosmosEndpoint string = cosmos.properties.documentEndpoint
 output foundryProjectEndpoint string = foundry.outputs.projectEndpoint
 output modelToolsDeployment string = 'deepseek'

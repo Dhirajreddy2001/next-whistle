@@ -60,9 +60,9 @@ values = {
     "sessionSigningKey": os.environ["SESSION_SIGNING_KEY"], "ipHashKey": os.environ["IP_HASH_KEY"],
     "developerPrincipalId": dev, "budgetContactEmails": [email], "budgetStartDate": start, "cosmosFreeTier": free == "true", "deployApp": deploy_app == "true",
 }
-for name in ("CORE_IMAGE", "ALLOWED_ORIGIN", "AGENT_SERVICE_URL"):
+for name in ("CORE_IMAGE", "AGENT_IMAGE"):
     if os.environ.get(name):
-        values[{"CORE_IMAGE": "coreImage", "ALLOWED_ORIGIN": "allowedOrigin", "AGENT_SERVICE_URL": "agentServiceUrl"}[name]] = os.environ[name]
+        values[{"CORE_IMAGE": "coreImage", "AGENT_IMAGE": "agentImage"}[name]] = os.environ[name]
 json.dump({"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#", "contentVersion": "1.0.0.0",
            "parameters": {k: {"value": v} for k, v in values.items()}}, open(path, "w"))
 PY
