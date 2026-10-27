@@ -34,15 +34,6 @@ param cosmosFreeTier bool = true
 @description('Object ID of your own Entra user, so you can call Foundry from your laptop for evaluations. Leave empty to skip.')
 param developerPrincipalId string = ''
 
-@description('Email addresses for budget alerts.')
-param budgetContactEmails array
-
-@description('Total project budget in USD. The whole contest must stay under this.')
-param budgetUsd int = 20
-
-@description('First day of the month the budget starts, YYYY-MM-01.')
-param budgetStartDate string
-
 @description('The one model every agent role uses. Capacity is thousands of tokens per minute and must fit your subscription quota.')
 param model object = { name: 'DeepSeek-V4-Flash', version: '2026-04-23', sku: 'GlobalStandard', capacity: 20 }
 
@@ -55,12 +46,10 @@ param tags object = {
 }
 
 var suffix = uniqueString(resourceGroup().id)
-var storageName = take('st${namePrefix}${suffix}', 24)
 var cosmosName = take('cosmos-${namePrefix}-${suffix}', 44)
 var foundryName = take('ai-${namePrefix}-${suffix}', 64)
 
 // Built-in role definitions.
-var roleBlobContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 var cosmosDataContributor = '00000000-0000-0000-0000-000000000002'
 
 // ---- the workload identity ("service account"): every service below is granted access to this one identity ----
@@ -82,54 +71,6 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
-resource insights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appi-${namePrefix}'
-  location: location
-  kind: 'web'
-  tags: tags
-  properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: logs.id
-    SamplingPercentage: 20
-  }
-}
-
-// ---- datasets and rules (read-only at runtime) ----------------------------------------------------------------
-resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: storageName
-  location: location
-  tags: tags
-  sku: { name: 'Standard_LRS' }
-  kind: 'StorageV2'
-  properties: {
-    accessTier: 'Hot'
-    allowBlobPublicAccess: false
-    allowSharedKeyAccess: false
-    minimumTlsVersion: 'TLS1_2'
-    supportsHttpsTrafficOnly: true
-  }
-}
-
-resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
-  parent: storage
-  name: 'default'
-}
-
-resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = [for name in ['datasets', 'rules', 'narratives', 'temporary']: {
-  parent: blobs
-  name: name
-  properties: { publicAccess: 'None' }
-}]
-
-resource storageIdentityRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: storage
-  name: guid(storage.id, identity.id, roleBlobContributor)
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleBlobContributor)
-  }
-}
 
 // ---- state: Cosmos DB free tier, identity-only access (no account keys) ---------------------------------------
 resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
@@ -247,7 +188,6 @@ resource agent 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
             { name: 'FOUNDRY_OPENAI_BASE_URL', value: 'https://${foundryName}.services.ai.azure.com/openai/v1' }
             { name: 'MODEL_TOOLS', value: 'deepseek' }
             { name: 'MODEL_SMALL', value: 'deepseek' }
-            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
           ]
         }
       ]
@@ -295,7 +235,6 @@ resource core 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
             { name: 'TRUST_PROXY', value: 'true' }
             { name: 'SESSION_SIGNING_KEY', secretRef: 'session-signing-key' }
             { name: 'IP_HASH_KEY', secretRef: 'ip-hash-key' }
-            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
           ]
         }
       ]
@@ -318,22 +257,6 @@ resource site 'Microsoft.Web/staticSites@2023-12-01' = if (deployApp) {
 }
 
 // ---- cost guard: the contest ceiling, scoped to this resource group ----------------------------------------------
-resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
-  name: 'budget-${namePrefix}'
-  properties: {
-    category: 'Cost'
-    amount: budgetUsd
-    timeGrain: 'Annually'
-    timePeriod: { startDate: budgetStartDate }
-    notifications: {
-      usd5: { enabled: true, operator: 'GreaterThanOrEqualTo', threshold: 25, thresholdType: 'Actual', contactEmails: budgetContactEmails }
-      usd10: { enabled: true, operator: 'GreaterThanOrEqualTo', threshold: 50, thresholdType: 'Actual', contactEmails: budgetContactEmails }
-      usd15: { enabled: true, operator: 'GreaterThanOrEqualTo', threshold: 75, thresholdType: 'Actual', contactEmails: budgetContactEmails }
-      usd18: { enabled: true, operator: 'GreaterThanOrEqualTo', threshold: 90, thresholdType: 'Actual', contactEmails: budgetContactEmails }
-      usd1950: { enabled: true, operator: 'GreaterThanOrEqualTo', threshold: 97, thresholdType: 'Actual', contactEmails: budgetContactEmails }
-    }
-  }
-}
 
 output identityClientId string = identity.properties.clientId
 output coreUrl string = deployApp ? 'https://${core.?properties.configuration.ingress.fqdn}' : ''
@@ -344,4 +267,3 @@ output foundryProjectEndpoint string = foundry.outputs.projectEndpoint
 output modelToolsDeployment string = 'deepseek'
 output modelSmallDeployment string = 'deepseek'
 output foundryAccountName string = foundry.outputs.accountName
-output storageAccountName string = storage.name

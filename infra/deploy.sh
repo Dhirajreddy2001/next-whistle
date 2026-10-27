@@ -24,9 +24,6 @@ read -r -p "Type the subscription ID to confirm this is the right one: " typed
 LOCATION="${LOCATION:-}"
 if [[ -z "$LOCATION" ]]; then read -r -p "Azure region (for example eastus2): " LOCATION; fi
 [[ -n "$LOCATION" ]] || fail "a region is required"
-BUDGET_EMAIL="${BUDGET_EMAIL:-}"
-if [[ -z "$BUDGET_EMAIL" ]]; then read -r -p "Email for budget alerts: " BUDGET_EMAIL; fi
-[[ "$BUDGET_EMAIL" == *@* ]] || fail "a valid email is required"
 
 # Secrets are created once, kept in a private local file, and never printed or committed (.local/ is ignored).
 mkdir -p .local; umask 077
@@ -53,12 +50,12 @@ az group create --name "$RG" --location "$LOCATION" --output none --tags \
 
 dev_id="$(az ad signed-in-user show --query id -o tsv 2>/dev/null || true)"
 params="$(mktemp)"; trap 'rm -f "$params"' EXIT
-python3 - "$params" "$dev_id" "$BUDGET_EMAIL" "$(date +%Y-%m-01)" "${COSMOS_FREE_TIER:-true}" "${DEPLOY_APP:-false}" <<'PY'
+python3 - "$params" "$dev_id" "${COSMOS_FREE_TIER:-true}" "${DEPLOY_APP:-false}" <<'PY'
 import json, os, sys
-path, dev, email, start, free, deploy_app = sys.argv[1:7]
+path, dev, free, deploy_app = sys.argv[1:5]
 values = {
     "sessionSigningKey": os.environ["SESSION_SIGNING_KEY"], "ipHashKey": os.environ["IP_HASH_KEY"],
-    "developerPrincipalId": dev, "budgetContactEmails": [email], "budgetStartDate": start, "cosmosFreeTier": free == "true", "deployApp": deploy_app == "true",
+    "developerPrincipalId": dev, "cosmosFreeTier": free == "true", "deployApp": deploy_app == "true",
 }
 for name in ("CORE_IMAGE", "AGENT_IMAGE"):
     if os.environ.get(name):
