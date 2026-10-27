@@ -97,3 +97,5 @@ make validate-data    # validate hashes, chronology, cutoffs, geometry and movem
 ## Rules and licensing
 
 Football rules are paraphrased in original wording and cited to the IFAB Laws of the Game; the Laws' text is not reproduced. Every external source is recorded in [data/SOURCES.md](data/SOURCES.md), and every visual asset in [frontend/ASSETS.md](frontend/ASSETS.md).
+
+The code is released under the [MIT License](LICENSE). The match data, clubs and players are fictional.
