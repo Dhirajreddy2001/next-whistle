@@ -54,10 +54,10 @@ backend:
 	$(MAKE) core
 
 core:
-	uv run --project backend/services/core_application_service --python 3.12 uvicorn next_whistle_core.main:app --reload --host 127.0.0.1 --port 8000
+	PYTHONPATH=backend/services/core_application_service/src uv run --project backend/services/core_application_service --python 3.12 uvicorn next_whistle_core.main:app --reload --host 127.0.0.1 --port 8000
 
 agent:
-	uv run --project backend/services/agent_service --python 3.13 --prerelease allow python -m next_whistle_agent.main
+	PYTHONPATH=backend/services/agent_service/src uv run --project backend/services/agent_service --python 3.13 --prerelease allow python -m next_whistle_agent.main
 
 frontend:
 	cd frontend && npm run dev
