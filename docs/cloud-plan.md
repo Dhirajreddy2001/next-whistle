@@ -27,7 +27,6 @@ Do not deploy until an active Azure subscription is visible in `az account list`
 | Azure Container App | Hosts the FastAPI Core Application Service | 0.5 vCPU/1 GiB initially, HTTP ingress, `minReplicas=0` normally, `maxReplicas=1`; consider `minReplicas=1` only during judging after measuring cost |
 | Microsoft Foundry resource and project | Owns model deployments, hosted agent versions, traces, and evaluations | Pay-as-you-go models, minimal quota, no optional Code Interpreter or File Search |
 | Foundry Hosted Agent | Runs the Agent Service built with Microsoft Agent Framework | Deploy from a source ZIP; start with the smallest tested CPU/memory tier and a two-minute session idle timeout |
-| Azure Storage account | Stores private datasets, approved rules, and pre-generated narrative cards; the usage ledger, answer cache and sessions live in Cosmos DB instead of Blob | Standard general-purpose v2, locally redundant storage, hot tier, public blob access disabled |
 | Blob containers | Separate data by retention and permission | `datasets`, `rules`, `cache`, `usage`, and `temporary`; lifecycle deletion applies only to `temporary` objects older than seven days |
 | Log Analytics workspace | Receives Container Apps logs | Shortest suitable retention, restrained log levels, and a small daily ingestion cap |
 | Application Insights | API, workflow, dependency, and failure telemetry | Workspace-based; sample routine requests and never log prompts containing secrets or full anonymous tokens |
@@ -89,14 +88,13 @@ Give the Hosted Agent identity Blob Data Reader access only to immutable dataset
 
 The project's entire out-of-pocket cloud budget is **USD 20 total**, including development, evaluation, deployment, the judging window, model calls, storage, networking, and monitoring. Do not assume credits. This limit spans October and November; a new calendar or billing month does not reset it.
 
-Reserve the budget provisionally as USD 6 for Azure hosting, storage, and monitoring; USD 10 for Foundry inference, hosted-agent compute, evaluations, and pre-generation; and USD 4 as contingency. Recalculate these allocations from measured costs before deployment, but never raise their combined total above USD 20.
+Reserve the budget provisionally as USD 6 for Azure hosting, storage, and monitoring; USD 10 for Foundry inference, hosted-agent compute, evaluations; and USD 4 as contingency. Recalculate these allocations from measured costs before deployment, but never raise their combined total above USD 20.
 
 Azure budget notifications can be delayed and do not stop resources or model calls. Application controls enforce the practical ceiling:
 
 - Use `minReplicas=0` during development and measure whether one warm replica is affordable for judging.
 - Limit Container Apps to one replica and Foundry concurrency to the amount needed for the demo.
 - Configure Foundry session idle timeout to two minutes. Inactive compute is deprovisioned by the platform.
-- Pre-generate likely judge responses and serve them from Blob cache.
 - Maintain a durable global generation allowance and per-session/per-IP limits.
 - At 80% of the generation allowance, disable free-text referee questions.
 - At 95%, disable uncached generation while retaining replay, cached answers, and factual fallbacks.
@@ -117,7 +115,7 @@ Check the live site, cache hit rate, remaining generation allowance, failures, a
 5. Build, test, scan, and publish the Core Service image to public GHCR; deploy its digest to Container Apps.
 6. Package and deploy the Agent Service as a Foundry source ZIP; configure models, environment variables, limits, and the two-minute idle timeout.
 7. Deploy the frontend to Static Web Apps and lock CORS to its production hostname.
-8. Seed immutable data, rules, and pre-generated cache artifacts.
+8. Datasets and rules ship inside the Core and agent images, so there is nothing to seed.
 9. Run health, replay, cached-generation, live-generation, cold-start, anonymous-browser, and mobile smoke tests.
 10. Confirm `az acr list -g rg-nextwhistle-prod` is empty, confirm forecast project spend remains below USD 20, and record resource IDs, revisions, image digest, agent version, and live URL.
 

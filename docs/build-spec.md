@@ -270,7 +270,6 @@ The pitch loads bounded one-minute tracking chunks and uses cubic Hermite interp
 ### WP7 — Evaluation, freeze, and cleanup readiness
 
 - Evaluate golden explanations and referee cases; fix prompts once and pin versions.
-- Pre-generate only the highest-value demo responses within `PREGEN_MAX_USD=2`.
 - Capture artifact identifiers and demo evidence.
 - Install and dry-run the guarded expiry workflow without deleting resources.
 

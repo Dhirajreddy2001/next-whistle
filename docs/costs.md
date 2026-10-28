@@ -7,7 +7,7 @@ Reviewed October 22, 2026. Free local development does not require Azure credits
 | React frontend | No hosting charge | Static Web Apps Free plan, within its limits |
 | FastAPI backend | No hosting charge | Container Apps Consumption free allowance, then metered CPU, memory, and requests |
 | Match data and cache | Local files | Blob Storage capacity and operations; potential transfer charges |
-| AI explanations | Fake agents planned; no calls in this starter | Model input/output tokens for every agent turn, retry, evaluation, and pre-generation |
+| AI explanations | Fake agents planned; no calls in this starter | Model input/output tokens for every agent turn, retry, and evaluation |
 | Telemetry | Local logs | Application Insights / Log Analytics ingestion and retention |
 
 Container Apps currently includes 180,000 vCPU-seconds, 360,000 GiB-seconds, and 2 million requests per subscription each calendar month. At 0.5 vCPU and 1 GiB, the compute allowance corresponds to 100 hours of active runtime, assuming no other app consumes it. Idle replicas have separate billing rules; keeping one replica running all month is not guaranteed free. Scaling to zero reduces compute costs but does not remove storage and telemetry costs.
