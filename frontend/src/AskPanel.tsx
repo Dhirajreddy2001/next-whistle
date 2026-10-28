@@ -73,7 +73,7 @@ export function AskPanel({ matchId, language, level, clockMs, decision, suggesti
           <p>{turn.result.answer}</p>
           {turn.result.scope === 'redirect' && turn.result.redirectEventId && <button type="button" className="ask-link" onClick={() => onShowDecision(turn.result!.redirectEventId!)}>Show that decision</button>}
           {!!turn.result.ruleRefs?.length && <ul aria-label="Rule sources">{turn.result.ruleRefs.map(rule => <li key={rule.ruleId}><a href={rule.sourceUrl} target="_blank" rel="noreferrer">IFAB Law {rule.lawNumber}: {rule.title}</a></li>)}</ul>}
-          {!!turn.result.evidenceIds.length && <small>{turn.result.evidenceIds.length} evidence records</small>}
+          {!!turn.result.evidenceIds.length && <small>Based on {turn.result.evidenceIds.length} match records</small>}
         </div>}
       </li>)}
     </ol>

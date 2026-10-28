@@ -300,10 +300,10 @@ function GenerationAnswer({ result, error }: { result: GenerationResult | null; 
   return <div aria-live="polite" aria-atomic="true">
     {error && <p role="alert">{error}</p>}
     {result && <div className="generation-answer">
-      <p className="status">{result.generationEnabled === false ? 'AI answers paused · recorded facts only' : result.source === 'template' ? 'Facts only' : result.source === 'fake' ? 'Demo agent' : 'AI generated'} · {formatClock(result.cutoffMs)}</p>
+      <p className="status">{result.generationEnabled === false ? 'AI answers paused · recorded facts only' : result.source === 'template' ? 'Facts only' : 'AI generated'} · {formatClock(result.cutoffMs)}</p>
       <p>{result.answer}</p>
       {!!result.ruleRefs?.length && <ul aria-label="Rule sources">{result.ruleRefs.map(rule => <li key={rule.ruleId}><a href={rule.sourceUrl} target="_blank" rel="noreferrer">IFAB Law {rule.lawNumber}: {rule.title}</a></li>)}</ul>}
-      <small>{result.evidenceIds.length} evidence records · {result.workflowVersion}</small>
+      <small>Based on {result.evidenceIds.length} match records</small>
     </div>}
   </div>;
 }
