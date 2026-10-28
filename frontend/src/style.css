@@ -104,7 +104,6 @@
 @media (hover:hover) and (pointer:fine){a.lp-card{transition:border-color .15s,box-shadow .15s}a.lp-card:not(.live):hover{border-color:var(--accent);box-shadow:0 8px 22px rgba(15,118,110,.12)}}
 @media (max-width:760px){.lp-wrap{padding:0 16px 40px}.lp-top small{display:none}.lp-timeline{padding:18px 14px 36px;height:520px}.lp-entry{grid-template-columns:18px 1fr;column-gap:10px}.lp-when{display:none}.lp-body{padding:16px}.lp-teams{flex-direction:column;align-items:flex-start;gap:12px}.lp-team.away{flex-direction:row-reverse;align-self:stretch;justify-content:flex-end}.lp-card{flex-direction:column}.lp-action{width:auto;flex-direction:row;align-items:center;justify-content:space-between;border-left:0!important;border-top:1px dashed var(--line2)}.lp-setup{flex-basis:100%}}
 [data-theme=light] .pitch-shell{background:#2c7360}[data-theme=light] .pitch-ground{fill:#37846f}[data-theme=light] .pitch-lines{stroke:rgba(255,255,255,.55)}[data-theme=light] .pitch-lines .pitch-dot{fill:rgba(255,255,255,.65)}
-[data-theme=light] .player-marker.home circle{fill:#0b3d36;stroke:#fff}[data-theme=light] .player-marker.home text{fill:#fff}[data-theme=light] .player-marker.away circle{fill:#f4f8f7;stroke:#1d3b33}
 [data-theme=light] .tactical-toolbar button{color:#fff;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4)}[data-theme=light] .tactical-toolbar button[aria-pressed=true]{color:#0f5c50;background:#fff;border-color:#fff}
 [data-theme=light] .feed-toggle{color:#fff;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}
 [data-theme=light] .live-state{color:#b93815;background:#fde9e1;border-color:#f0b8a4}
@@ -118,3 +117,5 @@
 .panel-tabs button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 @media (hover:hover) and (pointer:fine){.panel-tabs button:not(.active):hover{color:var(--foreground);background:var(--muted)}}
 @container (max-width:299px){.panel-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.panel-tabs button{min-width:0;font-size:11px}}
+
+.pitch-lines{stroke:rgba(255,255,255,.9)!important;stroke-linecap:round}.pitch-goals rect{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.75);stroke-width:.12}.pitch-goals path{fill:none;stroke:rgba(255,255,255,.7);stroke-width:.12}
