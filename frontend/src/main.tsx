@@ -201,7 +201,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
   const displayedPlayers = data.players.filter(p => p.starter);
   const trackingSample = sampleTracking(trackingFrames.filter(frame => frame[0] <= clock), trackingOrder, clock);
   const gridRef = useRef<HTMLDivElement>(null); const dragging = useRef(false);
-  const [panelWidth, setPanelWidth] = useState(260); const [panelOpen, setPanelOpen] = useState(true);
+  const [panelWidth, setPanelWidth] = useState(320); const [panelOpen, setPanelOpen] = useState(true);
   const isLive = !!liveClock && !!match && liveClock.matchId === match.matchId;
   const liveAt = () => liveClock && match ? Math.min(liveClock.matchMs + Math.max(0, Date.now() + liveClock.offset - liveClock.serverTimeMs), match.durationMs) : 0;
   useEffect(() => { if (started.current || !liveClock || !match) return; started.current = true; const secondHalfStart = 46 * 60_000; const edge = isLive ? liveAt() : secondHalfStart + Math.floor(Math.random() * Math.max(1, Math.min(35 * 60_000, match.durationMs - secondHalfStart - 1))); setLiveEdge(isLive ? edge : match.durationMs); setClock(edge); }, [liveClock, match, isLive]);
@@ -266,6 +266,14 @@ function Pitch({ clock, event, tracking, tracked, activePlayer, setHovered, togg
 }
 type Panel = 'insights' | 'stats' | 'players' | 'decisions' | 'ask' | 'timeline';
 const PANEL_TABS: Panel[] = ['insights', 'stats', 'players', 'decisions', 'ask', 'timeline'];
+const TAB_ICONS: Record<Panel, React.ReactNode> = {
+  insights: <><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.4 1 2.5h6c0-1.1.3-1.8 1-2.5A6 6 0 0 0 12 3z" /></>,
+  stats: <path d="M5 20V11M12 20V4M19 20v-6" />,
+  players: <><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5.5a3 3 0 0 1 0 5M18 14c2 .8 3 2.6 3 5" /></>,
+  decisions: <path d="M5 21V4M5 4h12l-2.5 4L17 12H5" />,
+  ask: <><path d="M4 5h16v11h-9l-5 4v-4H4z" /><path d="M10 9.5c0-1.7 3.5-1.7 3.5 0 0 1.5-1.8 1.4-1.8 3M11.7 14.5h.01" /></>,
+  timeline: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+};
 const typeLabel = (type: string) => type.replace(/^card_/, '').replaceAll('_', ' ');
 type GenerationUiState = { busy: boolean; result: GenerationResult | null; error: string };
 const emptyGenerationState: GenerationUiState = { busy: false, result: null, error: '' };
@@ -375,7 +383,7 @@ function SidePanel({ matchId, language, level, panel, setPanel, clock, events, s
   const step = (delta: number) => { const next = PANEL_TABS[PANEL_TABS.indexOf(panel) + delta]; if (next) go(next); };
   const onTouchEnd = (event: React.TouchEvent) => { if (touchX.current === null) return; const dx = event.changedTouches[0].clientX - touchX.current; touchX.current = null; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); };
   const shots = (home?.shots ?? 0) + (away?.shots ?? 0); const homeShare = shots ? Math.round(((home?.shots ?? 0) / shots) * 100) : 50;
-  return <section className="side-panel" aria-label="Match details"><nav className="panel-tabs">{PANEL_TABS.map(tab => <button key={tab} className={panel === tab ? 'active' : ''} onClick={() => go(tab)}>{tab[0].toUpperCase() + tab.slice(1)}</button>)}</nav><div key={panel} className="panel-content slide" style={{ '--dir': dir } as React.CSSProperties} onTouchStart={event => { touchX.current = event.touches[0].clientX; }} onTouchEnd={onTouchEnd}>
+  return <section className="side-panel" aria-label="Match details"><nav className="panel-tabs">{PANEL_TABS.map(tab => <button key={tab} className={panel === tab ? 'active' : ''} aria-pressed={panel === tab} onClick={() => go(tab)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">{TAB_ICONS[tab]}</svg>{tab[0].toUpperCase() + tab.slice(1)}</button>)}</nav><div key={panel} className="panel-content slide" style={{ '--dir': dir } as React.CSSProperties} onTouchStart={event => { touchX.current = event.touches[0].clientX; }} onTouchEnd={onTouchEnd}>
     {panel === 'insights' && <><div className="panel-heading"><div><span className="panel-kicker">Current reading</span><h2>What is shaping the match</h2></div><span>{formatClock(clock)}</span></div><div className="explanation"><p className="finding">{moments[0]?.title ?? 'The match is underway.'}</p><p>{moments[0]?.detail ?? 'Match evidence will appear here as the replay progresses.'}</p><ul className="signal-list"><li><span>Possession</span><strong>{home?.possessionPct ?? '—'}% {data.match.home.name}</strong></li><li><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></li>{level !== 'beginner' && <li><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></li>}<li><span>Pass completion</span><strong>{home?.passCompletionPct ?? '—'}% – {away?.passCompletionPct ?? '—'}%</strong></li></ul>{level === 'pro' && <div className="momentum"><span className="estimate-label">Shot share {homeShare}% – {100 - homeShare}%</span><div className="momentum-track"><i className="midpoint" /><i className="momentum-value" style={{ left: `${homeShare}%` }} /></div></div>}{level === 'beginner' && <p className="insight-detail">Tip: shots on target force the goalkeeper to act; most goals come from them.</p>}<ExplainAction event={moments.find(event => event.kind !== 'break')} state={explanation} onGenerate={() => void explainLatest()} /></div></>}
     {panel === 'stats' && <><div className="panel-heading"><h2>Match pulse</h2><span>Through {formatClock(clock)}</span></div><div className="stat-strip"><div><span>Possession</span><strong>{home?.possessionPct ?? '—'}<span>%</span></strong></div><div><span>Shots</span><strong>{home?.shots ?? 0} – {away?.shots ?? 0}</strong></div><div><span>On target</span><strong>{home?.shotsOnTarget ?? 0} – {away?.shotsOnTarget ?? 0}</strong></div></div><div className="pressure"><div><span>Passes completed</span><strong>{home?.passesCompleted ?? 0} – {away?.passesCompleted ?? 0}</strong></div><p>Statistics are calculated from generated events available by {formatClock(clock)}.</p></div></>}
     {panel === 'players' && <><div className="panel-heading"><h2>Players in focus</h2><span>{data.players.length} starters</span></div><div className="player-list">{data.players.map(player => <article key={player.playerId}><TeamBadge team={player.teamId === data.match.home.teamId ? data.match.home : data.match.away} /><div><h3>{player.name}</h3><p>{player.position} · #{player.shirt}</p></div><strong>{events.filter(e => e.playerId === player.playerId).length}</strong></article>)}</div></>}

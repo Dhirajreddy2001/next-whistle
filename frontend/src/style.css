@@ -109,3 +109,12 @@
 [data-theme=light] .feed-toggle{color:#fff;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}
 [data-theme=light] .live-state{color:#b93815;background:#fde9e1;border-color:#f0b8a4}
 [data-theme=light] .pitch-shell{--faint:rgba(255,255,255,.8);--muted-foreground:rgba(255,255,255,.88)}
+
+.side-panel{container-type:inline-size}
+.panel-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;min-height:0;padding:8px;overflow:visible;scroll-snap-type:none;background:var(--raised)}
+.panel-tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;min-height:50px;padding:8px 0 7px;color:var(--muted-foreground);background:transparent;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.panel-tabs button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.panel-tabs button.active{color:var(--primary-foreground);background:var(--primary)}.panel-tabs button.active:after{display:none}
+.panel-tabs button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.panel-tabs button:not(.active):hover{color:var(--foreground);background:var(--muted)}}
+@container (max-width:299px){.panel-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.panel-tabs button{min-width:0;font-size:11px}}
