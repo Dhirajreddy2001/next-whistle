@@ -52,10 +52,11 @@ function useMatchData(match: Match, clockMs: number) {
     const load = async () => {
       const [squads, stats] = await Promise.all([get(`/api/matches/${match.matchId}/squads`), get(`/api/matches/${match.matchId}/stats?cutoffMs=${cutoff}`)]);
       if (cutoff > loadedThrough.current) {
-        const timeline = loadedThrough.current < 0
+        const fresh = loadedThrough.current < 0 || cutoff - loadedThrough.current > 300_000;  // a big jump forward is cheaper to load whole than as a delta
+        const timeline = fresh
           ? await get(`/api/matches/${match.matchId}/timeline?cutoffMs=${cutoff}`)
           : await get(`/api/matches/${match.matchId}/replay?cutoffMs=${cutoff}&fromMs=${loadedThrough.current}`);
-        if (loadedThrough.current < 0) eventCache.current = timeline.events ?? [];
+        if (fresh) eventCache.current = timeline.events ?? [];
         else eventCache.current = [...eventCache.current, ...(timeline.events ?? [])];
         loadedThrough.current = cutoff;
       }
