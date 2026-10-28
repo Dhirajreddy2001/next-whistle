@@ -19,10 +19,11 @@ from starlette.exceptions import HTTPException
 
 from next_whistle_core.api.schemas import (
     GenerationRequest, LiveMatchState, MatchCatalog,
-    RefereeQuestionRequest, RefreshSessionRequest,
+    RefereeQuestionRequest, RefreshSessionRequest, Schedule,
 )
 from next_whistle_core.config import Settings
 from next_whistle_core.security import hash_refresh_token, issue_access_token, read_access_token
+from next_whistle_core.services.schedule import build_schedule, playable_for_slot, slot_of
 from next_whistle_core.services.replay import player_summary, state_at, team_stats, visible_events
 from next_whistle_core.services.agent_client import AgentServiceClient
 from next_whistle_core.services.ask import answer_without_model, load_rule_index
@@ -186,26 +187,38 @@ def create_app(
             headers={"Cache-Control": "public, max-age=300"},
         )
 
+    def live_slot(current_ms: int) -> tuple[int, int, int, str]:
+        """The slot now, how far into it we are, when it started and which playable match is live in it."""
+        slot = slot_of(current_ms, settings.live_instance_epoch_ms, settings.live_match_duration_ms)
+        start_ms = settings.live_instance_epoch_ms + slot * settings.live_match_duration_ms
+        return slot, current_ms - start_ms, start_ms, playable_for_slot(slot, [match.match_id for match in app.state.catalog.matches])
+
+    @app.get("/api/schedule", response_model=Schedule)
+    async def schedule_endpoint(response: Response):
+        if app.state.dataset is None:
+            raise HTTPException(503, "Catalog not loaded")
+        response.headers["Cache-Control"] = "no-store"
+        return Schedule.model_validate(build_schedule(
+            now_ms(), epoch_ms=settings.live_instance_epoch_ms, duration_ms=settings.live_match_duration_ms,
+            matches=app.state.dataset.catalog["matches"], history=list(app.state.dataset.history),
+        ))
+
     @app.get("/api/live-state", response_model=LiveMatchState)
     async def live_state(response: Response):
+        if app.state.catalog is None:
+            raise HTTPException(503, "Catalog not loaded")
         response.headers["Cache-Control"] = "no-store"
         current_ms = now_ms()
-        cycle_number, match_ms, instance_start_ms = live_cycle(current_ms)
+        cycle_number, match_ms, instance_start_ms, live_match_id = live_slot(current_ms)
         return LiveMatchState(
-            instance_id=f"li_{settings.live_match_id[2:]}_{cycle_number}",
-            match_id=settings.live_match_id,
+            instance_id=f"li_{live_match_id[2:]}_{cycle_number}",
+            match_id=live_match_id,
             server_time_ms=current_ms,
             instance_start_ms=instance_start_ms,
             match_ms=match_ms,
             duration_ms=settings.live_match_duration_ms,
             cycle_number=cycle_number,
         )
-
-    def live_cycle(current_ms: int) -> tuple[int, int, int]:
-        elapsed_ms = max(0, current_ms - settings.live_instance_epoch_ms)
-        cycle_number, match_ms = divmod(elapsed_ms, settings.live_match_duration_ms)
-        instance_start_ms = settings.live_instance_epoch_ms + cycle_number * settings.live_match_duration_ms
-        return cycle_number, match_ms, instance_start_ms
 
     def session_tokens(session_id: str, refresh_token: str, now: int, request: Request) -> dict:
         access_token, access_expiry = issue_access_token(session_id, now, request.app.state.session_signing_key, ACCESS_TOKEN_SECONDS)
@@ -627,11 +640,12 @@ def create_app(
             raise HTTPException(404, "Tracking chunk not found")
         chunk = chunks[chunk_index]
         data = app.state.dataset.matches[match_id]
+        _, live_ms, _, live_match_id = live_slot(now_ms())
+        shared_cutoff = live_ms if match_id == live_match_id else data.duration_ms  # only the live match is held back; replays are over
         if cutoff_ms is None:
-            _, cutoff_ms, _ = live_cycle(now_ms())
+            cutoff_ms = shared_cutoff
         elif cutoff_ms < 0 or cutoff_ms > data.duration_ms:
             raise HTTPException(422, "cutoffMs is outside the match")
-        _, shared_cutoff, _ = live_cycle(now_ms())
         cutoff_ms = min(cutoff_ms, shared_cutoff)
         if from_ms is not None and (from_ms < 0 or from_ms > cutoff_ms):
             raise HTTPException(422, "fromMs must be between zero and cutoffMs")

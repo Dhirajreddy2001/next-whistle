@@ -40,6 +40,36 @@ class LiveMatchState(ApiModel):
     cycle_number: int
 
 
+class ScheduleScore(ApiModel):
+    home: int
+    away: int
+
+
+class ScheduleMoment(ApiModel):
+    minute: int
+    kind: str
+    team: str
+
+
+class ScheduleItem(ApiModel):
+    slot: int
+    kind: Literal["live", "replay", "result"]
+    starts_at_ms: int
+    starts_at: str
+    duration_ms: int
+    match_id: str | None = Field(default=None, pattern=r"^m_[a-z0-9_]+$")
+    home: TeamSummary
+    away: TeamSummary
+    live_match_ms: int | None = None
+    score: ScheduleScore | None = None
+    key_moments: list[ScheduleMoment] | None = None
+
+
+class Schedule(ApiModel):
+    generated_at_ms: int
+    items: list[ScheduleItem]
+
+
 class RefreshSessionRequest(ApiModel):
     refresh_token: str = Field(min_length=32, max_length=256)
 
