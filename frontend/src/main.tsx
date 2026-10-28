@@ -61,7 +61,7 @@ function useMatchData(match: Match, clockMs: number) {
       }
       if (!controller.signal.aborted) setData({ match, players: squads.teams.flatMap((side: { teamId: string; players: Omit<Player, 'teamId'>[] }) => side.players.map(player => ({ ...player, teamId: side.teamId })).filter(player => player.starter).sort((a, b) => a.shirt - b.shirt)), events: eventCache.current, stats: stats.teams ?? [], cutoffMs: cutoff, error: null });
     };
-    load().catch(error => { if (error.name !== 'AbortError') setData(current => ({ ...current, error: 'Could not load generated match data. Check that the backend is running, then retry.' })); });
+    load().catch(error => { if (error.name !== 'AbortError') setData(current => ({ ...current, error: 'Could not load the match data. Please try again.' })); });
     return () => controller.abort();
   }, [match.matchId, Math.floor(clockMs / 5000)]);
   return data;
@@ -90,7 +90,7 @@ function App() {
 function Waking({ what }: { what: string }) {
   const [slow, setSlow] = useState(false);
   useEffect(() => { const timer = window.setTimeout(() => setSlow(true), 3000); return () => window.clearTimeout(timer); }, []);
-  return <div className="waking" role="status"><span className="waking-dot" aria-hidden="true" /><div><strong>{slow ? 'Waking up the server…' : `Loading ${what}…`}</strong>{slow && <p>The first visit after a quiet period can take up to 30 seconds. After that it is fast.</p>}</div></div>;
+  return <div className="waking" role="status"><span className="waking-dot" aria-hidden="true" /><div><strong>Loading {what}…</strong>{slow && <p>Still loading. This can take a few seconds.</p>}</div></div>;
 }
 function MatchPicker({ prefs, setPrefs }: { prefs: Prefs; setPrefs: (p: Prefs) => void }) {
   const [matches, setMatches] = useState<Match[]>([]); const [error, setError] = useState('');
