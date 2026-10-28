@@ -8,7 +8,7 @@ import { sampleTracking, type Frame, type TrackingSample } from './tracking';
 import { EventIcon, ReplayBanner, type Clip } from './Clip';
 
 type Team = { teamId: string; name: string; shortName: string; colors: string[] };
-type Match = { matchId: string; label: string; kickoffDate: string; home: Team; away: Team };
+type Match = { matchId: string; label: string; kickoffDate: string; durationMs: number; home: Team; away: Team };
 type Player = { playerId: string; teamId: string; name: string; shirt: number; position: string; starter: boolean };
 /** "r_law11_offside" -> "Law 11"; internal rule ids are never shown to viewers. */
 const lawLabels = (ruleIds?: string[]) => [...new Set((ruleIds ?? []).map(id => id.match(/^r_law(\d+)_/)?.[1]).filter(Boolean))].map(n => `Law ${n}`).join(', ');
@@ -20,7 +20,7 @@ type UiEvent = Event & { title: string; detail: string; minute: string; kind: 'g
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const url = (path: string) => `${API}${path}`;
 const MATCH_END_MS = 96 * 60_000;
-const emptyView: DatasetView = { match: { matchId: '', label: '', kickoffDate: '', home: { teamId: '', name: '', shortName: '', colors: [] }, away: { teamId: '', name: '', shortName: '', colors: [] } }, players: [], events: [], stats: [], cutoffMs: 0, error: null };
+const emptyView: DatasetView = { match: { matchId: '', label: '', kickoffDate: '', durationMs: 0, home: { teamId: '', name: '', shortName: '', colors: [] }, away: { teamId: '', name: '', shortName: '', colors: [] } }, players: [], events: [], stats: [], cutoffMs: 0, error: null };
 const Context = createContext<DatasetView>(emptyView);
 const useData = () => useContext(Context);
 
@@ -92,35 +92,59 @@ function Waking({ what }: { what: string }) {
   useEffect(() => { const timer = window.setTimeout(() => setSlow(true), 3000); return () => window.clearTimeout(timer); }, []);
   return <div className="waking" role="status"><span className="waking-dot" aria-hidden="true" /><div><strong>Loading {what}…</strong>{slow && <p>Still loading. This can take a few seconds.</p>}</div></div>;
 }
+type ScheduleItem = { slot: number; kind: 'live' | 'replay' | 'result'; startsAtMs: number; matchId?: string; home: Team; away: Team; liveMatchMs?: number; score?: { home: number; away: number }; keyMoments?: { minute: number; kind: string; team: string }[] };
+const MOMENTS: Record<string, string> = { goal: 'Goal', penalty: 'Penalty', offside: 'Offside', tactical_foul_yellow: 'Yellow card', comeback: 'Comeback', lead_change: 'Lead change', activity_surge: 'Pressure spell' };
+const dayLabel = (ms: number) => new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const timeLabel = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+function Side({ team, away }: { team: Team; away?: boolean }) { return <div className={`lp-team ${away ? 'away' : ''}`}>{away ? <><strong>{team.name}</strong><TeamBadge team={team} /></> : <><TeamBadge team={team} /><strong>{team.name}</strong></>}</div>; }
 function MatchPicker({ prefs, setPrefs }: { prefs: Prefs; setPrefs: (p: Prefs) => void }) {
-  const [matches, setMatches] = useState<Match[]>([]); const [error, setError] = useState('');
-  const load = () => fetch(url('/api/matches')).then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(result => { setMatches(result.matches); setError(''); }).catch(() => setError('The match list could not be loaded. Please try again in a moment.'));
-  useEffect(() => { void load(); }, []);
-  return <div className="picker">
-    <header className="topbar"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a><Personalize prefs={prefs} onChange={setPrefs} /></header>
-    <main>
-      <section className="hero">
-        <svg className="hero-pitch" viewBox="0 0 210 136" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="4" y="4" width="202" height="128" rx="3" /><path d="M105 4v128" /><circle cx="105" cy="68" r="18" /><path d="M4 38h30v60H4M206 38h-30v60h30" /></g></svg>
-        <p className="eyebrow">Football match companion</p>
-        <h1>Understand every decision, <span>as it happens.</span></h1>
-        <p className="hero-lede">Replay a match, tap any moment and get a plain-language explanation checked against the recorded evidence. Ask the referee why a call was made.</p>
-        <ul className="hero-points"><li>Time-correct replay</li><li>Explanations checked against evidence</li><li>Ask the Ref</li></ul>
-        <p className="view-summary"><span>Viewing as</span><b>{prefs.level[0].toUpperCase() + prefs.level.slice(1)}</b><b>{prefs.language}</b><b>{prefs.perspective}</b><small>Change this any time in Personalize.</small></p>
+  const [items, setItems] = useState<ScheduleItem[]>([]); const [error, setError] = useState(''); const [loadedAt, setLoadedAt] = useState(0); const [now, setNow] = useState(Date.now());
+  const load = () => fetch(url('/api/schedule'), { cache: 'no-store' }).then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(result => { setItems(result.items); setLoadedAt(Date.now()); setError(''); }).catch(() => setError('The match list could not be loaded. Please try again in a moment.'));
+  useEffect(() => { void load(); const refresh = window.setInterval(() => void load(), 60_000); const tick = window.setInterval(() => setNow(Date.now()), 15_000); return () => { window.clearInterval(refresh); window.clearInterval(tick); }; }, []);
+  return <div className="picker lp">
+    <svg className="lp-lines" viewBox="0 0 1280 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="3"><rect x="60" y="120" width="1160" height="800" rx="6" /><path d="M640 120v800" /><circle cx="640" cy="520" r="110" /><path d="M60 330h190v380H60M1220 330h-190v380h190" /></g></svg>
+    <div className="lp-wrap">
+      <header className="lp-top"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a><small>Fictional clubs · AI-explained decisions</small></header>
+      <section className="lp-hero">
+        <div className="lp-copy">
+          <h1>Watch the match. <span>Understand the whistle.</span></h1>
+          <p className="lp-lede">Replay a full match, tap any moment and get an explanation checked against the recorded evidence. Ask the referee why a call was made.</p>
+          <ol className="lp-steps"><li><b>1</b>Set up your view</li><li><b>2</b>Pick a match and press play</li><li><b>3</b>Tap a moment, or ask the Ref</li></ol>
+        </div>
+        <form className="lp-setup" onSubmit={e => e.preventDefault()}>
+          <div><strong>Set up your view</strong><p>Saved on this device. Change it any time.</p></div>
+          <fieldset><legend>Viewer level</legend><div className="lp-seg">{(['beginner', 'intermediate', 'pro'] as Level[]).map(level => <button type="button" key={level} aria-pressed={prefs.level === level} onClick={() => setPrefs({ ...prefs, level })}>{level[0].toUpperCase() + level.slice(1)}</button>)}</div><p className="hint">{LEVEL_HINTS[prefs.level]}</p></fieldset>
+          <label>Language<select value={prefs.language} onChange={e => setPrefs({ ...prefs, language: e.target.value })}>{LANGUAGES.map(language => <option key={language}>{language}</option>)}</select></label>
+          <label>Perspective<select value={prefs.perspective} onChange={e => setPrefs({ ...prefs, perspective: e.target.value })}>{PERSPECTIVES.map(perspective => <option key={perspective}>{perspective}</option>)}</select></label>
+        </form>
       </section>
-      <section className="matches" aria-labelledby="matches-title">
-        <h2 id="matches-title">Choose a match</h2>
-        {error ? <div className="empty-panel"><p role="alert">{error}</p><Button onClick={() => void load()}>Retry</Button></div> : !matches.length ? <Waking what="matches" /> : <div className="fixture-list">{matches.map((match, index) => <a className="match-card" href={`/match/${match.matchId}`} key={match.matchId}>
-          <div className="match-card-meta"><span>Matchday {index + 1}</span><time>{new Date(`${match.kickoffDate}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</time></div>
-          <div className="match-card-teams"><div className="side"><TeamBadge team={match.home} /><strong>{match.home.name}</strong></div><span className="vs">vs</span><div className="side"><TeamBadge team={match.away} /><strong>{match.away.name}</strong></div></div>
-          <span className="open-match">Watch the replay <i aria-hidden="true">→</i></span></a>)}</div>}
-      </section>
-    </main>
-    <footer className="picker-footer">All clubs, players and matches are fictional. Football rules are paraphrased from the IFAB Laws of the Game.</footer>
+      <div className="lp-head"><h2>Matches</h2><span>Scroll for older matches</span></div>
+      {error && !items.length ? <div className="empty-panel"><p role="alert">{error}</p><Button onClick={() => void load()}>Retry</Button></div> : !items.length ? <Waking what="matches" /> : <div className="lp-shell">
+        <div className="lp-timeline" tabIndex={0} role="region" aria-label="Match timeline, newest first">
+          {items.map(item => {
+            const live = item.kind === 'live'; const result = item.kind === 'result';
+            const minute = Math.floor(((item.liveMatchMs ?? 0) + Math.max(0, now - loadedAt)) / 60_000) + 1;
+            const body = <div className="lp-body">
+              <div className="lp-tags"><span className={`lp-pill ${live ? 'live' : ''}`}>{live && <i />}{live ? 'Live now' : result ? 'Result' : 'Replay'}</span><span className="lp-meta">{live ? `${minute}'` : result ? 'Final score' : 'Full match'}</span></div>
+              <div className="lp-teams"><Side team={item.home} />{result && item.score ? <span className="lp-score" aria-label={`${item.home.name} ${item.score.home}, ${item.away.name} ${item.score.away}`}>{item.score.home}–{item.score.away}</span> : <span className="lp-vs">VS</span>}<Side team={item.away} away /></div>
+              {result && !!item.keyMoments?.length && <ul className="lp-moments" aria-label="Key moments">{item.keyMoments.map((moment, index) => <li key={index}>{moment.minute}' {MOMENTS[moment.kind] ?? moment.kind}</li>)}</ul>}
+            </div>;
+            return <div className="lp-entry" key={item.slot}>
+              <div className="lp-when">{live ? <>Now<small>Live</small></> : <>{dayLabel(item.startsAtMs)}<small>{timeLabel(item.startsAtMs)}</small></>}</div>
+              <div className="lp-rail"><span className={`lp-node ${item.kind}`} /></div>
+              {item.matchId ? <a className={`lp-card ${live ? 'live' : ''}`} href={`/match/${item.matchId}`}>{body}<div className={`lp-action ${live ? 'live' : 'replay'}`}>{live ? 'Join live →' : 'Watch the replay →'}<small>{live ? 'Pick up where it is now' : 'From kick-off'}</small></div></a> : <div className="lp-card result">{body}</div>}
+            </div>;
+          })}
+        </div>
+        <div className="lp-fade" />
+      </div>}
+      <p className="lp-foot">All clubs, players and matches are fictional. Football rules are paraphrased from the IFAB Laws of the Game.</p>
+    </div>
   </div>;
 }
 function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs; setPrefs: (p: Prefs) => void }) {
   const [catalog, setCatalog] = useState<Match[]>([]); const [liveEdge, setLiveEdge] = useState(0); const [clock, setClock] = useState(0); const [playing, setPlaying] = useState(true); const [selected, setSelected] = useState<string | null>(null); const [panel, setPanel] = useState<Panel>('insights'); const [tracked, setTracked] = useState<string[]>([]); const [hovered, setHovered] = useState<string | null>(null); const [trackingFrames, setTrackingFrames] = useState<Frame[]>([]); const [trackingOrder, setTrackingOrder] = useState<string[]>([]);
-  const [liveClock, setLiveClock] = useState<{ offset: number; epoch: number; duration: number } | null>(null);
+  const [liveClock, setLiveClock] = useState<{ offset: number; start: number; matchId: string } | null>(null); const started = useRef(false);
   const clockRef = useRef(clock); clockRef.current = clock;
   const trackingCursor = useRef(-1);
   const [replay, setReplay] = useState<{ clip: Clip; title: string; from: number; to: number; restore: number; running: boolean } | null>(null);
@@ -132,7 +156,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
     return () => window.clearInterval(timer);
   }, [replay?.clip.clipId, replay?.running, replay?.to]);
   useEffect(() => { if (replay?.running && clock >= replay.to) setReplay(current => current && { ...current, running: false }); }, [clock, replay]);
-  useEffect(() => { let retry: number; const loadCatalog = () => fetch(url('/api/matches')).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(v => setCatalog(v.matches ?? [])).catch(() => { retry = window.setTimeout(loadCatalog, 4000); }); loadCatalog(); fetch(url('/api/live-state'), { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(s => { const lc = { offset: s.serverTimeMs - Date.now(), epoch: s.instanceStartMs - s.cycleNumber * s.durationMs, duration: s.durationMs }; setLiveClock(lc); setLiveEdge(s.matchMs); setClock(s.matchMs); }).catch(() => undefined); return () => window.clearTimeout(retry); }, []);
+  useEffect(() => { let retry: number; const loadCatalog = () => fetch(url('/api/matches')).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(v => setCatalog(v.matches ?? [])).catch(() => { retry = window.setTimeout(loadCatalog, 4000); }); loadCatalog(); fetch(url('/api/live-state'), { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(s => { setLiveClock({ offset: s.serverTimeMs - Date.now(), start: s.instanceStartMs, matchId: s.matchId }); }).catch(() => undefined); return () => window.clearTimeout(retry); }, []);
   const match = catalog.find(item => item.matchId === matchId);
   const data = useMatchData(match ?? emptyView.match, clock);
   useEffect(() => {
@@ -178,7 +202,19 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
   const trackingSample = sampleTracking(trackingFrames.filter(frame => frame[0] <= clock), trackingOrder, clock);
   const gridRef = useRef<HTMLDivElement>(null); const dragging = useRef(false);
   const [panelWidth, setPanelWidth] = useState(260); const [panelOpen, setPanelOpen] = useState(true);
-  useEffect(() => { if (!liveClock) return; const timer = window.setInterval(() => { const elapsed = Date.now() + liveClock.offset - liveClock.epoch; const edge = ((elapsed % liveClock.duration) + liveClock.duration) % liveClock.duration; setLiveEdge(edge); setClock(current => playing ? edge : Math.min(current, edge)); }, 100); return () => window.clearInterval(timer); }, [liveClock, playing]);
+  const isLive = !!liveClock && !!match && liveClock.matchId === match.matchId;
+  const liveAt = () => liveClock && match ? Math.min(Math.max(0, Date.now() + liveClock.offset - liveClock.start), match.durationMs) : 0;
+  useEffect(() => { if (started.current || !liveClock || !match) return; started.current = true; const edge = isLive ? liveAt() : 0; setLiveEdge(isLive ? edge : match.durationMs); setClock(edge); }, [liveClock, match, isLive]);
+  useEffect(() => {
+    if (!liveClock || !match) return;
+    let last = Date.now();
+    const timer = window.setInterval(() => {
+      const step = Date.now() - last; last = Date.now();
+      if (isLive) { const edge = liveAt(); setLiveEdge(edge); setClock(current => playing ? edge : Math.min(current, edge)); }
+      else { setLiveEdge(match.durationMs); setClock(current => playing ? Math.min(match.durationMs, current + step) : current); }
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [liveClock, match?.matchId, match?.durationMs, isLive, playing]);
   const seek = (ms: number, event?: UiEvent) => { const t = Math.max(0, Math.min(liveEdge, event ? Math.max(ms, event.availableMs) : ms)); setReplay(null); setPlaying(false); setClock(t); setSelected(event?.eventId ?? null); };
   const startReplay = (clip: Clip, event: UiEvent) => {
     const from = clip.fromMs; const to = Math.min(clip.toMs, liveEdge);
@@ -195,9 +231,9 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
   if (!match) return <div className="picker"><main>{catalog.length ? <><h1>Match not found</h1><a href="/">Back to matches</a></> : <Waking what="the match" />}</main></div>;
   if (data.error) return <div className="picker"><main><h1>{match.label}</h1><p role="alert">{data.error}</p><Button onClick={() => window.location.reload()}>Retry</Button></main></div>;
   return <Context.Provider value={data}><div className="app-shell">
-    <header className="live-header"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><div className="compact-score"><div><TeamBadge team={match.home} /><span>{match.home.name}</span></div><strong aria-label={`${match.home.name} ${goals(match.home.teamId)}, ${match.away.name} ${goals(match.away.teamId)}`}>{goals(match.home.teamId)}<i>–</i>{goals(match.away.teamId)}</strong><div><span>{match.away.name}</span><TeamBadge team={match.away} /></div></div><div className="header-live"><span className="header-date">{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span><Personalize prefs={prefs} onChange={setPrefs} /><span className="header-clock"><strong>{formatClock(clock)}</strong><small>{clock < 45 * 60_000 ? 'First half' : 'Second half'}</small></span><button className={`live-state ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><span />{playing && Math.abs(clock - liveEdge) < 2500 ? 'Live' : 'Go live'}</button></div><section className="match-insights" aria-label="Generated match statistics"><div className="insight-grid">{metricCards ? <><Metric label="Possession" value={`${homeStats.possessionPct}% – ${awayStats.possessionPct}%`} detail={`${match.home.shortName} — ${match.away.shortName}`} /><Metric label="Shots" value={`${homeStats.shots} – ${awayStats.shots}`} detail={`Through ${formatClock(data.cutoffMs)}`} /><Metric label="On target" value={`${homeStats.shotsOnTarget} – ${awayStats.shotsOnTarget}`} detail="Attempts on target" /><Metric label="Pass completion" value={`${homeStats.passCompletionPct ?? '—'}% – ${awayStats.passCompletionPct ?? '—'}%`} detail="Completed passes / attempts" /></> : <div className="metric-card">Loading statistics for {formatClock(clock)}…</div>}</div></section></header>
+    <header className="live-header"><a className="brand" href="/" aria-label="Next Whistle match picker"><Mark /><span>Next Whistle</span></a><div className="compact-score"><div><TeamBadge team={match.home} /><span>{match.home.name}</span></div><strong aria-label={`${match.home.name} ${goals(match.home.teamId)}, ${match.away.name} ${goals(match.away.teamId)}`}>{goals(match.home.teamId)}<i>–</i>{goals(match.away.teamId)}</strong><div><span>{match.away.name}</span><TeamBadge team={match.away} /></div></div><div className="header-live"><span className="header-date">{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span><Personalize prefs={prefs} onChange={setPrefs} /><span className="header-clock"><strong>{formatClock(clock)}</strong><small>{clock < 45 * 60_000 ? 'First half' : 'Second half'}</small></span>{isLive ? <button className={`live-state ${playing ? 'is-live' : ''}`} onClick={() => { setClock(liveEdge); setPlaying(true); }}><span />{playing && Math.abs(clock - liveEdge) < 2500 ? 'Live' : 'Go live'}</button> : <button className="live-state" onClick={() => { setClock(0); setPlaying(true); }}><span />Replay · restart</button>}</div><section className="match-insights" aria-label="Generated match statistics"><div className="insight-grid">{metricCards ? <><Metric label="Possession" value={`${homeStats.possessionPct}% – ${awayStats.possessionPct}%`} detail={`${match.home.shortName} — ${match.away.shortName}`} /><Metric label="Shots" value={`${homeStats.shots} – ${awayStats.shots}`} detail={`Through ${formatClock(data.cutoffMs)}`} /><Metric label="On target" value={`${homeStats.shotsOnTarget} – ${awayStats.shotsOnTarget}`} detail="Attempts on target" /><Metric label="Pass completion" value={`${homeStats.passCompletionPct ?? '—'}% – ${awayStats.passCompletionPct ?? '—'}%`} detail="Completed passes / attempts" /></> : <div className="metric-card">Loading statistics for {formatClock(clock)}…</div>}</div></section></header>
     <main className="workspace"><h1 className="sr-only">{match.label} live match</h1>
-      <div className={`replay-grid ${panelOpen ? '' : 'panel-collapsed'}`} ref={gridRef} style={{ '--panel-width': `${panelOpen ? panelWidth : 0}px` } as React.CSSProperties}><section className="replay-stage" aria-label="Live match replay"><Pitch clock={clock} event={selectedEvent} tracking={trackingSample} tracked={tracked} activePlayer={activePlayer} setHovered={setHovered} toggleTracking={toggleTracking} events={events} />{replay && <ReplayBanner title={replay.title} from={replay.from} to={replay.to} clock={clock} running={replay.running} onToggle={toggleReplay} onExit={goLive} />}<div className="playback" role="group" aria-label="Playback controls"><button className="play-toggle" onClick={() => { if (replay) toggleReplay(); else setPlaying(value => !value); }} aria-label={(replay ? replay.running : playing) ? 'Pause' : 'Play'}>{(replay ? replay.running : playing) ? <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}</button><span className="playback-time">{formatClock(clock)}</span><label className="scrubber"><span className="sr-only">Match time</span><input type="range" min="0" max={liveEdge} step="1000" value={clock} onChange={event => seek(Number(event.target.value))} /></label><button type="button" className={`playback-live ${playing ? 'is-live' : ''}`} onClick={goLive}><i />{playing ? 'Live' : 'Go live'}</button></div></section><div className="panel-divider"><div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize match details panel. Arrow keys adjust, Home resets, Enter collapses." aria-valuemin={220} aria-valuemax={560} aria-valuenow={panelOpen ? panelWidth : 0} tabIndex={0} onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (dragging.current) resizeTo(event.clientX); }} onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }} onDoubleClick={() => setPanelWidth(260)} onKeyDown={resizeKey}><span aria-hidden="true" /></div><button type="button" className="panel-collapse" aria-label={panelOpen ? 'Collapse match details panel' : 'Expand match details panel'} aria-expanded={panelOpen} onClick={() => setPanelOpen(value => !value)}>{panelOpen ? '›' : '‹'}</button></div><SidePanel matchId={matchId} language={prefs.language} level={prefs.level} panel={panel} setPanel={setPanel} clock={listClock} events={panelEvents} selected={selected} seek={seek} onReplay={startReplay} replayId={replay?.clip.clipId} stats={stats} /></div>
+      <div className={`replay-grid ${panelOpen ? '' : 'panel-collapsed'}`} ref={gridRef} style={{ '--panel-width': `${panelOpen ? panelWidth : 0}px` } as React.CSSProperties}><section className="replay-stage" aria-label="Live match replay"><Pitch clock={clock} event={selectedEvent} tracking={trackingSample} tracked={tracked} activePlayer={activePlayer} setHovered={setHovered} toggleTracking={toggleTracking} events={events} />{replay && <ReplayBanner title={replay.title} from={replay.from} to={replay.to} clock={clock} running={replay.running} onToggle={toggleReplay} onExit={goLive} />}<div className="playback" role="group" aria-label="Playback controls"><button className="play-toggle" onClick={() => { if (replay) toggleReplay(); else setPlaying(value => !value); }} aria-label={(replay ? replay.running : playing) ? 'Pause' : 'Play'}>{(replay ? replay.running : playing) ? <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}</button><span className="playback-time">{formatClock(clock)}</span><label className="scrubber"><span className="sr-only">Match time</span><input type="range" min="0" max={liveEdge} step="1000" value={clock} onChange={event => seek(Number(event.target.value))} /></label>{isLive ? <button type="button" className={`playback-live ${playing ? 'is-live' : ''}`} onClick={goLive}><i />{playing ? 'Live' : 'Go live'}</button> : <button type="button" className="playback-live" onClick={() => { setReplay(null); setClock(0); setPlaying(true); setSelected(null); }}>Restart</button>}</div></section><div className="panel-divider"><div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize match details panel. Arrow keys adjust, Home resets, Enter collapses." aria-valuemin={220} aria-valuemax={560} aria-valuenow={panelOpen ? panelWidth : 0} tabIndex={0} onPointerDown={event => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (dragging.current) resizeTo(event.clientX); }} onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }} onDoubleClick={() => setPanelWidth(260)} onKeyDown={resizeKey}><span aria-hidden="true" /></div><button type="button" className="panel-collapse" aria-label={panelOpen ? 'Collapse match details panel' : 'Expand match details panel'} aria-expanded={panelOpen} onClick={() => setPanelOpen(value => !value)}>{panelOpen ? '›' : '‹'}</button></div><SidePanel matchId={matchId} language={prefs.language} level={prefs.level} panel={panel} setPanel={setPanel} clock={listClock} events={panelEvents} selected={selected} seek={seek} onReplay={startReplay} replayId={replay?.clip.clipId} stats={stats} /></div>
     </main>
   </div></Context.Provider>;
 }

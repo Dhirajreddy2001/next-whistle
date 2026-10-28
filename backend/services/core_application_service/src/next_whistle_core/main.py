@@ -101,7 +101,10 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.dataset = load_dataset(settings.dataset_path)
-        app.state.catalog = MatchCatalog.model_validate(app.state.dataset.catalog)
+        app.state.catalog = MatchCatalog.model_validate({
+            **app.state.dataset.catalog,
+            "matches": [{**row, "duration_ms": app.state.dataset.matches[row["match_id"]].duration_ms} for row in app.state.dataset.catalog["matches"]],
+        })
         app.state.session_signing_key = load_signing_key(settings)
         app.state.ip_hash_key = (settings.ip_hash_key or hashlib.sha256(app.state.session_signing_key + b"|ip").hexdigest()).encode()
         app.state.sessions, app.state.ops, closers = await open_stores(settings)

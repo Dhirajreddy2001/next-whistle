@@ -26,7 +26,7 @@ def test_catalog_is_spoiler_free_and_uses_api_names(client):
     assert len(payload["matches"]) == 2
     assert payload["datasetVersion"] == "1.3.0"
     assert payload["matches"][0]["matchId"] == "m_rvr_hrb"
-    assert set(payload["matches"][0]) == {"matchId", "label", "kickoffDate", "home", "away"}
+    assert set(payload["matches"][0]) == {"matchId", "label", "kickoffDate", "durationMs", "home", "away"}
     assert "score" not in response.text.lower()
     assert response.headers["x-request-id"].startswith("req_")
 

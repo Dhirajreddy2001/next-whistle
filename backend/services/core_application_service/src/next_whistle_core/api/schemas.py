@@ -20,6 +20,7 @@ class MatchSummary(ApiModel):
     match_id: str = Field(pattern=r"^m_[a-z0-9_]+$")
     label: str
     kickoff_date: date
+    duration_ms: int
     home: TeamSummary
     away: TeamSummary
 
