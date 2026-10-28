@@ -68,6 +68,8 @@ def test_schedule_endpoint_matches_live_state(tmp_path: Path):
     assert body["items"][0]["liveMatchMs"] == live["matchMs"] == window_offset_ms(50) + 600_000
     assert len({item["home"]["name"] for item in body["items"]} | {item["away"]["name"] for item in body["items"]}) >= 8
     assert response.headers["cache-control"] == "no-store"
+    assert all(item["score"] is not None for item in body["items"])  # live, replays and results all show a score
+    assert body["items"][1]["kind"] == "replay" and sum(body["items"][1]["score"].values()) >= 0
 
 
 def test_only_the_live_match_is_held_back_in_tracking(tmp_path: Path):

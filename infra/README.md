@@ -7,7 +7,7 @@ Everything for the contest lives in **one resource group** (`rg-nextwhistle-prod
 | Resource | Role |
 | --- | --- |
 | User-assigned managed identity `id-nextwhistle` | The "service account". The Core app runs as it, and it holds every role below. No keys or passwords. |
-| Foundry account + project `nextwhistle`, one deployment `deepseek` (DeepSeek-V4-Flash) | Models for the agents. The identity gets *Foundry User* (formerly Azure AI User) and *Cognitive Services OpenAI User* (the role that lets an identity call model deployments). Key access is disabled. |
+| Foundry account + project `nextwhistle`, one model deployment | Models for the agents. The identity gets *Foundry User* (formerly Azure AI User) and *Cognitive Services OpenAI User* (the role that lets an identity call model deployments). Key access is disabled. |
 | Cosmos DB for NoSQL (free tier), database `nextwhistle`, container `state` | Sessions, limits, spend allowance, cache. The identity gets the data-plane *Data Contributor* role. Key access is disabled. |
 | Storage account (private, no shared key) | Datasets and rules. The identity gets *Blob Data Contributor*. |
 | Container Apps environment + Core app (scale 0 to 1) | Runs as the identity; secrets are Container Apps secrets. |

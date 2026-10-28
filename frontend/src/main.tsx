@@ -125,8 +125,8 @@ function MatchPicker({ prefs, setPrefs }: { prefs: Prefs; setPrefs: (p: Prefs) =
             const live = item.kind === 'live'; const result = item.kind === 'result';
             const minute = Math.floor(((item.liveMatchMs ?? 0) + Math.max(0, now - loadedAt)) / 60_000) + 1;
             const body = <div className="lp-body">
-              <div className="lp-tags"><span className={`lp-pill ${live ? 'live' : ''}`}>{live && <i />}{live ? 'Live now' : result ? 'Result' : 'Replay'}</span><span className="lp-meta">{live ? `${minute}'` : result ? 'Final score' : 'Full match'}</span></div>
-              <div className="lp-teams"><Side team={item.home} />{result && item.score ? <span className="lp-score" aria-label={`${item.home.name} ${item.score.home}, ${item.away.name} ${item.score.away}`}>{item.score.home}–{item.score.away}</span> : <span className="lp-vs">VS</span>}<Side team={item.away} away /></div>
+              <div className="lp-tags"><span className={`lp-pill ${live ? 'live' : ''}`}>{live && <i />}{live ? 'Live now' : result ? 'Result' : 'Replay'}</span><span className="lp-meta">{live ? `${minute}' · score so far` : 'Final score'}</span></div>
+              <div className="lp-teams"><Side team={item.home} />{item.score ? <span className="lp-score" aria-label={`${item.home.name} ${item.score.home}, ${item.away.name} ${item.score.away}`}>{item.score.home}–{item.score.away}</span> : <span className="lp-vs">VS</span>}<Side team={item.away} away /></div>
               {result && !!item.keyMoments?.length && <ul className="lp-moments" aria-label="Key moments">{item.keyMoments.map((moment, index) => <li key={index}>{moment.minute}' {MOMENTS[moment.kind] ?? moment.kind}</li>)}</ul>}
             </div>;
             return <div className="lp-entry" key={item.slot}>

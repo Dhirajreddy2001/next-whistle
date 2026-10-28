@@ -27,7 +27,7 @@ from next_whistle_core.services.schedule import build_schedule, playable_for_slo
 from next_whistle_core.services.replay import player_summary, state_at, team_stats, visible_events
 from next_whistle_core.services.agent_client import AgentServiceClient
 from next_whistle_core.services.ask import answer_without_model, load_rule_index
-from next_whistle_core.services.narration import explain_fallback
+from next_whistle_core.services.narration import explain_fallback, score_at
 from next_whistle_shared.ask import sanitize_question
 from next_whistle_core.services.generation import (
     build_agent_request, build_law_request, fallback_response, project_root, referee_fallback, supported_question,
@@ -201,10 +201,17 @@ def create_app(
         if app.state.dataset is None:
             raise HTTPException(503, "Catalog not loaded")
         response.headers["Cache-Control"] = "no-store"
-        return Schedule.model_validate(build_schedule(
+        schedule = build_schedule(
             now_ms(), epoch_ms=settings.live_instance_epoch_ms, duration_ms=settings.live_match_duration_ms,
             matches=app.state.dataset.catalog["matches"], history=list(app.state.dataset.history),
-        ))
+        )
+        for item in schedule["items"]:
+            if item["kind"] == "result":
+                continue
+            data = app.state.dataset.matches[item["match_id"]]
+            goals = score_at(data, item["live_match_ms"] if item["kind"] == "live" else data.duration_ms)  # the live card shows the score so far, a replay its final score
+            item["score"] = {"home": goals[item["home"]["team_id"]], "away": goals[item["away"]["team_id"]]}
+        return Schedule.model_validate(schedule)
 
     @app.get("/api/live-state", response_model=LiveMatchState)
     async def live_state(response: Response):

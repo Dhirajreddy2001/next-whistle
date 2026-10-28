@@ -127,7 +127,7 @@ class FoundryRunner:
 
         A free-text question lets the model gather with its own tools; the buttons use the standard set from `prefetch`.
 
-        Asking for strict structured output and tools in the same call made DeepSeek answer in JSON immediately and
+        Asking for strict structured output and tools in the same call made the model answer in JSON immediately and
         skip the tools, so the phases are separate.
         """
         if is_free_text(run.payload):

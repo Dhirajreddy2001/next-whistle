@@ -21,7 +21,7 @@ Watch a fictional match replay in real time, tap any key moment, and get an expl
 flowchart LR
     B[Browser<br/>React + TypeScript] -->|HTTPS| C[Core service<br/>FastAPI]
     C -->|evidence request| A[Agent service<br/>Microsoft Agent Framework]
-    A -->|model calls| F[Microsoft Foundry<br/>DeepSeek-V4-Flash]
+    A -->|model calls| F[Microsoft Foundry<br/>hosted model]
     C --- S[(Sessions, limits, caches<br/>SQLite locally, Cosmos DB in Azure)]
     A --- D[(Synthetic match data<br/>+ rules corpus)]
 ```
@@ -64,7 +64,7 @@ make validate-data    # validate hashes, chronology, cutoffs, geometry and movem
 | Frontend | React 18, TypeScript, Vite; original SVG pitch and icons |
 | Core service | Python 3.12, FastAPI, Pydantic; SQLite locally, Azure Cosmos DB in production |
 | Agent service | Python 3.13, Microsoft Agent Framework 1.x, Foundry Responses host |
-| Model | DeepSeek-V4-Flash on Microsoft Foundry (pay per token) |
+| Model | A model hosted on Microsoft Foundry (pay per token, swappable by configuration) |
 | Infrastructure | Bicep for Azure (Container Apps, Static Web Apps, Cosmos DB, Storage); Dockerfiles in `infra/docker/` |
 
 ## Repository layout
@@ -83,7 +83,7 @@ make validate-data    # validate hashes, chronology, cutoffs, geometry and movem
 ## Evidence and quality
 
 - **Tests:** 111 Core tests and 57 agent tests pass, and the scripted evaluation passes 116 of 116 cases.
-- **Live evaluation:** the same 116 cases were run against the real model (DeepSeek-V4-Flash): **110 passed (94.8%)**. That run used the previous dataset version, before the match generator was rebuilt, and has not been repeated since. A pass means the facts, citations, level limits and language are right.
+- **Live evaluation:** the same 116 cases were run against the real hosted model: **110 passed (94.8%)**. That run used the previous dataset version, before the match generator was rebuilt, and has not been repeated since. A pass means the facts, citations, level limits and language are right.
 - **Cost:** the whole evaluation effort cost well under one US dollar of model usage. The project's total cloud budget is USD 20 ([plan](docs/cloud-plan.md)).
 
 ## Known limitations
