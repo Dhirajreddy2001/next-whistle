@@ -85,18 +85,38 @@ function App() {
   const [prefs, setPrefs] = useState(readPrefs);
   useEffect(() => { document.documentElement.dataset.theme = prefs.theme; localStorage.setItem(prefsKey, JSON.stringify(prefs)); }, [prefs]);
   const matchId = window.location.pathname.match(/^\/match\/([^/]+)/)?.[1];
-  return matchId ? <ReplayApp matchId={matchId} prefs={prefs} setPrefs={setPrefs} /> : <MatchPicker />;
+  return matchId ? <ReplayApp matchId={matchId} prefs={prefs} setPrefs={setPrefs} /> : <MatchPicker prefs={prefs} setPrefs={setPrefs} />;
 }
 function Waking({ what }: { what: string }) {
   const [slow, setSlow] = useState(false);
   useEffect(() => { const timer = window.setTimeout(() => setSlow(true), 3000); return () => window.clearTimeout(timer); }, []);
   return <div className="waking" role="status"><span className="waking-dot" aria-hidden="true" /><div><strong>{slow ? 'Waking up the server…' : `Loading ${what}…`}</strong>{slow && <p>The first visit after a quiet period can take up to 30 seconds. After that it is fast.</p>}</div></div>;
 }
-function MatchPicker() {
+function MatchPicker({ prefs, setPrefs }: { prefs: Prefs; setPrefs: (p: Prefs) => void }) {
   const [matches, setMatches] = useState<Match[]>([]); const [error, setError] = useState('');
   const load = () => fetch(url('/api/matches')).then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(result => { setMatches(result.matches); setError(''); }).catch(() => setError('The match list could not be loaded. Please try again in a moment.'));
   useEffect(() => { void load(); }, []);
-  return <div className="picker"><header className="topbar"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a></header><main><header><h1>Choose a match</h1><p>Follow the action, inspect turning points, and understand the decisions shaping the game.</p></header>{error ? <div className="empty-panel"><p role="alert">{error}</p><Button onClick={() => void load()}>Retry</Button></div> : !matches.length ? <Waking what="matches" /> : <div className="fixture-list">{matches.map((match, index) => <a className="fixture" href={`/match/${match.matchId}`} key={match.matchId}><div><span>{match.label} · Matchday {index + 1}</span><time>{new Date(`${match.kickoffDate}T12:00:00`).toLocaleDateString()}</time></div><div className="fixture-teams"><TeamBadge team={match.home} /><strong>{match.home.name}</strong><span>v</span><strong>{match.away.name}</strong><TeamBadge team={match.away} /></div><span className="open-match">Open match →</span></a>)}</div>}</main></div>;
+  return <div className="picker">
+    <header className="topbar"><a className="brand" href="/"><Mark /><span>Next Whistle</span></a><Personalize prefs={prefs} onChange={setPrefs} /></header>
+    <main>
+      <section className="hero">
+        <svg className="hero-pitch" viewBox="0 0 210 136" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="4" y="4" width="202" height="128" rx="3" /><path d="M105 4v128" /><circle cx="105" cy="68" r="18" /><path d="M4 38h30v60H4M206 38h-30v60h30" /></g></svg>
+        <p className="eyebrow">Football match companion</p>
+        <h1>Understand every decision, <span>as it happens.</span></h1>
+        <p className="hero-lede">Replay a match, tap any moment and get a plain-language explanation checked against the recorded evidence. Ask the referee why a call was made.</p>
+        <ul className="hero-points"><li>Time-correct replay</li><li>Explanations checked against evidence</li><li>Ask the Ref</li></ul>
+        <p className="view-summary"><span>Viewing as</span><b>{prefs.level[0].toUpperCase() + prefs.level.slice(1)}</b><b>{prefs.language}</b><b>{prefs.perspective}</b><small>Change this any time in Personalize.</small></p>
+      </section>
+      <section className="matches" aria-labelledby="matches-title">
+        <h2 id="matches-title">Choose a match</h2>
+        {error ? <div className="empty-panel"><p role="alert">{error}</p><Button onClick={() => void load()}>Retry</Button></div> : !matches.length ? <Waking what="matches" /> : <div className="fixture-list">{matches.map((match, index) => <a className="match-card" href={`/match/${match.matchId}`} key={match.matchId}>
+          <div className="match-card-meta"><span>Matchday {index + 1}</span><time>{new Date(`${match.kickoffDate}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</time></div>
+          <div className="match-card-teams"><div className="side"><TeamBadge team={match.home} /><strong>{match.home.name}</strong></div><span className="vs">vs</span><div className="side"><TeamBadge team={match.away} /><strong>{match.away.name}</strong></div></div>
+          <span className="open-match">Watch the replay <i aria-hidden="true">→</i></span></a>)}</div>}
+      </section>
+    </main>
+    <footer className="picker-footer">All clubs, players and matches are fictional. Football rules are paraphrased from the IFAB Laws of the Game.</footer>
+  </div>;
 }
 function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs; setPrefs: (p: Prefs) => void }) {
   const [catalog, setCatalog] = useState<Match[]>([]); const [liveEdge, setLiveEdge] = useState(0); const [clock, setClock] = useState(0); const [playing, setPlaying] = useState(true); const [selected, setSelected] = useState<string | null>(null); const [panel, setPanel] = useState<Panel>('insights'); const [tracked, setTracked] = useState<string[]>([]); const [hovered, setHovered] = useState<string | null>(null); const [trackingFrames, setTrackingFrames] = useState<Frame[]>([]); const [trackingOrder, setTrackingOrder] = useState<string[]>([]);
