@@ -23,7 +23,7 @@ from next_whistle_core.api.schemas import (
 )
 from next_whistle_core.config import Settings
 from next_whistle_core.security import hash_refresh_token, issue_access_token, read_access_token
-from next_whistle_core.services.schedule import build_schedule, playable_for_slot, slot_of
+from next_whistle_core.services.schedule import build_schedule, playable_for_slot, slot_of, window_offset_ms
 from next_whistle_core.services.replay import player_summary, state_at, team_stats, visible_events
 from next_whistle_core.services.agent_client import AgentServiceClient
 from next_whistle_core.services.ask import answer_without_model, load_rule_index
@@ -191,10 +191,10 @@ def create_app(
         )
 
     def live_slot(current_ms: int) -> tuple[int, int, int, str]:
-        """The slot now, how far into it we are, when it started and which playable match is live in it."""
+        """The slot now, how far into the match the live window is (it opens after half time), when the slot started and which playable match is live in it."""
         slot = slot_of(current_ms, settings.live_instance_epoch_ms, settings.live_match_duration_ms)
         start_ms = settings.live_instance_epoch_ms + slot * settings.live_match_duration_ms
-        return slot, current_ms - start_ms, start_ms, playable_for_slot(slot, [match.match_id for match in app.state.catalog.matches])
+        return slot, window_offset_ms(slot) + current_ms - start_ms, start_ms, playable_for_slot(slot, [match.match_id for match in app.state.catalog.matches])
 
     @app.get("/api/schedule", response_model=Schedule)
     async def schedule_endpoint(response: Response):

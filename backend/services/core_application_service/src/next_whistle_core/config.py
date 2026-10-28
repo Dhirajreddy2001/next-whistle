@@ -9,7 +9,7 @@ class Settings:
     dataset_path: Path
     allowed_origins: tuple[str, ...] = ("http://localhost:5173",)
     live_instance_epoch_ms: int = 1_791_302_400_000
-    live_match_duration_ms: int = 5_760_000
+    live_match_duration_ms: int = 1_800_000
     session_db_path: Path = Path(".local/sessions.sqlite3")
     session_signing_key: str | None = None
     agent_service_url: str = "http://127.0.0.1:8088"
@@ -50,7 +50,7 @@ class Settings:
                 if origin.strip()
             ),
             live_instance_epoch_ms=int(os.getenv("LIVE_INSTANCE_EPOCH_MS", "1791302400000")),
-            live_match_duration_ms=int(os.getenv("LIVE_MATCH_DURATION_MS", "5760000")),
+            live_match_duration_ms=int(os.getenv("LIVE_MATCH_DURATION_MS", "1800000")),
             session_db_path=Path(os.getenv("SESSION_DB_PATH", str(root / ".local/sessions.sqlite3"))),
             session_signing_key=os.getenv("SESSION_SIGNING_KEY"),
             agent_service_url=os.getenv("AGENT_SERVICE_URL", "http://127.0.0.1:8088").rstrip("/"),

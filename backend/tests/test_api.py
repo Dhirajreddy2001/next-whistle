@@ -6,6 +6,7 @@ from dataclasses import replace
 
 from app.config import Settings
 from app.main import create_app
+from next_whistle_core.services.schedule import window_offset_ms
 
 
 @pytest.fixture
@@ -50,7 +51,8 @@ def test_live_state_is_shared_and_wall_clock_driven(tmp_path: Path):
     with TestClient(create_app(settings, now_ms=lambda: 1_000_000 + 2_345_678)) as second:
         second_state = second.get("/api/live-state").json()
     assert first_state == second_state
-    assert first_state["matchMs"] == 2_345_678
+    assert first_state["matchMs"] == window_offset_ms(0) + 2_345_678
+    assert first_state["matchMs"] > 45 * 60_000
     assert first_state["matchId"] in {"m_rvr_hrb", "m_hrb_ash"}
     assert first_state["instanceId"] == f"li_{first_state['matchId'][2:]}_0"
     with TestClient(create_app(settings, now_ms=lambda: 1_000_000 + 2_345_678)) as client:

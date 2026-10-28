@@ -1,6 +1,6 @@
 """A match schedule that everyone sees the same way, worked out from the UTC clock.
 
-Time is cut into slots, one match long. The slot that contains "now" is live, the few before it are replays of the playable
+Time is cut into slots, one match long. The slot that contains "now" is live (its window opens after half time, so there are events to see), the few before it are replays of the playable
 matches, and the ones before those are results taken from the history file. Which match sits in which slot comes from a
 seeded shuffle, so it never depends on who asks or when the server started.
 """
@@ -17,6 +17,14 @@ PALETTE = (("#f6c453", "#33260a"), ("#ff9db1", "#3a1020"), ("#9be3c3", "#0f2e22"
 
 def _rank(*parts: object) -> int:
     return int.from_bytes(hashlib.sha256(":".join([SEED, *map(str, parts)]).encode()).digest()[:8], "big")
+
+
+HALF_TIME_MS = 45 * 60_000
+
+
+def window_offset_ms(slot: int) -> int:
+    """Where in the match a slot's live window starts: always after half time, 46' to 66', the same for everyone."""
+    return HALF_TIME_MS + 60_000 + _rank("offset", slot) % (20 * 60_000)
 
 
 def slot_of(now_ms: int, epoch_ms: int, duration_ms: int) -> int:
@@ -54,7 +62,7 @@ def build_schedule(now_ms: int, *, epoch_ms: int, duration_ms: int, matches: lis
         return {"slot": of_slot, "starts_at_ms": starts_at_ms, "starts_at": iso_utc(starts_at_ms), "duration_ms": duration_ms}
 
     live_id = playable_for_slot(slot, list(by_id))
-    items = [{**start(slot), "kind": "live", "match_id": live_id, "home": by_id[live_id]["home"], "away": by_id[live_id]["away"], "live_match_ms": now_ms - (epoch_ms + slot * duration_ms)}]
+    items = [{**start(slot), "kind": "live", "match_id": live_id, "home": by_id[live_id]["home"], "away": by_id[live_id]["away"], "live_match_ms": window_offset_ms(slot) + now_ms - (epoch_ms + slot * duration_ms)}]
     for earlier in range(slot - 1, max(-1, slot - replays - 1), -1):
         match_id = playable_for_slot(earlier, list(by_id))
         items.append({**start(earlier), "kind": "replay", "match_id": match_id, "home": by_id[match_id]["home"], "away": by_id[match_id]["away"]})

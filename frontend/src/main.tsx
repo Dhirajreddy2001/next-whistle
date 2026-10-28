@@ -144,7 +144,7 @@ function MatchPicker({ prefs, setPrefs }: { prefs: Prefs; setPrefs: (p: Prefs) =
 }
 function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs; setPrefs: (p: Prefs) => void }) {
   const [catalog, setCatalog] = useState<Match[]>([]); const [liveEdge, setLiveEdge] = useState(0); const [clock, setClock] = useState(0); const [playing, setPlaying] = useState(true); const [selected, setSelected] = useState<string | null>(null); const [panel, setPanel] = useState<Panel>('insights'); const [tracked, setTracked] = useState<string[]>([]); const [hovered, setHovered] = useState<string | null>(null); const [trackingFrames, setTrackingFrames] = useState<Frame[]>([]); const [trackingOrder, setTrackingOrder] = useState<string[]>([]);
-  const [liveClock, setLiveClock] = useState<{ offset: number; start: number; matchId: string } | null>(null); const started = useRef(false);
+  const [liveClock, setLiveClock] = useState<{ offset: number; serverTimeMs: number; matchMs: number; matchId: string } | null>(null); const started = useRef(false);
   const clockRef = useRef(clock); clockRef.current = clock;
   const trackingCursor = useRef(-1);
   const [replay, setReplay] = useState<{ clip: Clip; title: string; from: number; to: number; restore: number; running: boolean } | null>(null);
@@ -156,7 +156,7 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
     return () => window.clearInterval(timer);
   }, [replay?.clip.clipId, replay?.running, replay?.to]);
   useEffect(() => { if (replay?.running && clock >= replay.to) setReplay(current => current && { ...current, running: false }); }, [clock, replay]);
-  useEffect(() => { let retry: number; const loadCatalog = () => fetch(url('/api/matches')).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(v => setCatalog(v.matches ?? [])).catch(() => { retry = window.setTimeout(loadCatalog, 4000); }); loadCatalog(); fetch(url('/api/live-state'), { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(s => { setLiveClock({ offset: s.serverTimeMs - Date.now(), start: s.instanceStartMs, matchId: s.matchId }); }).catch(() => undefined); return () => window.clearTimeout(retry); }, []);
+  useEffect(() => { let retry: number; const loadCatalog = () => fetch(url('/api/matches')).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(v => setCatalog(v.matches ?? [])).catch(() => { retry = window.setTimeout(loadCatalog, 4000); }); loadCatalog(); fetch(url('/api/live-state'), { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(s => { setLiveClock({ offset: s.serverTimeMs - Date.now(), serverTimeMs: s.serverTimeMs, matchMs: s.matchMs, matchId: s.matchId }); }).catch(() => undefined); return () => window.clearTimeout(retry); }, []);
   const match = catalog.find(item => item.matchId === matchId);
   const data = useMatchData(match ?? emptyView.match, clock);
   useEffect(() => {
@@ -203,8 +203,8 @@ function ReplayApp({ matchId, prefs, setPrefs }: { matchId: string; prefs: Prefs
   const gridRef = useRef<HTMLDivElement>(null); const dragging = useRef(false);
   const [panelWidth, setPanelWidth] = useState(260); const [panelOpen, setPanelOpen] = useState(true);
   const isLive = !!liveClock && !!match && liveClock.matchId === match.matchId;
-  const liveAt = () => liveClock && match ? Math.min(Math.max(0, Date.now() + liveClock.offset - liveClock.start), match.durationMs) : 0;
-  useEffect(() => { if (started.current || !liveClock || !match) return; started.current = true; const edge = isLive ? liveAt() : 0; setLiveEdge(isLive ? edge : match.durationMs); setClock(edge); }, [liveClock, match, isLive]);
+  const liveAt = () => liveClock && match ? Math.min(liveClock.matchMs + Math.max(0, Date.now() + liveClock.offset - liveClock.serverTimeMs), match.durationMs) : 0;
+  useEffect(() => { if (started.current || !liveClock || !match) return; started.current = true; const secondHalfStart = 46 * 60_000; const edge = isLive ? liveAt() : secondHalfStart + Math.floor(Math.random() * Math.max(1, Math.min(35 * 60_000, match.durationMs - secondHalfStart - 1))); setLiveEdge(isLive ? edge : match.durationMs); setClock(edge); }, [liveClock, match, isLive]);
   useEffect(() => {
     if (!liveClock || !match) return;
     let last = Date.now();
